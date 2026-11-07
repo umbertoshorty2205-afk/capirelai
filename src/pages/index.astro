@@ -24,7 +24,7 @@ const aggiornamenti = (await getCollection("aggiornamenti")).slice(0, 3);
     concetti.length > 0 ? (
       <div class="card-grid">
         {concetti.map((a) => (
-          <a class="card" href={`/concetti/${a.slug}`} style="text-decoration:none; color:inherit;">
+          <a class="card" href={`/concetti/${a.id}`} style="text-decoration:none; color:inherit;">
             <h3>{a.data.titolo}</h3>
             <p style="margin:0 0 0.4rem; color:var(--muted);">{a.data.descrizione}</p>
             <span class="meta">{a.data.autore} · {a.data.data.toLocaleDateString("it-IT")}</span>

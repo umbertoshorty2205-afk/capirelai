@@ -1,0 +1,32 @@
+---
+import { getCollection, render } from "astro:content";
+import MainLayout from "../../layouts/MainLayout.astro";
+
+export async function getStaticPaths() {
+  const collezioni = ["concetti", "guide", "prove", "aggiornamenti"];
+  const percorsi = [];
+
+  for (const collection of collezioni) {
+    const articoli = await getCollection(collection);
+    for (const entry of articoli) {
+      percorsi.push({
+        params: { collection, slug: entry.id },
+        props: { entry },
+      });
+    }
+  }
+
+  return percorsi;
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<MainLayout title={entry.data.titolo}>
+  <article>
+    <h1>{entry.data.titolo}</h1>
+    <p>{entry.data.descrizione}</p>
+    <Content />
+  </article>
+</MainLayout>

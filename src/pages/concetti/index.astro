@@ -1,0 +1,30 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+
+const articoli = await getCollection("concetti");
+articoli.sort((a, b) => b.data.data.getTime() - a.data.data.getTime());
+---
+
+<MainLayout title="Concetti — Capire l'AI" description="Spiegazioni chiare sui concetti fondamentali dell'intelligenza artificiale." current="concetti">
+  <h1>Concetti</h1>
+  <p>Una spiegazione graduale dei concetti chiave dietro l'intelligenza artificiale: modelli, token, contesto, addestramento e altro.</p>
+
+  {
+    articoli.length > 0 ? (
+      <div class="card-grid">
+        {articoli.map((a) => (
+          <a class="card" href={`/concetti/${a.slug}`} style="text-decoration:none; color:inherit;">
+            <h3>{a.data.titolo}</h3>
+            <p style="margin:0 0 0.4rem; color:var(--muted);">{a.data.descrizione}</p>
+            <span class="meta">
+              {a.data.autore} · {a.data.data.toLocaleDateString("it-IT")}
+            </span>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="empty">Nessun articolo ancora. Torna presto con nuovi contenuti.</p>
+    )
+  }
+</MainLayout>

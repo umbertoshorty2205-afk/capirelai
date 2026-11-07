@@ -1,0 +1,47 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  current?: string;
+}
+
+const { title, description, current = "" } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <header class="site">
+      <nav>
+        <a class="brand" href="/">
+          Capire l'AI
+          <small>capirelai.com</small>
+        </a>
+        <ul>
+          <li><a href="/concetti" class={current === "concetti" ? "active" : ""}>Concetti</a></li>
+          <li><a href="/guide" class={current === "guide" ? "active" : ""}>Guide</a></li>
+          <li><a href="/prove" class={current === "prove" ? "active" : ""}>Prove</a></li>
+          <li><a href="/aggiornamenti" class={current === "aggiornamenti" ? "active" : ""}>Aggiornamenti</a></li>
+          <li><a href="/chi-sono" class={current === "chi-sono" ? "active" : ""}>Chi sono</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site">
+      <p>Capire l'AI — divulgazione sull'intelligenza artificiale in italiano.</p>
+    </footer>
+  </body>
+</html>

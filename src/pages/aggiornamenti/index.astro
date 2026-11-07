@@ -1,0 +1,30 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+
+const articoli = await getCollection("aggiornamenti");
+articoli.sort((a, b) => b.data.data.getTime() - a.data.data.getTime());
+---
+
+<MainLayout title="Aggiornamenti — Capire l'AI" description="Novità e aggiornamenti sul mondo dell'intelligenza artificiale." current="aggiornamenti">
+  <h1>Aggiornamenti</h1>
+  <p>Le novità più importanti lette con uno sguardo critico: nuovi modelli, annunci e cambiamenti che contano davvero.</p>
+
+  {
+    articoli.length > 0 ? (
+      <div class="card-grid">
+        {articoli.map((a) => (
+          <a class="card" href={`/aggiornamenti/${a.slug}`} style="text-decoration:none; color:inherit;">
+            <h3>{a.data.titolo}</h3>
+            <p style="margin:0 0 0.4rem; color:var(--muted);">{a.data.descrizione}</p>
+            <span class="meta">
+              {a.data.autore} · {a.data.data.toLocaleDateString("it-IT")}
+            </span>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="empty">Nessun articolo ancora. Torna presto con nuovi contenuti.</p>
+    )
+  }
+</MainLayout>

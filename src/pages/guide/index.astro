@@ -1,0 +1,30 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+
+const articoli = await getCollection("guide");
+articoli.sort((a, b) => b.data.data.getTime() - a.data.data.getTime());
+---
+
+<MainLayout title="Guide — Capire l'AI" description="Guide pratiche per imparare a usare l'intelligenza artificiale." current="guide">
+  <h1>Guide</h1>
+  <p>Guide passo-passo per mettere in pratica le capacità dell'IA: da zero al primo prompt, fino ai flussi di lavoro avanzati.</p>
+
+  {
+    articoli.length > 0 ? (
+      <div class="card-grid">
+        {articoli.map((a) => (
+          <a class="card" href={`/guide/${a.slug}`} style="text-decoration:none; color:inherit;">
+            <h3>{a.data.titolo}</h3>
+            <p style="margin:0 0 0.4rem; color:var(--muted);">{a.data.descrizione}</p>
+            <span class="meta">
+              {a.data.autore} · {a.data.data.toLocaleDateString("it-IT")}
+            </span>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="empty">Nessun articolo ancora. Torna presto con nuovi contenuti.</p>
+    )
+  }
+</MainLayout>

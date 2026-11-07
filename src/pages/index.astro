@@ -1,0 +1,58 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+
+const concetti = (await getCollection("concetti")).slice(0, 3);
+const guide = (await getCollection("guide")).slice(0, 3);
+const prove = (await getCollection("prove")).slice(0, 3);
+const aggiornamenti = (await getCollection("aggiornamenti")).slice(0, 3);
+---
+
+<MainLayout title="Capire l'AI — Divulgazione sull'Intelligenza Artificiale" description="Divulgazione sull'intelligenza artificiale in italiano: concetti, guide, prove sul campo e aggiornamenti.">
+  <div style="text-align:center; padding: 2rem 0 3rem;">
+    <h1 style="font-size: clamp(2.2rem, 5vw, 3.2rem); margin-bottom: 0.5rem;">Capire l'AI</h1>
+    <p style="font-size: 1.2rem; color: var(--muted); max-width: 580px; margin: 0 auto 1.5rem;">
+      L'intelligenza artificiale spiegata in italiano. Senza hype, con chiarezza e con prove pratiche.
+    </p>
+    <a href="/concetti" style="display:inline-block; padding: 0.6rem 1.25rem; background: var(--accent); color: var(--accent-contrast); border-radius: var(--radius); font-weight: 600;">
+      Inizia dai concetti →
+    </a>
+  </div>
+
+  <h2>Ultimi concetti</h2>
+  {
+    concetti.length > 0 ? (
+      <div class="card-grid">
+        {concetti.map((a) => (
+          <a class="card" href={`/concetti/${a.slug}`} style="text-decoration:none; color:inherit;">
+            <h3>{a.data.titolo}</h3>
+            <p style="margin:0 0 0.4rem; color:var(--muted);">{a.data.descrizione}</p>
+            <span class="meta">{a.data.autore} · {a.data.data.toLocaleDateString("it-IT")}</span>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="empty">Nessun articolo ancora. Torna presto con nuovi contenuti.</p>
+    )
+  }
+
+  <h2>Sezioni del sito</h2>
+  <div class="card-grid">
+    <a class="card" href="/concetti" style="text-decoration:none; color:inherit;">
+      <h3>Concetti</h3>
+      <p style="color:var(--muted);">I mattoni fondamentali per capire l'IA: token, contesto, modelli.</p>
+    </a>
+    <a class="card" href="/guide" style="text-decoration:none; color:inherit;">
+      <h3>Guide</h3>
+      <p style="color:var(--muted);">Passo-passo per imparare a usare l'IA nel lavoro e nello studio.</p>
+    </a>
+    <a class="card" href="/prove" style="text-decoration:none; color:inherit;">
+      <h3>Prove</h3>
+      <p style="color:var(--muted);">Test sul campo, benchmark e casi d'uso concreti.</p>
+    </a>
+    <a class="card" href="/aggiornamenti" style="text-decoration:none; color:inherit;">
+      <h3>Aggiornamenti</h3>
+      <p style="color:var(--muted);">Le novità del settore spiegate con occhio critico.</p>
+    </a>
+  </div>
+</MainLayout>

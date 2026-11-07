@@ -1,4 +1,4 @@
----
+﻿---
 import MainLayout from "../../layouts/MainLayout.astro";
 import { getCollection } from "astro:content";
 
@@ -14,7 +14,7 @@ articoli.sort((a, b) => b.data.data.getTime() - a.data.data.getTime());
     articoli.length > 0 ? (
       <div class="card-grid">
         {articoli.map((a) => (
-          <a class="card" href={`/guide/${a.slug}`} style="text-decoration:none; color:inherit;">
+          <a class="card" href={`/guide/${a.id}`} style="text-decoration:none; color:inherit;">
             <h3>{a.data.titolo}</h3>
             <p style="margin:0 0 0.4rem; color:var(--muted);">{a.data.descrizione}</p>
             <span class="meta">

@@ -1,0 +1,30 @@
+name: controllo-sito
+
+on:
+  schedule:
+    # Ogni lunedì alle 8:00 UTC
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+jobs:
+  controllo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verifica che i URL rispondano con stato 200
+        run: |
+          set -e
+          URLS=(
+            "https://capirelai.com/"
+            "https://capirelai.com/sitemap-index.xml"
+            "https://capirelai.com/guide/riassunto-documenti-lunghi/"
+            "https://capirelai.com/concetti/token/"
+          )
+          for url in "${URLS[@]}"; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$url")
+            echo "$code  $url"
+            if [ "$code" != "200" ]; then
+              echo "ERRORE: $url ha risposto con stato $code (atteso 200)" >&2
+              exit 1
+            fi
+          done
+          echo "Tutti gli URL hanno risposto con 200."

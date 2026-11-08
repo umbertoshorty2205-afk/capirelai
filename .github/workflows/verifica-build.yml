@@ -1,0 +1,47 @@
+name: verifica-build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-e-verifica:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verifica frontmatter nei file di content
+        run: |
+          set -e
+          CAMPI=("titolo" "descrizione" "data" "autore")
+          TROVATO=0
+          for file in $(find src/content -type f -name "*.md"); do
+            for campo in "${CAMPI[@]}"; do
+              if ! grep -qE "^${campo}:" "$file"; then
+                echo "ERRORE: $file non contiene il campo frontmatter '$campo'" >&2
+                TROVATO=1
+              fi
+            done
+          done
+          if [ "$TROVATO" -eq 1 ]; then
+            exit 1
+          fi
+          echo "Tutti i file di src/content/ hanno i campi frontmatter richiesti."
+
+      - name: Verifica assenza di segnaposti "DA COMPLETARE"
+        run: |
+          if grep -rq "DA COMPLETARE" src/content/; then
+            echo "ERRORE: trovata la stringa 'DA COMPLETARE' in src/content/:" >&2
+            grep -rn "DA COMPLETARE" src/content/ >&2
+            exit 1
+          fi
+          echo "Nessun segnaposto 'DA COMPLETARE' trovato in src/content/."

@@ -1,4 +1,4 @@
-\---
+---
 
 titolo: "Come riassumere un documento lungo con l'AI"
 
@@ -8,7 +8,7 @@ data: 2026-11-07
 
 autore: "Capire l'AI"
 
-\---
+---
 
 
 

@@ -32,13 +32,13 @@ Un buon prompt di riassunto dice al modello cosa fare, per chi, in quale formato
 
 
 
-\- \*\*il compito\*\*, cioè cosa vuoi ottenere;
+\- **il compito**, cioè cosa vuoi ottenere;
 
-\- \*\*il pubblico\*\*, per calibrare il livello di dettaglio;
+\- **il pubblico**, per calibrare il livello di dettaglio;
 
-\- \*\*il formato\*\*, per esempio cinque punti o un paragrafo;
+\- **il formato**, per esempio cinque punti o un paragrafo;
 
-\- \*\*le regole\*\*, in particolare l'obbligo di usare solo il testo fornito e di segnalare ciò che manca o non è chiaro.
+\- **le regole**, in particolare l'obbligo di usare solo il testo fornito e di segnalare ciò che manca o non è chiaro.
 
 
 
@@ -88,19 +88,27 @@ Ho usato due prompt, in conversazioni separate. Il prompt A era semplice: "Riass
 
 
 
-\*\*Risultati.\*\* Il prompt A ha prodotto un riassunto discorsivo e fedele nei fatti principali, come la definizione di Mitchell e la storia del campo. Non segnalava nulla di incerto, perché non glielo avevo chiesto. Il prompt B ha prodotto cinque punti brevi e chiari, più facili da scorrere per un lettore che non conosce il tema, e una sezione "Dubbi" con tre osservazioni.
+**Risultati**
+
+Il prompt A ha prodotto un riassunto discorsivo e fedele nei fatti principali, come la definizione di Mitchell e la storia del campo. Non segnalava nulla di incerto, perché non glielo avevo chiesto. Il prompt B ha prodotto cinque punti brevi e chiari, più facili da scorrere per un lettore che non conosce il tema, e una sezione "Dubbi" con tre osservazioni.
 
 
 
-\*\*Verifica dei dubbi.\*\* Due dubbi su tre erano fondati. Il teorema del 2022 sui computer quantistici non indica autori o fonte nel testo. Anche l'ipotesi dei 30 qubit e del miliardo di punti-dato è presentata senza indicare chi l'ha formulata. Il terzo dubbio ha colto un problema reale nella mia copia del testo: la parola "self-organization" risultava tagliata in "self-organizatio". Il riferimento a Mitchell, invece, non ha trovato conferma: nel testo è citato correttamente.
+**Verifica dei dubbi**
+
+Due dubbi su tre erano fondati. Il teorema del 2022 sui computer quantistici non indica autori o fonte nel testo. Anche l'ipotesi dei 30 qubit e del miliardo di punti-dato è presentata senza indicare chi l'ha formulata. Il terzo dubbio ha colto un problema reale nella mia copia del testo: la parola "self-organization" risultava tagliata in "self-organizatio". Il riferimento a Mitchell, invece, non ha trovato conferma: nel testo è citato correttamente.
 
 
 
-\*\*Cosa ho imparato.\*\* Il prompt B è più utile per un lettore, ma non è più affidabile di per sé. Ha segnalato un difetto reale, però ne ha anche proposto uno che nel testo non c'era. Per questo ogni dubbio va verificato sul documento, e lo stesso vale per ogni affermazione del riassunto.
+**Cosa ho imparato**
+
+Il prompt B è più utile per un lettore, ma non è più affidabile di per sé. Ha segnalato un difetto reale, però ne ha anche proposto uno che nel testo non c'era. Per questo ogni dubbio va verificato sul documento, e lo stesso vale per ogni affermazione del riassunto.
 
 
 
-\*\*Conclusione.\*\* Per un lettore che non conosce il tema, consiglio il prompt B. Per usarlo in sicurezza, però, serve il controllo del Passo 4: senza verifica, il riassunto e i suoi dubbi restano semplici ipotesi.
+**Conclusione**
+
+Per un lettore che non conosce il tema, consiglio il prompt B. Per usarlo in sicurezza, però, serve il controllo del Passo 4: senza verifica, il riassunto e i suoi dubbi restano semplici ipotesi.
 
 
 

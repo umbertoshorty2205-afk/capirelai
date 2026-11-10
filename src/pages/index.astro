@@ -1,6 +1,7 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
 import { getCollection } from "astro:content";
+import CapirelAiHero from "../components/webgl/CapirelAiHero";
 
 const concetti = (await getCollection("concetti")).slice(0, 3);
 const guide = (await getCollection("guide")).slice(0, 3);
@@ -9,15 +10,7 @@ const aggiornamenti = (await getCollection("aggiornamenti")).slice(0, 3);
 ---
 
 <MainLayout title="Capire l'AI — Divulgazione sull'Intelligenza Artificiale" description="Divulgazione sull'intelligenza artificiale in italiano: concetti, guide, prove sul campo e aggiornamenti.">
-  <div style="text-align:center; padding: 2rem 0 3rem;">
-    <h1 style="font-size: clamp(2.2rem, 5vw, 3.2rem); margin-bottom: 0.5rem;">Capire l'AI</h1>
-    <p style="font-size: 1.2rem; color: var(--muted); max-width: 580px; margin: 0 auto 1.5rem;">
-      L'intelligenza artificiale spiegata in italiano. Senza hype, con chiarezza e con prove pratiche.
-    </p>
-    <a href="/concetti" style="display:inline-block; padding: 0.6rem 1.25rem; background: var(--accent); color: var(--accent-contrast); border-radius: var(--radius); font-weight: 600;">
-      Inizia dai concetti →
-    </a>
-  </div>
+  <CapirelAiHero client:only="react" />
 
   <h2>Ultimi concetti</h2>
   {

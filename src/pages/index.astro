@@ -1,5 +1,6 @@
 ---
-import CapirelAiHero from "../components/webgl/CapirelAiHero";
+// Importa il componente principale interattivo
+import CapirelAiHero from '../components/webgl/CapirelAiHero';
 ---
 
 <!doctype html>
@@ -7,42 +8,31 @@ import CapirelAiHero from "../components/webgl/CapirelAiHero";
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CAPIRELAI — Forum & AI Research Hub</title>
+    <title>Capire l'AI — Divulgazione, Ricerca &amp; Forum Tecnico</title>
     <meta
       name="description"
-      content="Divulgazione sull'intelligenza artificiale in italiano: concetti, guide, prove sul campo e aggiornamenti. Est. 2026."
+      content="Analisi tecnica di LLM, Transformer, RAG e modelli open-weights con prove empiriche e forum di confronto aperto."
     />
+    <meta name="theme-color" content="#000000" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <style is:global>
+    <style>
+      /* Reset globale per evitare bordi bianchi o scroll orizzontali */
       html,
       body {
         margin: 0;
         padding: 0;
-        width: 100%;
-        min-height: 100%;
-        overflow-x: hidden;
-        overflow-y: auto;
-        scroll-behavior: smooth;
         background-color: #000000;
-        color: #dddddd;
-        font-family: "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace;
-        font-size: 13px;
-        line-height: 1.35;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        -webkit-font-smoothing: antialiased;
+        color: #ffffff;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        overflow-x: hidden;
       }
-
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+      * {
+        box-sizing: border-box;
       }
     </style>
   </head>
   <body>
-    <CapirelAiHero client:only="react" />
+    <!-- client:load è il comando che attiva JavaScript per il Forum e gli Articoli -->
+    <CapirelAiHero client:load />
   </body>
 </html>

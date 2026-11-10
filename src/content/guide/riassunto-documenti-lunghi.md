@@ -16,7 +16,7 @@ Riassumere un documento lungo è uno dei compiti più utili per un modello lingu
 
 
 
-\## Passo 1: controlla che il documento entri nel contesto
+## Passo 1: controlla che il documento entri nel contesto
 
 
 
@@ -24,7 +24,7 @@ Il modello può considerare solo una quantità limitata di testo per volta, misu
 
 
 
-\## Passo 2: scrivi un prompt con quattro elementi
+## Passo 2: scrivi un prompt con quattro elementi
 
 
 
@@ -60,7 +60,7 @@ in una sezione finale intitolata “Dubbi”.
 
 
 
-\## Passo 3: chiedi di segnalare i dubbi
+## Passo 3: chiedi di segnalare i dubbi
 
 
 
@@ -68,7 +68,7 @@ La sezione finale dei dubbi è la parte più utile del prompt. Un modello che se
 
 
 
-\## Passo 4: verifica prima di fidarti
+## Passo 4: verifica prima di fidarti
 
 
 
@@ -76,41 +76,12 @@ Prima di usare un riassunto, controlla almeno tre cose: numeri, date e nomi prop
 
 
 
-\## Il mio test
+## Il mio test
 
+Ho provato il metodo su un'unica voce di Wikipedia in italiano sull'apprendimento automatico, lunga circa 2.000 parole, con i riferimenti tra parentesi quadre rimossi. Ho eseguito una sola volta ciascun prompt: il prompt A era semplice, "Riassumi questo documento"; il prompt B era quello della guida, con compito, pubblico, formato, regole e sezione "Dubbi".
 
+Il prompt A ha prodotto un riassunto discorsivo e fedele nei punti principali, senza segnalare nulla di incerto. Il prompt B ha prodotto cinque punti chiari e una sezione "Dubbi" con tre osservazioni. Una riguardava un difetto reale nella mia copia del testo, una frase con la parola "self-organization" tagliata. Le altre due segnalavano fonti mancanti, cioè informazioni senza autore o riferimento: osservazioni vere, ma non errori.
 
-Ho provato il metodo su un testo reale: la voce di Wikipedia in italiano dedicata all'apprendimento automatico, lunga circa 2.000 parole dopo aver tolto i riferimenti tra parentesi quadre. Wikipedia è rilasciata con licenza CC BY-SA, quindi il testo può essere usato con citazione della fonte.
-
-
-
-Ho usato due prompt, in conversazioni separate. Il prompt A era semplice: "Riassumi questo documento". Il prompt B era quello della guida, con compito, pubblico, formato, regole e sezione finale "Dubbi".
-
-
-
-**Risultati**
-
-Il prompt A ha prodotto un riassunto discorsivo e fedele nei fatti principali, come la definizione di Mitchell e la storia del campo. Non segnalava nulla di incerto, perché non glielo avevo chiesto. Il prompt B ha prodotto cinque punti brevi e chiari, più facili da scorrere per un lettore che non conosce il tema, e una sezione "Dubbi" con tre osservazioni.
-
-
-
-**Verifica dei dubbi**
-
-Due dubbi su tre erano fondati. Il teorema del 2022 sui computer quantistici non indica autori o fonte nel testo. Anche l'ipotesi dei 30 qubit e del miliardo di punti-dato è presentata senza indicare chi l'ha formulata. Il terzo dubbio ha colto un problema reale nella mia copia del testo: la parola "self-organization" risultava tagliata in "self-organizatio". Il riferimento a Mitchell, invece, non ha trovato conferma: nel testo è citato correttamente.
-
-
-
-**Cosa ho imparato**
-
-Il prompt B è più utile per un lettore, ma non è più affidabile di per sé. Ha segnalato un difetto reale, però ne ha anche proposto uno che nel testo non c'era. Per questo ogni dubbio va verificato sul documento, e lo stesso vale per ogni affermazione del riassunto.
-
-
-
-**Conclusione**
-
-Per un lettore che non conosce il tema, consiglio il prompt B. Per usarlo in sicurezza, però, serve il controllo del Passo 4: senza verifica, il riassunto e i suoi dubbi restano semplici ipotesi.
-
-
-
+**Limiti del test.** È una sola prova, su un solo testo, senza ripetizioni. Non so quanti dubbi falsi il prompt produca su un testo corretto, né quanti errori reali riesca a trovare su più esempi. Il risultato va letto come un'indicazione da verificare, non come una misura. Il punto che regge è questo: la sezione "Dubbi" può essere utile, ma non sostituisce il controllo sul documento originale.
 Fonte del testo: Wikipedia in italiano, voce "Apprendimento automatico".
 

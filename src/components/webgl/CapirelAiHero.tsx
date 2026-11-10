@@ -314,7 +314,7 @@ const input = "L'intelligenza artificiale apprende.";
 };
 
 // ==========================================
-// 2. MODALE CHI SONO (TESTO ESATTO AUTORE - ANONIMO)
+// 2. MODALE CHI SONO (TESTO ESATTO AUTORE)
 // ==========================================
 function ChiSonoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
@@ -354,15 +354,22 @@ function ChiSonoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid #222226' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ width: '52px', height: '52px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #38bdf8', boxShadow: '0 0 20px rgba(56, 189, 248, 0.4)', backgroundColor: '#000', padding: '2px' }}>
+            <div style={{ position: 'relative', width: '52px', height: '52px', borderRadius: '50%', overflow: 'hidden', border: '1.5px solid #38bdf8', boxShadow: '0 0 20px rgba(56, 189, 248, 0.4)', backgroundColor: '#0a0a10', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <img
-                src="/assets/logo.png"
+                src="/assets/aistudio/Black_Blue_and_White_Modern_Store_Logo__1__e6632dec.png"
                 alt="Capire l'AI"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block', position: 'relative', zIndex: 1 }}
                 onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                  const target = e.currentTarget as HTMLImageElement;
+                  if (!target.dataset.tried) {
+                    target.dataset.tried = 'true';
+                    target.src = '/assets/logo.png';
+                  } else {
+                    target.style.display = 'none';
+                  }
                 }}
               />
+              <span style={{ position: 'absolute', fontSize: '12px', fontWeight: 900, color: '#38bdf8', pointerEvents: 'none', zIndex: 0 }}>AI</span>
             </div>
             <div>
               <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: '#ffffff', letterSpacing: '0.03em' }}>
@@ -635,8 +642,13 @@ const SEED_THREADS: ThreadItem[] = [
 function InteractiveForum() {
   const [threads, setThreads] = useState<ThreadItem[]>(() => {
     try {
-      const s = localStorage.getItem('capirelai_threads_v1');
-      if (s) return JSON.parse(s);
+      if (typeof window !== 'undefined') {
+        const s = localStorage.getItem('capirelai_threads_v2');
+        if (s) {
+          const parsed = JSON.parse(s);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }
     } catch {}
     return SEED_THREADS;
   });
@@ -655,17 +667,19 @@ function InteractiveForum() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('capirelai_threads_v1', JSON.stringify(threads));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('capirelai_threads_v2', JSON.stringify(threads));
+      }
     } catch {}
   }, [threads]);
 
   const handleUpvote = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     setThreads((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, upvotes: t.upvotes + 1 } : t))
+      prev.map((t) => (t.id === id ? { ...t, upvotes: (t.upvotes || 0) + 1 } : t))
     );
     if (selectedThread && selectedThread.id === id) {
-      setSelectedThread({ ...selectedThread, upvotes: selectedThread.upvotes + 1 });
+      setSelectedThread({ ...selectedThread, upvotes: (selectedThread.upvotes || 0) + 1 });
     }
   };
 
@@ -706,21 +720,40 @@ function InteractiveForum() {
       date: 'Poco fa',
       content: replyText.trim(),
     };
+    const currentReplies = Array.isArray(selectedThread.replies) ? selectedThread.replies : [];
     const updated = threads.map((t) =>
-      t.id === selectedThread.id ? { ...t, replies: [...t.replies, newRep] } : t
+      t.id === selectedThread.id ? { ...t, replies: [...(Array.isArray(t.replies) ? t.replies : []), newRep] } : t
     );
     setThreads(updated);
-    setSelectedThread({ ...selectedThread, replies: [...selectedThread.replies, newRep] });
+    setSelectedThread({ ...selectedThread, replies: [...currentReplies, newRep] });
     setReplyText('');
   };
 
-  const filtered = threads.filter((t) => {
+  const handleResetDefault = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('capirelai_threads_v2');
+      }
+    } catch {}
+    setThreads(SEED_THREADS);
+    setSelectedThread(null);
+    setIsModalOpen(false);
+    setActiveCat('all');
+    setSearch('');
+  };
+
+  const filtered = (threads || []).filter((t) => {
+    if (!t) return false;
     const matchCat = activeCat === 'all' || t.category === activeCat;
+    const title = t.title || '';
+    const content = t.content || '';
+    const author = t.author || '';
+    const q = search.trim().toLowerCase();
     const matchSearch =
-      search.trim() === '' ||
-      t.title.toLowerCase().includes(search.toLowerCase()) ||
-      t.content.toLowerCase().includes(search.toLowerCase()) ||
-      t.author.toLowerCase().includes(search.toLowerCase());
+      q === '' ||
+      title.toLowerCase().includes(q) ||
+      content.toLowerCase().includes(q) ||
+      author.toLowerCase().includes(q);
     return matchCat && matchSearch;
   });
 
@@ -745,7 +778,7 @@ function InteractiveForum() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          style={{ padding: '10px 18px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', backgroundColor: '#38bdf8', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', boxShadow: '0 0 20px rgba(56, 189, 248, 0.35)' }}
+          style={{ padding: '10px 18px', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', backgroundColor: '#38bdf8', color: '#000000', border: 'none', borderRadius: '4px', cursor: 'pointer', boxShadow: '0 0 20px rgba(56, 189, 248, 0.35)', position: 'relative', zIndex: 5 }}
         >
           + NUOVA DISCUSSIONE
         </button>
@@ -781,70 +814,95 @@ function InteractiveForum() {
           ))}
         </div>
 
-        <input
-          type="text"
-          placeholder="Cerca discussione..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ backgroundColor: '#111116', border: '1px solid #222228', borderRadius: '4px', padding: '6px 12px', fontSize: '12px', color: '#ffffff', outline: 'none' }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="text"
+            placeholder="Cerca discussione..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ backgroundColor: '#111116', border: '1px solid #222228', borderRadius: '4px', padding: '6px 12px', fontSize: '12px', color: '#ffffff', outline: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={handleResetDefault}
+            title="Ripristina discussioni iniziali"
+            style={{ padding: '6px 10px', fontSize: '11px', backgroundColor: '#131318', border: '1px solid #2a2a35', borderRadius: '4px', color: '#888888', cursor: 'pointer' }}
+          >
+            ↺ Reset
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingTop: '8px' }}>
-        {filtered.map((th) => (
-          <div
-            key={th.id}
-            onClick={() => setSelectedThread(th)}
-            style={{
-              padding: '16px 20px',
-              backgroundColor: 'rgba(14, 14, 19, 0.9)',
-              border: '1px solid #1f1f26',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              transition: 'border 0.2s ease',
-            }}
-          >
-            <div style={{ flex: '1 1 300px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ padding: '2px 6px', fontSize: '9px', textTransform: 'uppercase', fontWeight: 600, color: '#8a8a8a', backgroundColor: '#1a1a20', borderRadius: '2px', border: '1px solid #26262e' }}>
-                  {th.categoryLabel}
-                </span>
-                <span style={{ fontSize: '11px', color: '#666666' }}>
-                  di <strong style={{ color: '#cccccc', fontWeight: 500 }}>{th.author}</strong> • {th.date}
-                </span>
-              </div>
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>
-                {th.title}
-              </h3>
-              <p style={{ margin: 0, fontSize: '12px', color: '#888888', lineHeight: 1.5 }}>
-                {th.content.length > 130 ? th.content.substring(0, 130) + '...' : th.content}
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '11px', color: '#888888' }}>
-              <button
-                type="button"
-                onClick={(e) => handleUpvote(e, th.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: '#171720', border: '1px solid #2a2a35', borderRadius: '4px', color: '#ffffff', cursor: 'pointer' }}
-              >
-                <span style={{ color: '#38bdf8' }}>▲</span>
-                <span style={{ fontWeight: 700 }}>{th.upvotes}</span>
-              </button>
-              <span>💬 {th.replies.length}</span>
-              <span style={{ color: '#38bdf8' }}>→</span>
-            </div>
+        {filtered.length === 0 ? (
+          <div style={{ padding: '36px 20px', textAlign: 'center', backgroundColor: '#0d0d12', border: '1px dashed #262630', borderRadius: '6px' }}>
+            <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#888888' }}>
+              Nessuna discussione trovata per la ricerca o categoria selezionata.
+            </p>
+            <button
+              type="button"
+              onClick={() => { setActiveCat('all'); setSearch(''); }}
+              style={{ padding: '6px 14px', fontSize: '11px', textTransform: 'uppercase', color: '#38bdf8', backgroundColor: 'transparent', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '3px', cursor: 'pointer' }}
+            >
+              Mostra tutte le discussioni
+            </button>
           </div>
-        ))}
+        ) : (
+          filtered.map((th) => (
+            <div
+              key={th.id}
+              onClick={() => setSelectedThread(th)}
+              style={{
+                padding: '16px 20px',
+                backgroundColor: 'rgba(14, 14, 19, 0.9)',
+                border: '1px solid #1f1f26',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '16px',
+                transition: 'border 0.2s ease',
+              }}
+            >
+              <div style={{ flex: '1 1 300px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                  <span style={{ padding: '2px 6px', fontSize: '9px', textTransform: 'uppercase', fontWeight: 600, color: '#8a8a8a', backgroundColor: '#1a1a20', borderRadius: '2px', border: '1px solid #26262e' }}>
+                    {th.categoryLabel || 'DISCUSSIONE'}
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#666666' }}>
+                    di <strong style={{ color: '#cccccc', fontWeight: 500 }}>{th.author || 'Anonimo'}</strong> • {th.date || 'Recente'}
+                  </span>
+                </div>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>
+                  {th.title}
+                </h3>
+                <p style={{ margin: 0, fontSize: '12px', color: '#888888', lineHeight: 1.5 }}>
+                  {(th.content || '').length > 130 ? (th.content || '').substring(0, 130) + '...' : (th.content || '')}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '11px', color: '#888888' }}>
+                <button
+                  type="button"
+                  onClick={(e) => handleUpvote(e, th.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', backgroundColor: '#171720', border: '1px solid #2a2a35', borderRadius: '4px', color: '#ffffff', cursor: 'pointer' }}
+                >
+                  <span style={{ color: '#38bdf8' }}>▲</span>
+                  <span style={{ fontWeight: 700 }}>{th.upvotes || 0}</span>
+                </button>
+                <span>💬 {(th.replies || []).length}</span>
+                <span style={{ color: '#38bdf8' }}>→</span>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {selectedThread && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', backgroundColor: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(10px)', userSelect: 'text' }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', backgroundColor: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(10px)', userSelect: 'text', pointerEvents: 'auto' }}
           onClick={() => setSelectedThread(null)}
         >
           <div
@@ -853,7 +911,7 @@ function InteractiveForum() {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '14px', borderBottom: '1px solid #222226' }}>
               <span style={{ fontSize: '10px', padding: '3px 8px', backgroundColor: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '3px', textTransform: 'uppercase', fontWeight: 600 }}>
-                {selectedThread.categoryLabel}
+                {selectedThread.categoryLabel || 'DISCUSSIONE'}
               </span>
               <button type="button" onClick={() => setSelectedThread(null)} style={{ background: 'none', border: 'none', color: '#8a8a8a', fontSize: '20px', cursor: 'pointer' }}>✕</button>
             </div>
@@ -861,7 +919,7 @@ function InteractiveForum() {
             <div style={{ paddingTop: '16px', paddingBottom: '12px' }}>
               <h1 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 700, color: '#ffffff' }}>{selectedThread.title}</h1>
               <div style={{ fontSize: '11px', color: '#888888', paddingBottom: '14px', borderBottom: '1px solid #1c1c22' }}>
-                Postato da <strong style={{ color: '#ffffff' }}>{selectedThread.author}</strong> • {selectedThread.date}
+                Postato da <strong style={{ color: '#ffffff' }}>{selectedThread.author || 'Anonimo'}</strong> • {selectedThread.date}
               </div>
             </div>
 
@@ -871,18 +929,24 @@ function InteractiveForum() {
 
             <div style={{ paddingTop: '20px' }}>
               <h4 style={{ margin: '0 0 14px 0', fontSize: '13px', fontWeight: 700, color: '#ffffff', textTransform: 'uppercase' }}>
-                Risposte ({selectedThread.replies.length})
+                Risposte ({(selectedThread.replies || []).length})
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                {selectedThread.replies.map((r, i) => (
-                  <div key={i} style={{ padding: '12px', backgroundColor: '#111116', border: '1px solid #1e1e24', borderRadius: '4px', fontSize: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888888', fontSize: '10px', marginBottom: '4px' }}>
-                      <strong style={{ color: '#ffffff' }}>{r.author}</strong>
-                      <span>{r.date}</span>
+                {(selectedThread.replies || []).length === 0 ? (
+                  <p style={{ margin: 0, fontSize: '12px', color: '#777777', fontStyle: 'italic' }}>
+                    Nessuna risposta ancora. Sii il primo a intervenire!
+                  </p>
+                ) : (
+                  (selectedThread.replies || []).map((r, i) => (
+                    <div key={i} style={{ padding: '12px', backgroundColor: '#111116', border: '1px solid #1e1e24', borderRadius: '4px', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#888888', fontSize: '10px', marginBottom: '4px' }}>
+                        <strong style={{ color: '#ffffff' }}>{r.author}</strong>
+                        <span>{r.date}</span>
+                      </div>
+                      <p style={{ margin: 0, color: '#bbbbbb', lineHeight: 1.5 }}>{r.content}</p>
                     </div>
-                    <p style={{ margin: 0, color: '#bbbbbb', lineHeight: 1.5 }}>{r.content}</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <form onSubmit={handleReply} style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '14px', backgroundColor: '#0e0e13', border: '1px solid #222228', borderRadius: '4px' }}>
@@ -915,7 +979,7 @@ function InteractiveForum() {
 
       {isModalOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', backgroundColor: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(10px)', userSelect: 'text' }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', backgroundColor: 'rgba(0, 0, 0, 0.88)', backdropFilter: 'blur(10px)', userSelect: 'text', pointerEvents: 'auto' }}
           onClick={() => setIsModalOpen(false)}
         >
           <div
@@ -1047,25 +1111,52 @@ export default function CapirelAiHero() {
         >
           <div
             style={{
-              width: '42px',
-              height: '42px',
+              position: 'relative',
+              width: '44px',
+              height: '44px',
               borderRadius: '50%',
               overflow: 'hidden',
-              border: '1px solid #38bdf8',
-              boxShadow: '0 0 15px rgba(56, 189, 248, 0.4)',
-              backgroundColor: '#000000',
-              padding: '2px',
+              border: '1.5px solid #38bdf8',
+              boxShadow: '0 0 18px rgba(56, 189, 248, 0.45)',
+              backgroundColor: '#0a0a10',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               boxSizing: 'border-box',
+              flexShrink: 0,
             }}
           >
             <img
-              src="/assets/logo.png"
+              src="/assets/aistudio/Black_Blue_and_White_Modern_Store_Logo__1__e6632dec.png"
               alt="Capire l'AI"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block', position: 'relative', zIndex: 1 }}
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                const target = e.currentTarget as HTMLImageElement;
+                if (!target.dataset.tried1) {
+                  target.dataset.tried1 = 'true';
+                  target.src = '/assets/logo.png';
+                } else if (!target.dataset.tried2) {
+                  target.dataset.tried2 = 'true';
+                  target.src = '/logo.png';
+                } else {
+                  target.style.display = 'none';
+                }
               }}
             />
+            {/* Fallback grafico nel caso il file immagine non sia ancora presente nella cartella locale */}
+            <span
+              style={{
+                position: 'absolute',
+                fontSize: '11px',
+                fontWeight: 900,
+                color: '#38bdf8',
+                letterSpacing: '0.05em',
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            >
+              AI
+            </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', letterSpacing: '0.05em' }}>
@@ -1088,7 +1179,7 @@ export default function CapirelAiHero() {
       </header>
 
       {/* Contenuto della Pagina */}
-      <main style={{ position: 'relative', zIndex: 10, width: '100%' }}>
+      <main style={{ position: 'relative', width: '100%' }}>
         {/* HERO SECTION */}
         <section
           id="hero"

@@ -114,5 +114,3 @@ Per un lettore che non conosce il tema, consiglio il prompt B. Per usarlo in sic
 
 Fonte del testo: Wikipedia in italiano, voce "Apprendimento automatico".
 
-
-DA COMPLETARE

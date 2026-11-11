@@ -1,0 +1,43 @@
+name: Auto Publish Weekly Article
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate new weekly article
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/generate-article.mjs
+
+      - name: Verify build integrity
+        run: npm run build
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "bot@capirelai.com"
+          git config --local user.name "Capire l'AI Bot"
+          git add src/data/articles.json
+          git diff --staged --quiet || (git commit -m "Auto: Pubblicazione nuovo articolo settimanale" && git push origin HEAD:${{ github.ref_name }})

@@ -479,7 +479,7 @@ function ArticleReaderModal({ article, onClose }: { article: FullArticleData | n
           maxWidth: '760px',
           maxHeight: '90vh',
           overflowY: 'auto',
-          backgroundColor: '#09090c',
+          backgroundColor: '#09090d',
           border: '1px solid rgba(56, 189, 248, 0.5)',
           borderRadius: '6px',
           padding: '28px',

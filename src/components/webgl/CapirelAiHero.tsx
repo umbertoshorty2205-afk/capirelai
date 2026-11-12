@@ -166,6 +166,36 @@ interface InstagramPostItem {
 
 const INSTAGRAM_POSTS: InstagramPostItem[] = [
   {
+    id: 'agents',
+    title: "Post 03 // Agenti Autonomi & ReAct Loop",
+    subtitle: "Architettura di ragionamento, Tool Calling e feedback loop ciclico",
+    image: "/instagram/post-agenti-autonomi.png",
+    filename: "post-agenti-autonomi.png",
+    aspectRatio: "1:1 (1080x1080 PNG)",
+    caption: `Un LLM risponde a una domanda. Un Agente AI risolve un problema. 🤖⚡
+
+Qual è la differenza profonda tra una normale chat e un Autonomous Agent?
+Il loop ReAct (Reasoning + Acting).
+
+Un modello linguistico da solo è privo di strumenti: non può consultare il web in tempo reale, sbaglia i calcoli matematici complessi e non può interrogare un database.
+Un agente autonomo invece ragiona a cicli iterativi:
+1️⃣ THOUGHT: Il modello analizza l'obiettivo e progetta il prossimo micro-passo logico.
+2️⃣ ACTION: Invoca un tool esterno con argomenti strutturati (es. Python REPL, Vector DB, Search API).
+3️⃣ OBSERVATION: Il sistema esegue lo strumento ed inietta il risultato reale nel contesto dell'LLM.
+4️⃣ DECISION: Se l'informazione è sufficiente formula la risposta finale, altrimenti ripete il loop.
+
+Nella nuova guida tecnica sul sito analizziamo:
+• Come implementare il loop ReAct da zero in Python puro senza framework bloatware
+• Gestione della memoria a breve termine per non saturare la context window
+• I veri rischi in produzione: loop infiniti e allucinazioni di tool calling
+
+👉 Leggi la guida completa con codice testato su capirelai.com (link in bio)
+
+Hai già provato a costruire un agente o usi solo chat standard? Parliamone nei commenti o sul forum! 💬
+
+#AgentiAI #Python #MachineLearning #LLM #ToolCalling #ArtificialIntelligence #SoftwareEngineering #DataScience #CapirelAI #TechItalia #Coding`,
+  },
+  {
     id: 'tokens',
     title: "Post 02 // Token & Vocabolario",
     subtitle: "Grafica 1:1 per feed Instagram (BPE, matrici, compressione token)",
@@ -215,7 +245,7 @@ Cosa troverai su capirelai.com:
 ];
 
 function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [selectedPostId, setSelectedPostId] = useState<string>('tokens');
+  const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -313,7 +343,7 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 transition: 'all 0.15s ease',
               }}
             >
-              {post.id === 'tokens' ? '⚡ Token & Vocabolario' : '📖 Manifesto Lancio'}
+              {post.id === 'agents' ? '🤖 Agenti Autonomi' : post.id === 'tokens' ? '⚡ Token & Vocabolario' : '📖 Manifesto Lancio'}
             </button>
           ))}
         </div>

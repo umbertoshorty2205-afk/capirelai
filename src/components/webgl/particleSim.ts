@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DoubleRenderTarget } from './fluid';
+import { DoubleRenderTarget } from './fluid.ts';
 
 const simVertexShader = `
   varying vec2 vUv;
@@ -26,6 +26,7 @@ const simFragmentShader = `
     return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
   }
 
+  // Analytic curl of three sine-sum potentials (Bridson-style), normalized
   vec3 curlNoise(vec3 p) {
     float y1 = p.y * 1.3 + p.z * 0.9;
     float y2 = p.y * 2.7 - p.z * 1.8;
@@ -36,8 +37,10 @@ const simFragmentShader = `
 
     float dPsi_x_dy = 1.3 * cos(y1) + 1.35 * cos(y2);
     float dPsi_x_dz = 0.9 * cos(y1) - 0.9 * cos(y2);
+
     float dPsi_y_dz = 1.4 * cos(z1) + 1.25 * cos(z2);
     float dPsi_y_dx = 0.8 * cos(z1) - 1.05 * cos(z2);
+
     float dPsi_z_dx = 1.2 * cos(x1) + 1.2 * cos(x2);
     float dPsi_z_dy = 1.1 * cos(x1) - 0.95 * cos(x2);
 
@@ -50,11 +53,19 @@ const simFragmentShader = `
     return l > 1e-5 ? curl / l : vec3(0.0);
   }
 
+  // Smooth, organic sculpted form about 0.7 units across
   float sdfShape(vec3 p) {
-    if (length(p) > 0.8) return length(p) - 0.7;
+    if (length(p) > 0.8) {
+      return length(p) - 0.7;
+    }
+
+    // Mirror depth axis
     p.z = sqrt(p.z * p.z + 0.0215) - sqrt(0.012);
+
+    // Rotate p by quaternion (0.5, 0.5, 0.5, 0.5)
     p = rotateQuat(p, vec4(0.5, 0.5, 0.5, 0.5));
 
+    // Torus / sculpted ring form with harmonic sine lobes & opening
     float angle = atan(p.y, p.x);
     float rMajor = 0.35 + 0.08 * sin(angle * 2.0 + p.z * 2.5) + 0.04 * cos(angle * 3.0);
     float rTube = 0.15 + 0.04 * sin(angle * 3.0 + 1.2) + 0.03 * cos(p.z * 4.5);
@@ -62,12 +73,14 @@ const simFragmentShader = `
     vec2 qTorus = vec2(length(p.xy) - rMajor, p.z);
     float d = length(qTorus) - rTube;
 
+    // Organic lobes
     float lobes = 0.03 * (
       sin(p.x * 12.0) * cos(p.y * 12.0) +
       sin(p.y * 12.0) * cos(p.z * 12.0) +
       sin(p.z * 12.0) * cos(p.x * 12.0)
     );
     float opening = 0.05 * smoothstep(0.3, 1.8, abs(angle - 1.1));
+
     return d + lobes + opening;
   }
 
@@ -85,6 +98,7 @@ const simFragmentShader = `
     vec3 origin = texture2D(uOrigin, vUv).xyz;
 
     if (length(pos) > 0.7) pos /= 2.0;
+
     pos += curlNoise(pos * 0.1 + uTime * 0.05) * 1.0 * 0.0002 * uHZ;
 
     vec3 gradient = sdfNormal(pos);
@@ -97,6 +111,7 @@ const simFragmentShader = `
     pos += -gradient * sdf * 0.5;
     pos += (origin - pos) * 0.0002 * uHZ;
 
+    // Screen UV projection for fluid interaction
     vec4 worldPos = uModelMatrix * vec4(pos, 1.0);
     vec4 clipPos = uProjectionMatrix * worldPos;
     vec2 screenUV = (clipPos.xy / clipPos.w) * 0.5 + 0.5;
@@ -112,6 +127,7 @@ const simFragmentShader = `
   }
 `;
 
+// Point rendering shaders
 const pointVertexShader = `
   attribute vec4 random;
   uniform sampler2D uPosTex;
@@ -119,15 +135,19 @@ const pointVertexShader = `
   uniform float uTime;
 
   varying vec4 vRandom;
+  varying float vDistToCamera;
   varying float vScale;
 
   void main() {
     vRandom = random;
     vec3 pos = texture2D(uPosTex, position.xy).xyz;
+
     pos *= mix(1.0, 1.5, pow(random.y, 150.0));
 
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     float viewDist = -mvPosition.z;
+    vDistToCamera = viewDist;
+
     float scale = smoothstep(3.0, 15.0, viewDist) * mix(0.5, 1.0, random.z);
     vScale = scale;
 
@@ -139,7 +159,9 @@ const pointVertexShader = `
 const pointFragmentShader = `
   uniform sampler2D uMatcap;
   uniform float uTime;
+
   varying vec4 vRandom;
+  varying float vDistToCamera;
   varying float vScale;
 
   vec3 blendSoftLight(vec3 b, vec3 s) {
@@ -151,7 +173,11 @@ const pointFragmentShader = `
   }
 
   vec3 blendOverlay(vec3 b, vec3 s) {
-    return mix(2.0 * b * s, 1.0 - 2.0 * (1.0 - b) * (1.0 - s), step(0.5, b));
+    return mix(
+      2.0 * b * s,
+      1.0 - 2.0 * (1.0 - b) * (1.0 - s),
+      step(0.5, b)
+    );
   }
 
   void main() {
@@ -167,12 +193,16 @@ const pointFragmentShader = `
     vec3 col = baseCol * sparkle;
 
     float rotAngle = sin(uTime + vRandom.z * 20.0) * 0.5 + 1.0;
-    mat2 rot = mat2(cos(rotAngle), -sin(rotAngle), sin(rotAngle), cos(rotAngle));
+    float c = cos(rotAngle);
+    float s = sin(rotAngle);
+    mat2 rot = mat2(c, -s, s, c);
     vec2 matcapUV = rot * coord + vec2(0.5);
     vec3 matcapSample = texture2D(uMatcap, matcapUV).rgb;
 
-    col = mix(col, blendSoftLight(col, matcapSample), 0.8);
-    col = mix(col, blendOverlay(col, matcapSample), 0.2);
+    vec3 soft = blendSoftLight(col, matcapSample);
+    col = mix(col, soft, 0.8);
+    vec3 over = blendOverlay(col, matcapSample);
+    col = mix(col, over, 0.2);
 
     gl_FragColor = vec4(col, 1.0);
   }
@@ -183,20 +213,24 @@ export class ParticleSimulationSystem {
   count: number;
   pingPong: DoubleRenderTarget;
   originTexture: THREE.DataTexture;
+
   simScene: THREE.Scene;
   simCamera: THREE.OrthographicCamera;
   simMesh: THREE.Mesh;
   simMaterial: THREE.ShaderMaterial;
+
   pointsGeometry: THREE.BufferGeometry;
   pointsMaterial: THREE.ShaderMaterial;
   pointsMesh: THREE.Points;
   group: THREE.Group;
 
   constructor(isMobile: boolean, matcapTexture: THREE.CanvasTexture) {
+    // 512x512 on desktop (262,144 particles), 128x128 on mobile (16,384 particles)
     this.size = isMobile ? 128 : 512;
     this.count = this.size * this.size;
 
-    const opts: THREE.RenderTargetOptions = {
+    // Simulation render targets
+    const targetOptions: THREE.RenderTargetOptions = {
       type: THREE.FloatType,
       format: THREE.RGBAFormat,
       minFilter: THREE.NearestFilter,
@@ -204,20 +238,30 @@ export class ParticleSimulationSystem {
       depthBuffer: false,
       stencilBuffer: false,
     };
-    this.pingPong = new DoubleRenderTarget(this.size, this.size, opts);
+    this.pingPong = new DoubleRenderTarget(this.size, this.size, targetOptions);
 
+    // Initial origin data uniform in [-1, 1]^3
     const initialData = new Float32Array(this.count * 4);
     for (let i = 0; i < this.count; i++) {
-      initialData[i * 4 + 0] = Math.random() * 2 - 1;
-      initialData[i * 4 + 1] = Math.random() * 2 - 1;
-      initialData[i * 4 + 2] = Math.random() * 2 - 1;
+      initialData[i * 4 + 0] = (Math.random() * 2 - 1);
+      initialData[i * 4 + 1] = (Math.random() * 2 - 1);
+      initialData[i * 4 + 2] = (Math.random() * 2 - 1);
       initialData[i * 4 + 3] = 1.0;
     }
-    this.originTexture = new THREE.DataTexture(initialData, this.size, this.size, THREE.RGBAFormat, THREE.FloatType);
+    this.originTexture = new THREE.DataTexture(
+      initialData,
+      this.size,
+      this.size,
+      THREE.RGBAFormat,
+      THREE.FloatType
+    );
     this.originTexture.needsUpdate = true;
 
+    // Fullscreen quad for GPGPU simulation
     this.simCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     this.simScene = new THREE.Scene();
+    const plane = new THREE.PlaneGeometry(2, 2);
+
     this.simMaterial = new THREE.ShaderMaterial({
       vertexShader: simVertexShader,
       fragmentShader: simFragmentShader,
@@ -235,34 +279,40 @@ export class ParticleSimulationSystem {
       depthTest: false,
       depthWrite: false,
     });
-    this.simMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.simMaterial);
+
+    this.simMesh = new THREE.Mesh(plane, this.simMaterial);
     this.simScene.add(this.simMesh);
 
+    // Create particle buffer geometry
     this.pointsGeometry = new THREE.BufferGeometry();
     const posCoords = new Float32Array(this.count * 3);
     const randomVals = new Float32Array(this.count * 4);
+
     for (let y = 0; y < this.size; y++) {
       for (let x = 0; x < this.size; x++) {
         const idx = y * this.size + x;
         posCoords[idx * 3 + 0] = (x + 0.5) / this.size;
         posCoords[idx * 3 + 1] = (y + 0.5) / this.size;
         posCoords[idx * 3 + 2] = 0;
+
         randomVals[idx * 4 + 0] = Math.random();
         randomVals[idx * 4 + 1] = Math.random();
         randomVals[idx * 4 + 2] = Math.random();
         randomVals[idx * 4 + 3] = Math.random();
       }
     }
+
     this.pointsGeometry.setAttribute('position', new THREE.BufferAttribute(posCoords, 3));
     this.pointsGeometry.setAttribute('random', new THREE.BufferAttribute(randomVals, 4));
 
+    // Particle render material
     this.pointsMaterial = new THREE.ShaderMaterial({
       vertexShader: pointVertexShader,
       fragmentShader: pointFragmentShader,
       uniforms: {
         uPosTex: { value: null },
         uMatcap: { value: matcapTexture },
-        uDPR: { value: typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 2) : 1 },
+        uDPR: { value: Math.min(window.devicePixelRatio || 1, 2) },
         uTime: { value: 0 },
       },
       blending: THREE.AdditiveBlending,
@@ -274,13 +324,19 @@ export class ParticleSimulationSystem {
     this.pointsMesh = new THREE.Points(this.pointsGeometry, this.pointsMaterial);
     this.pointsMesh.frustumCulled = false;
 
+    // Group holds points at position (0.343, 0.16, -1), rotation (-28.4, 390, 4.92) deg, scale (5, 5, 6)
     this.group = new THREE.Group();
-    this.group.position.set(0.343, 0.16, -1);
-    this.group.rotation.set((-28.4 * Math.PI) / 180, (390 * Math.PI) / 180, (4.92 * Math.PI) / 180);
+    this.group.position.set(0.0, 0.05, -1);
+    this.group.rotation.set(
+      (-28.4 * Math.PI) / 180,
+      (390 * Math.PI) / 180,
+      (4.92 * Math.PI) / 180
+    );
     this.group.scale.set(5, 5, 6);
     this.group.add(this.pointsMesh);
   }
 
+  // Pre-seed targetA with origin data on first frame
   initSimulation(renderer: THREE.WebGLRenderer) {
     this.simMaterial.uniforms.uCurrentPos.value = this.originTexture;
     this.simMesh.material = this.simMaterial;
@@ -289,10 +345,26 @@ export class ParticleSimulationSystem {
     renderer.setRenderTarget(null);
   }
 
-  step(renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera, fluidVelTex: THREE.Texture, fluidDensTex: THREE.Texture, time: number, delta: number) {
+  step(
+    renderer: THREE.WebGLRenderer,
+    camera: THREE.PerspectiveCamera,
+    fluidVelTex: THREE.Texture,
+    fluidDensTex: THREE.Texture,
+    time: number,
+    delta: number
+  ) {
     const HZ = Math.min(Math.max(delta * 60.0, 0.1), 3.0);
-    const projMat = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+
+    // Compute projection matrix: camera.projectionMatrix * camera.matrixWorldInverse
+    const projMat = new THREE.Matrix4().multiplyMatrices(
+      camera.projectionMatrix,
+      camera.matrixWorldInverse
+    );
+
+    // Compute camera world 3x3 rotation
     const camRot = new THREE.Matrix3().setFromMatrix4(camera.matrixWorld);
+
+    // Update group world matrix
     this.group.updateMatrixWorld(true);
 
     this.simMaterial.uniforms.uCurrentPos.value = this.pingPong.read.texture;
@@ -309,8 +381,10 @@ export class ParticleSimulationSystem {
     renderer.setRenderTarget(this.pingPong.write);
     renderer.render(this.simScene, this.simCamera);
     renderer.setRenderTarget(null);
+
     this.pingPong.swap();
 
+    // Bind current position texture to points rendering material
     this.pointsMaterial.uniforms.uPosTex.value = this.pingPong.read.texture;
     this.pointsMaterial.uniforms.uTime.value = time;
   }
@@ -320,5 +394,7 @@ export class ParticleSimulationSystem {
     this.originTexture.dispose();
     this.pointsGeometry.dispose();
     this.pointsMaterial.dispose();
+    this.simMaterial.dispose();
+    this.simMesh.geometry.dispose();
   }
 }

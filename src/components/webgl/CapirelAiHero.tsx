@@ -1,9 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AxonCanvas } from './AxonCanvas';
 
-// ==========================================
-// 1. DATABASE COMPLETO DEI 12 ARTICOLI
-// ==========================================
+import initialArticles from '../../data/articles.json';
+
 export interface FullArticleData {
   title: string;
   section: string;
@@ -21,297 +20,7 @@ export interface FullArticleData {
   keyTakeaways: string[];
 }
 
-export const ARTICLES_DATABASE: Record<string, FullArticleData> = {
-  // --- CONCETTI ---
-  'token-vocabolario': {
-    title: 'Token & Vocabolario: Come i Modelli Linguistici Leggono il Testo',
-    section: 'Concetti',
-    tag: 'FONDAMENTI',
-    readTime: '6 min',
-    author: "Capire l'AI",
-    date: '10 Nov 2026',
-    summary: 'I Large Language Model non leggono parole o lettere come gli esseri umani. Tutto il testo viene convertito in token numerici attraverso algoritmi come BPE (Byte-Pair Encoding). Comprendere questo passaggio è cruciale per capire costi, allucinazioni e limiti di calcolo.',
-    content: [
-      {
-        heading: 'La scomposizione del testo (Tokenization)',
-        text: 'Un token non corrisponde necessariamente a una parola intera. In italiano e in inglese, le parole frequenti possono essere un singolo token (es. "computer" = 1 token), mentre parole complesse, inflesse o rare vengono frammentate in sotto-parole o singoli byte.',
-        highlight: 'In media: 1.000 token equivalgono a circa 750 parole in inglese, ma circa 550-600 parole in italiano a causa della morfologia verbale e grammaticale.',
-        codeSnippet: `// Esempio concettuale di tokenizzazione BPE:
-const input = "L'intelligenza artificiale apprende.";
-// BPE scompone in sotto-token: ["L'", "intell", "igenza", " artificial", "e", " apprend", "e", "."]
-// Mappati in indici interi del vocabolario: [1842, 45210, 8931, 23901, 260, 31204, 260, 13]`,
-      },
-      {
-        heading: 'La matrice degli Embedding e lo spazio latente',
-        text: 'Ogni indice numerico del vocabolario (di solito composto da 32.000 a 128.000 token possibili) viene poi proiettato in un vettore denso ad altissima dimensione (es. 4096 o 8192 dimensioni). In questo spazio vettoriale multidimensionale, parole con significato affine si trovano geometricamente vicine.',
-      },
-      {
-        heading: 'Perché la tokenizzazione causa errori insoliti?',
-        text: 'Spesso gli LLM falliscono in compiti apparentemente banali per un umano (come contare quante volte la lettera "r" compare in "strawberry") perché il modello non vede le singole lettere, ma riceve l\'intero blocco di token pre-assemblato.',
-      },
-    ],
-    keyTakeaways: [
-      'I modelli neurali processano vettori di token, non caratteri grezzi.',
-      'La tokenizzazione determina l\'effettiva ampiezza della finestra di contesto e la fatturazione delle API.',
-      'I tipici errori di sillabazione dipendono direttamente dal vocabolario dell\'algoritmo BPE.',
-    ],
-  },
-
-  'transformer-architettura': {
-    title: 'Transformer: Self-Attention, Query, Key e Value Spiegati',
-    section: 'Concetti',
-    tag: 'ARCHITETTURA',
-    readTime: '9 min',
-    author: "Capire l'AI",
-    date: '08 Nov 2026',
-    summary: 'Nel 2017 il paper "Attention Is All You Need" ha rivoluzionato il deep learning pensionando le reti ricorrenti (RNN). Al cuore del successo c\'è il meccanismo di Self-Attention che calcola le correlazioni tra ogni parola e tutte le altre contemporaneamente.',
-    content: [
-      {
-        heading: 'La formula della Self-Attention',
-        text: 'Il meccanismo di attenzione proietta ogni token in tre vettori distinti: Query (l\'informazione cercata), Key (l\'etichetta dell\'informazione offerta) e Value (il contenuto semantico effettivo). Il prodotto scalare tra Query e Key determina il peso con cui ciascun token influenza gli altri.',
-        highlight: 'Attention(Q, K, V) = softmax( (Q * K^T) / sqrt(d_k) ) * V',
-      },
-      {
-        heading: 'Finestre di contesto e FlashAttention',
-        text: 'Poiché la complessità di calcolo della Self-Attention scala con l\'ordine O(N^2) rispetto alla lunghezza della sequenza N, contesti estesi (128k - 1M token) hanno richiesto innovazioni come FlashAttention e RoPE per non saturare la memoria VRAM delle GPU.',
-      },
-    ],
-    keyTakeaways: [
-      'Self-Attention permette a token distanti nel testo di comunicare istantaneamente.',
-      'Le finestre di contesto moderne superano il milione di token grazie a kernel GPU ottimizzati.',
-      'Multi-Head Attention consente al modello di focalizzarsi su diversi aspetti grammaticali e concettuali in parallelo.',
-    ],
-  },
-
-  'finetuning-supervisione': {
-    title: 'Fine-tuning & Apprendimento Supervisionato: LoRA, QLoRA e DPO',
-    section: 'Concetti',
-    tag: 'TRAINING',
-    readTime: '8 min',
-    author: "Capire l'AI",
-    date: '06 Nov 2026',
-    summary: 'Dal modello "base" al modello istruito per rispondere agli utenti. Come funzionano il Supervised Fine-Tuning (SFT), l\'ottimizzazione a basso rango (LoRA) e l\'allineamento con Direct Preference Optimization (DPO).',
-    content: [
-      {
-        heading: 'Dal Pre-training al Fine-tuning',
-        text: 'Il pre-training insegna al modello a completare la parola successiva su trilioni di token di testo grezzo. Il fine-tuning supervisionato (SFT) fornisce coppie strutturate di "istruzione-risposta" per insegnargli a comportarsi da assistente utile e conciso.',
-      },
-      {
-        heading: 'LoRA & QLoRA: Fine-tuning su GPU consumer',
-        text: 'Invece di aggiornare tutti i 70 miliardi di pesi di una rete neurale, LoRA congela i pesi originali e introduce due piccole matrici a basso rango. Questo riduce la memoria necessaria di oltre l\'80%.',
-        codeSnippet: `// Concetto di Low-Rank Adaptation (LoRA):
-// W_aggiornato = W_originale + (A * B) * (alpha / rank)
-// Dove rank (r) è tipicamente 8, 16 o 64, riducendo i parametri addestrabili a <1%`,
-      },
-    ],
-    keyTakeaways: [
-      'Il fine-tuning modifica lo stile, il tono e il rispetto di formati specifici.',
-      'Per aggiornare la conoscenza fattuale e documentale è spesso preferibile usare RAG.',
-      'LoRA e QLoRA consentono la personalizzazione locale dei modelli open weight.',
-    ],
-  },
-
-  // --- GUIDE ---
-  'agenti-autonomi': {
-    title: 'Agenti Autonomi: Architettura ReAct, Tool Use e Sandbox',
-    section: 'Guide',
-    tag: 'AGENTI',
-    readTime: '11 min',
-    author: "Capire l'AI",
-    date: '04 Nov 2026',
-    summary: 'Un modello linguistico da solo può soltanto generare testo. Un "Agente" invece può interagire con il mondo esterno: chiamare API, eseguire query SQL su database, navigare il web ed eseguire codice in un ambiente sandbox protetto.',
-    content: [
-      {
-        heading: 'Il ciclo ReAct: Reasoning + Action',
-        text: 'Il pattern fondamentale per un agente robusto si basa su un ciclo continuo: 1. Pensiero (Thought): analizza l\'obiettivo; 2. Azione (Action): sceglie il tool più adatto con i parametri JSON corretti; 3. Osservazione (Observation): riceve il risultato del tool e decide se ha terminato o deve iterare.',
-        codeSnippet: `// Schema tipico di chiamata Tool (Function Calling):
-{
-  "name": "cerca_database_documenti",
-  "arguments": {
-    "query": "architettura transformer flashattention",
-    "limite_risultati": 5
-  }
-}`,
-      },
-    ],
-    keyTakeaways: [
-      'Separare nettamente la logica di pianificazione dall\'esecuzione del codice.',
-      'Definire schemi JSON rigorosi per azzerare errori di sintassi.',
-      'Impostare sempre un limite massimo di iterazioni (max_loops) per prevenire loop infiniti.',
-    ],
-  },
-
-  'rag-documenti': {
-    title: 'RAG Moderno: Dalla Strategia di Chunking al Re-Ranking',
-    section: 'Guide',
-    tag: 'RAG',
-    readTime: '10 min',
-    author: "Capire l'AI",
-    date: '02 Nov 2026',
-    summary: 'RAG (Retrieval-Augmented Generation) è la tecnica prediletta per collegare la conoscenza aziendale privata agli LLM senza dover riaddestrare il modello. Vediamo la pipeline end-to-end ottimizzata per l\'accuratezza.',
-    content: [
-      {
-        heading: '1. Chunking intelligente dei documenti',
-        text: 'Spezzare i documenti in blocchi da 400-600 token con 100 token di overlap. Evitare di tagliare frasi a metà usando separatori semantici basati su paragrafi e intestazioni markdown.',
-      },
-      {
-        heading: '2. Re-Ranking con Cross-Encoder',
-        text: 'Non limitarsi ai primi 5 risultati del vector database. Estrai i primi 25 candidati con ricerca ibrida e passali attraverso un Cross-Encoder dedicato (es. Cohere Re-rank o BGE-Reranker) per riordinarli per rilevanza reale.',
-      },
-    ],
-    keyTakeaways: [
-      'Il re-ranking riduce le allucinazioni fino al 60% rispetto alla ricerca puramente vettoriale.',
-      'La qualità del parsing del documento è il fattore più critico per il successo.',
-    ],
-  },
-
-  'prompt-architecture': {
-    title: 'Prompt Architecture: Strutturare Metaprompt, Chain-of-Thought e Few-Shot',
-    section: 'Guide',
-    tag: 'PROMPTING',
-    readTime: '8 min',
-    author: "Capire l'AI",
-    date: '31 Ott 2026',
-    summary: 'Smetti di scrivere prompt vaghi. Le tecniche ingegneristiche strutturate permettono di ridurre la varianza delle risposte e forzare output deterministici in formato JSON o codice collaudato per la produzione.',
-    content: [
-      {
-        heading: 'Delimitatori XML e gerarchia del prompt',
-        text: 'I modelli di frontiera (Claude, GPT-4o, Gemini) rispondono con eccezionale precisione quando il prompt è suddiviso con tag semantici XML come <ruolo>, <istruzioni>, <contesto> e <formato_output>.',
-        codeSnippet: `<prompt>
-  <ruolo>Sei un software engineer specializzato in audit di sicurezza.</ruolo>
-  <istruzioni>Analizza il codice fornito identificando vulnerabilità OWASP.</istruzioni>
-  <formato_output>Rispondi in formato JSON conforme allo schema specificato.</formato_output>
-</prompt>`,
-      },
-    ],
-    keyTakeaways: [
-      'I delimitatori XML eliminano le ambiguità tra dati dell\'utente e istruzioni di sistema.',
-      'Pochi esempi mirati (Few-Shot) battono intere pagine di regole scritte in prosa.',
-    ],
-  },
-
-  // --- PROVE ---
-  'stress-test-modelli': {
-    title: 'Stress Test Modelli: Claude 3.5 Sonnet vs GPT-4o vs DeepSeek-R1',
-    section: 'Prove',
-    tag: 'BENCHMARK',
-    readTime: '9 min',
-    author: "Capire l'AI",
-    date: '28 Ott 2026',
-    summary: 'Abbiamo sottoposto i principali modelli di frontiera a una batteria intensiva di 180 test su coding multi-file, refactoring complesso, comprensione contrattuale e logica formale. Ecco i risultati empirici.',
-    content: [
-      {
-        heading: 'Coding e architettura software complessa',
-        text: 'Nei test di generazione e refactoring su repository complessi, Claude 3.5 Sonnet ha completato con successo l\'89.4% dei task senza regressioni, seguito da DeepSeek-R1 (87.1%) e GPT-4o (82.6%).',
-      },
-    ],
-    keyTakeaways: [
-      'Per compiti di programmazione e refactoring esteso, Claude 3.5 Sonnet rimane il riferimento.',
-      'I modelli di reasoning come DeepSeek-R1 eccellono su logica e matematica a costi ridotti.',
-    ],
-  },
-
-  'analisi-costi-inferenza': {
-    title: 'Analisi Costi & Metriche di Inferenza: TTFT, Token/s e ROI Reale',
-    section: 'Prove',
-    tag: 'METRICHE',
-    readTime: '7 min',
-    author: "Capire l'AI",
-    date: '26 Ott 2026',
-    summary: 'Oltre ai punteggi nei benchmark sintetici, cosa conta davvero in produzione? Abbiamo misurato sul campo Time To First Token (TTFT), throughput generativo e calcolato il costo per milione di token.',
-    content: [
-      {
-        heading: 'Time To First Token (TTFT) e latenza percepita',
-        text: 'Per le applicazioni interattive, il tempo di risposta iniziale è vitale. Abbiamo registrato mediane di 320ms con Gemini Flash e 450ms con Groq LPU, contro i 1200ms delle API standard su cluster affollati.',
-      },
-    ],
-    keyTakeaways: [
-      'Il Prompt Caching è la leva di risparmio più potente disponibile per carichi RAG stabili.',
-      'Modelli compatti offrono il massimo ROI per classificazione ed estrazione dati ad alto volume.',
-    ],
-  },
-
-  'accuratezza-allucinazioni': {
-    title: 'Accuratezza & Allucinazioni: Test Rigoroso su Casi d\'Uso Concreti',
-    section: 'Prove',
-    tag: 'AFFIDABILITÀ',
-    readTime: '8 min',
-    author: "Capire l'AI",
-    date: '24 Ott 2026',
-    summary: 'Un\'indagine empirica su 600 quesiti insidiosi con trappole logiche, citazioni di articoli di legge e domande senza risposta certa. Quando i modelli non sanno qualcosa, ammettono l\'ignoranza o fabbricano risposte?',
-    content: [
-      {
-        heading: 'La tendenza al compiacimento (Sycophancy)',
-        text: 'Se l\'utente formula una domanda con una premessa palesemente errata, molti modelli tentano di assecondare l\'affermazione anziché confutarla. Abbiamo misurato la resistenza critica di ciascun modello.',
-      },
-    ],
-    keyTakeaways: [
-      'Le allucinazioni derivano dalla natura probabilistica dell\'architettura autoregressiva.',
-      'Un system prompt rigoroso con verifica a valle riduce le allucinazioni fattuali del 74%.',
-    ],
-  },
-
-  // --- AGGIORNAMENTI ---
-  'nuove-release-frontiera': {
-    title: 'Nuove Release da OpenAI, Anthropic e Google: Analisi Obiettiva',
-    section: 'Aggiornamenti',
-    tag: 'NEWS',
-    readTime: '7 min',
-    author: "Capire l'AI",
-    date: '09 Nov 2026',
-    summary: 'Uno sguardo disincantato e analitico sui più recenti annunci dei giganti tecnologici. Quali novità rappresentano un vero salto di paradigma e quali invece sono solo marketing e repackaging?',
-    content: [
-      {
-        heading: 'La corsa ai modelli di ragionamento sequenziale',
-        text: 'La transizione da next-token prediction pura a compute a tempo di inferenza (Test-Time Compute) rappresenta il cambiamento architetturale più rilevante degli ultimi due anni.',
-      },
-    ],
-    keyTakeaways: [
-      'L\'aumento del compute a tempo di inferenza compensa i limiti della dimensione fissa del modello.',
-      'La vera differenziazione si gioca sull\'affidabilità e sulle quote di concurrency garantite.',
-    ],
-  },
-
-  'open-weights-local-ai': {
-    title: 'Open Weights & Local AI: Llama, DeepSeek e Quantizzazioni GGUF',
-    section: 'Aggiornamenti',
-    tag: 'OPEN SOURCE',
-    readTime: '6 min',
-    author: "Capire l'AI",
-    date: '07 Nov 2026',
-    summary: 'Il divario tra modelli proprietari chiusi e pesi aperti si è ridotto a pochi mesi. Come l\'ecosistema open source e i runtime locali (Ollama, vLLM) stanno trasformando la sovranità dei dati.',
-    content: [
-      {
-        heading: 'La rivoluzione delle quantizzazioni (4-bit, 8-bit)',
-        text: 'Grazie a tecniche come AWQ e GGUF, un modello da 70B parametri che richiederebbe oltre 140GB di memoria a 16-bit può essere eseguito con perdite minime su workstation con 48GB di RAM.',
-      },
-    ],
-    keyTakeaways: [
-      'I modelli aperti garantiscono continuità operativa e assenza di vendor lock-in.',
-      'Framework come vLLM abilitano throughput elevati su server on-premise.',
-    ],
-  },
-
-  'impatto-regolamentazione': {
-    title: 'Impatto Industriale & Regolamentazione: AI Act Europeo e Trasparenza',
-    section: 'Aggiornamenti',
-    tag: 'REGOLAZIONE',
-    readTime: '8 min',
-    author: "Capire l'AI",
-    date: '03 Nov 2026',
-    summary: 'Cosa prevede la normativa europea sull\'Intelligenza Artificiale (AI Act) e quali sono i requisiti concreti per chi sviluppa, distribuisce o integra modelli linguistici e sistemi decisionali.',
-    content: [
-      {
-        heading: 'Approccio basato sul rischio',
-        text: 'La normativa classifica i sistemi in base al rischio: inaccettabile (vietati), alto rischio (conformità e audit rigorosi), e rischio minimo o trasparenza generica.',
-      },
-    ],
-    keyTakeaways: [
-      'Documentare le pipeline di dati e i registri di prompt è fondamentale per la conformità.',
-      'La trasparenza verso l\'utente finale è obbligatoria.',
-    ],
-  },
-};
+export const ARTICLES_DATABASE: Record<string, FullArticleData> = initialArticles as Record<string, FullArticleData>;
 
 // ==========================================
 // 2. MODALE CHI SONO (TESTO ESATTO AUTORE)
@@ -443,6 +152,296 @@ function ChiSonoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 }
 
 // ==========================================
+// 2B. MODALE INSTAGRAM STUDIO & GRAFICHE
+// ==========================================
+interface InstagramPostItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  filename: string;
+  caption: string;
+  aspectRatio: string;
+}
+
+const INSTAGRAM_POSTS: InstagramPostItem[] = [
+  {
+    id: 'tokens',
+    title: "Post 02 // Token & Vocabolario",
+    subtitle: "Grafica 1:1 per feed Instagram (BPE, matrici, compressione token)",
+    image: "/instagram/post-token-vocabolario.png",
+    filename: "post-token-vocabolario.png",
+    aspectRatio: "1:1 (1080x1080 PNG)",
+    caption: `Un LLM non legge parole. Non sa cosa sia una frase. Per un modello linguistico, l'intero universo testuale è ridotto a numeri interi: i Token. 🧠⚡
+
+Come fa 'incredibile' a diventare [472, 891]?
+Attraverso il Byte-Pair Encoding (BPE), l'algoritmo che scompone le parole in sillabe e frammenti statistici ricorrenti.
+
+Nel nuovo articolo sul sito analizziamo:
+1️⃣ Perché 'apple' è 1 token e 'fragola' sono 3 token (e perché l'italiano paga una 'tassa di tokenizzazione' rispetto all'inglese).
+2️⃣ Come la grandezza del vocabolario (da 32k a 128k token) influisce su memoria, VRAM e calcolo della matrice di embedding.
+3️⃣ L'impatto diretto sui costi API di OpenAI e Anthropic: perché prompt scritti male quadruplicano la spesa.
+
+👉 Leggi l'approfondimento completo su capirelai.com (link in bio)
+
+E tu misuri i token nei tuoi prompt o paghi alla cieca? Discutiamone nei commenti o sul nostro forum! 💬
+
+#AI #MachineLearning #Token #LLM #DeepLearning #Python #DataScience #Informatica #TechItalia #CapirelAI #SoftwareEngineering`,
+  },
+  {
+    id: 'manifesto',
+    title: "Post 01 // Manifesto Capire l'AI",
+    subtitle: "Grafica di lancio canale e annuncio portale",
+    image: "/instagram/post-manifesto.png",
+    filename: "post-manifesto.png",
+    aspectRatio: "1:1 (1080x1080 PNG)",
+    caption: `Zero Hype. Solo Ingegneria, Metodo e Test Reali. 🔬
+
+Capire l'AI nasce da un'esigenza chiara: oggi tutti parlano di intelligenza artificiale, ma pochissimi spiegano come funziona veramente sotto il cofano.
+
+Non siamo qui per venderti corsi o prometterti miracoli con '5 prompt magici'.
+Siamo uno spazio indipendente di analisi tecnica, guide pratiche documentate e benchmark reali.
+
+Cosa troverai su capirelai.com:
+⚡ Architetture LLM spiegate matematicamente
+🛠️ Guide passo-passo testate sul campo
+📊 Prove comparative di inferenza, latenza e costi
+💬 Forum aperto della community per confrontarsi
+
+👉 Scopri il portale: link in bio su capirelai.com
+
+#CapirelAI #IntelligenzaArtificiale #TechItalia #Ingegneria #LLM #OpenSource #Programmazione #Coding #DataEngineering`,
+  },
+];
+
+function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [selectedPostId, setSelectedPostId] = useState<string>('tokens');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const currentPost = INSTAGRAM_POSTS.find((p) => p.id === selectedPostId) || INSTAGRAM_POSTS[0];
+
+  const handleCopyCaption = () => {
+    navigator.clipboard.writeText(currentPost.caption);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        backgroundColor: 'rgba(0, 0, 0, 0.92)',
+        backdropFilter: 'blur(12px)',
+        userSelect: 'text',
+        pointerEvents: 'auto',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '880px',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          backgroundColor: '#0a0a0f',
+          border: '1px solid rgba(244, 63, 94, 0.5)',
+          borderRadius: '8px',
+          padding: '24px',
+          boxShadow: '0 0 60px rgba(244, 63, 94, 0.25)',
+          color: '#dddddd',
+          fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header Modal */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid #222228' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '10px', padding: '3px 8px', backgroundColor: 'rgba(244, 63, 94, 0.15)', color: '#f43f5e', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: '3px', fontWeight: 700, textTransform: 'uppercase' }}>
+                INSTAGRAM ASSET STUDIO
+              </span>
+              <span style={{ fontSize: '11px', color: '#888888' }}>• Grafiche &amp; Copy Pronti</span>
+            </div>
+            <h2 style={{ margin: '6px 0 0 0', fontSize: '19px', fontWeight: 700, color: '#ffffff' }}>
+              Post Grafici per Canale Instagram
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: 'none', color: '#888888', fontSize: '20px', cursor: 'pointer' }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Tab Selector */}
+        <div style={{ display: 'flex', gap: '8px', padding: '16px 0', borderBottom: '1px solid #1a1a22' }}>
+          {INSTAGRAM_POSTS.map((post) => (
+            <button
+              key={post.id}
+              type="button"
+              onClick={() => setSelectedPostId(post.id)}
+              style={{
+                padding: '8px 14px',
+                fontSize: '11px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                border: selectedPostId === post.id ? '1px solid #f43f5e' : '1px solid #252530',
+                backgroundColor: selectedPostId === post.id ? 'rgba(244, 63, 94, 0.15)' : '#121218',
+                color: selectedPostId === post.id ? '#ffffff' : '#888888',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {post.id === 'tokens' ? '⚡ Token & Vocabolario' : '📖 Manifesto Lancio'}
+            </button>
+          ))}
+        </div>
+
+        {/* Post Grid View */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', paddingTop: '20px' }}>
+          {/* Visual Column */}
+          <div>
+            <div style={{ fontSize: '11px', color: '#888888', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+              <span>ANTEPRIMA GRAFICA ({currentPost.aspectRatio})</span>
+              <span style={{ color: '#38bdf8' }}>HD 1080x1080</span>
+            </div>
+
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', backgroundColor: '#000000', borderRadius: '6px', overflow: 'hidden', border: '1px solid #2a2a35', boxShadow: '0 8px 30px rgba(0, 0, 0, 0.7)' }}>
+              <img
+                src={currentPost.image}
+                alt={currentPost.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+
+            <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
+              <a
+                href={currentPost.image}
+                download={currentPost.filename}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '10px 14px',
+                  backgroundColor: '#38bdf8',
+                  color: '#000000',
+                  textDecoration: 'none',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  borderRadius: '4px',
+                  textAlign: 'center',
+                  textTransform: 'uppercase',
+                }}
+              >
+                ⬇ Scarica PNG HD
+              </a>
+              <a
+                href={currentPost.image}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '10px 14px',
+                  backgroundColor: '#16161f',
+                  border: '1px solid #2a2a38',
+                  color: '#cccccc',
+                  textDecoration: 'none',
+                  fontSize: '11px',
+                  borderRadius: '4px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Apri PNG Full ↗
+              </a>
+            </div>
+
+            <div style={{ marginTop: '14px', padding: '10px 12px', backgroundColor: '#101016', border: '1px solid #1f1f2a', borderRadius: '4px', fontSize: '11px', color: '#777777', lineHeight: 1.5 }}>
+              <strong style={{ color: '#aaaaaa' }}>Percorso file locale:</strong><br />
+              <code style={{ color: '#38bdf8', fontSize: '10px', wordBreak: 'break-all' }}>
+                public/instagram/{currentPost.filename}
+              </code>
+            </div>
+          </div>
+
+          {/* Caption & Copy Column */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', color: '#888888' }}>DIDASCALIA &amp; HASHTAG PRONTI</span>
+              <button
+                type="button"
+                onClick={handleCopyCaption}
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  backgroundColor: copied ? '#22c55e' : '#f43f5e',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '3px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {copied ? '✓ COPIATO!' : '📋 COPIA DIDASCALIA'}
+              </button>
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                padding: '14px',
+                backgroundColor: '#0e0e14',
+                border: '1px solid #242430',
+                borderRadius: '6px',
+                fontSize: '12px',
+                lineHeight: 1.6,
+                color: '#cccccc',
+                whiteSpace: 'pre-line',
+                overflowY: 'auto',
+                maxHeight: '380px',
+              }}
+            >
+              {currentPost.caption}
+            </div>
+
+            <div style={{ marginTop: '14px', padding: '12px', backgroundColor: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '4px', fontSize: '11.5px', color: '#b0b0b8', lineHeight: 1.5 }}>
+              💡 <strong style={{ color: '#ffffff' }}>Come pubblicare:</strong> Apri Instagram da smartphone o desktop, carica la grafica scaricata, incolla questa didascalia e assicurati che il link in bio punti a <strong style={{ color: '#38bdf8' }}>capirelai.com</strong>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
 // 3. LETTORE ARTICOLI MODALE
 // ==========================================
 function ArticleReaderModal({ article, onClose }: { article: FullArticleData | null; onClose: () => void }) {
@@ -479,7 +478,7 @@ function ArticleReaderModal({ article, onClose }: { article: FullArticleData | n
           maxWidth: '760px',
           maxHeight: '90vh',
           overflowY: 'auto',
-          backgroundColor: '#09090d',
+          backgroundColor: '#09090c',
           border: '1px solid rgba(56, 189, 248, 0.5)',
           borderRadius: '6px',
           padding: '28px',
@@ -1053,6 +1052,7 @@ function InteractiveForum() {
 // ==========================================
 export default function CapirelAiHero() {
   const [isChiSonoOpen, setIsChiSonoOpen] = useState(false);
+  const [isInstagramOpen, setIsInstagramOpen] = useState(false);
   const [activeArticle, setActiveArticle] = useState<FullArticleData | null>(null);
 
   const scrollTo = (id: string) => {
@@ -1174,6 +1174,7 @@ export default function CapirelAiHero() {
           <button type="button" onClick={() => scrollTo('prove')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#cccccc', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Prove</button>
           <button type="button" onClick={() => scrollTo('aggiornamenti')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#cccccc', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Aggiornamenti</button>
           <button type="button" onClick={() => scrollTo('forum')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#38bdf8', fontWeight: 700, background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '3px', cursor: 'pointer', fontFamily: 'inherit' }}>Forum Community</button>
+          <button type="button" onClick={() => setIsInstagramOpen(true)} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#f43f5e', fontWeight: 700, background: 'rgba(244, 63, 94, 0.12)', border: '1px solid rgba(244, 63, 94, 0.4)', borderRadius: '3px', cursor: 'pointer', fontFamily: 'inherit' }}>📸 Instagram</button>
           <button type="button" onClick={() => setIsChiSonoOpen(true)} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#8a8a8a', border: '1px solid #26262a', background: 'none', borderRadius: '3px', cursor: 'pointer', fontFamily: 'inherit' }}>Chi Sono</button>
         </nav>
       </header>
@@ -1251,30 +1252,26 @@ export default function CapirelAiHero() {
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {['token-vocabolario', 'transformer-architettura', 'finetuning-supervisione'].map((k) => {
-              const art = ARTICLES_DATABASE[k];
-              if (!art) return null;
-              return (
-                <div
-                  key={k}
-                  onClick={() => setActiveArticle(art)}
-                  style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
-                      <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
-                      <span>{art.readTime}</span>
-                    </div>
-                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
-                    <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
+            {Object.entries(ARTICLES_DATABASE).filter(([_, a]) => (a.section || '').toLowerCase() === 'concetti').map(([k, art]) => (
+              <div
+                key={k}
+                onClick={() => setActiveArticle(art)}
+                style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
+                    <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
+                    <span>{art.readTime}</span>
                   </div>
-                  <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
-                    <span>LEGGI ARTICOLO</span>
-                    <span>→</span>
-                  </div>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
                 </div>
-              );
-            })}
+                <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
+                  <span>LEGGI ARTICOLO</span>
+                  <span>→</span>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -1290,30 +1287,26 @@ export default function CapirelAiHero() {
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {['agenti-autonomi', 'rag-documenti', 'prompt-architecture'].map((k) => {
-              const art = ARTICLES_DATABASE[k];
-              if (!art) return null;
-              return (
-                <div
-                  key={k}
-                  onClick={() => setActiveArticle(art)}
-                  style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
-                      <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
-                      <span>{art.readTime}</span>
-                    </div>
-                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
-                    <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
+            {Object.entries(ARTICLES_DATABASE).filter(([_, a]) => (a.section || '').toLowerCase() === 'guide').map(([k, art]) => (
+              <div
+                key={k}
+                onClick={() => setActiveArticle(art)}
+                style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
+                    <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
+                    <span>{art.readTime}</span>
                   </div>
-                  <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
-                    <span>LEGGI TUTORIAL</span>
-                    <span>→</span>
-                  </div>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
                 </div>
-              );
-            })}
+                <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
+                  <span>LEGGI TUTORIAL</span>
+                  <span>→</span>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -1329,30 +1322,26 @@ export default function CapirelAiHero() {
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {['stress-test-modelli', 'analisi-costi-inferenza', 'accuratezza-allucinazioni'].map((k) => {
-              const art = ARTICLES_DATABASE[k];
-              if (!art) return null;
-              return (
-                <div
-                  key={k}
-                  onClick={() => setActiveArticle(art)}
-                  style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
-                      <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
-                      <span>{art.readTime}</span>
-                    </div>
-                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
-                    <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
+            {Object.entries(ARTICLES_DATABASE).filter(([_, a]) => (a.section || '').toLowerCase() === 'prove').map(([k, art]) => (
+              <div
+                key={k}
+                onClick={() => setActiveArticle(art)}
+                style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
+                    <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
+                    <span>{art.readTime}</span>
                   </div>
-                  <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
-                    <span>VEDI I DATI</span>
-                    <span>→</span>
-                  </div>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
                 </div>
-              );
-            })}
+                <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
+                  <span>VEDI I DATI</span>
+                  <span>→</span>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -1368,30 +1357,29 @@ export default function CapirelAiHero() {
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {['nuove-release-frontiera', 'open-weights-local-ai', 'impatto-regolamentazione'].map((k) => {
-              const art = ARTICLES_DATABASE[k];
-              if (!art) return null;
-              return (
-                <div
-                  key={k}
-                  onClick={() => setActiveArticle(art)}
-                  style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
-                      <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
-                      <span>{art.readTime}</span>
-                    </div>
-                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
-                    <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
+            {Object.entries(ARTICLES_DATABASE).filter(([_, a]) => {
+              const s = (a.section || '').toLowerCase();
+              return s === 'aggiornamenti' || s === 'news';
+            }).map(([k, art]) => (
+              <div
+                key={k}
+                onClick={() => setActiveArticle(art)}
+                style={{ backgroundColor: 'rgba(12, 12, 15, 0.92)', border: '1px solid #222226', borderRadius: '6px', padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#777777', marginBottom: '12px' }}>
+                    <span style={{ color: '#38bdf8', fontWeight: 700 }}>#{art.tag}</span>
+                    <span>{art.readTime}</span>
                   </div>
-                  <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
-                    <span>LEGGI ANALISI</span>
-                    <span>→</span>
-                  </div>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 700, color: '#ffffff', lineHeight: 1.35 }}>{art.title}</h3>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#999999', lineHeight: 1.5 }}>{art.summary}</p>
                 </div>
-              );
-            })}
+                <div style={{ paddingTop: '16px', borderTop: '1px solid #1c1c20', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#38bdf8' }}>
+                  <span>LEGGI ANALISI</span>
+                  <span>→</span>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -1404,6 +1392,7 @@ export default function CapirelAiHero() {
       {/* Modali */}
       <ChiSonoModal isOpen={isChiSonoOpen} onClose={() => setIsChiSonoOpen(false)} />
       <ArticleReaderModal article={activeArticle} onClose={() => setActiveArticle(null)} />
+      <InstagramKitModal isOpen={isInstagramOpen} onClose={() => setIsInstagramOpen(false)} />
     </div>
   );
 }

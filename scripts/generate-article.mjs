@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const articlesPath = path.join(projectRoot, 'src', 'data', 'articles.json');
 
-// 1. Carica gli articoli esistenti per non duplicare argomenti
+// 1. Carica gli articoli esistenti
 if (!fs.existsSync(articlesPath)) {
   console.error(`File non trovato: ${articlesPath}`);
   process.exit(1);
@@ -19,7 +19,7 @@ const existingTitles = Object.values(articles).map((a) => a.title);
 const categories = ['Concetti', 'Guide', 'Prove', 'Aggiornamenti'];
 const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
-// Formattazione data italiana: es. "17 Nov 2026"
+// Date formatting italiana: es. "17 Nov 2026"
 const now = new Date();
 const months = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
 const formattedDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
@@ -91,7 +91,8 @@ async function generateWithAnthropic(apiKey) {
   }
 
   const data = await response.json();
-  return data.content?.[0]?.text || '';
+  const text = data.content?.[0]?.text || '';
+  return text;
 }
 
 async function generateWithGemini(apiKey) {
@@ -114,7 +115,8 @@ async function generateWithGemini(apiKey) {
   }
 
   const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return text;
 }
 
 async function main() {
@@ -135,6 +137,7 @@ async function main() {
     process.exit(1);
   }
 
+  // Pulizia risposta JSON da eventuali blocchi markdown ```json ... ```
   let cleanJson = rawJson.trim();
   if (cleanJson.startsWith('```json')) cleanJson = cleanJson.replace(/^```json/, '');
   if (cleanJson.startsWith('```')) cleanJson = cleanJson.replace(/^```/, '');
@@ -146,6 +149,7 @@ async function main() {
     parsed = JSON.parse(cleanJson);
   } catch (err) {
     console.error('Errore nel parsing del JSON generato:', err);
+    console.error('Risposta grezza ricevuta:\n', rawJson);
     process.exit(1);
   }
 
@@ -159,14 +163,14 @@ async function main() {
 
   console.log(`[Capire l'AI] Articolo generato con successo: "${newArticle.title}" (slug: ${slug})`);
 
-  // Inserisce il nuovo articolo in cima al file articles.json
+  // Inserisci in cima all'oggetto
   const updatedArticles = {
     [slug]: newArticle,
     ...articles,
   };
 
   fs.writeFileSync(articlesPath, JSON.stringify(updatedArticles, null, 2), 'utf8');
-  console.log(`[Capire l'AI] File src/data/articles.json aggiornato! Totale articoli: ${Object.keys(updatedArticles).length}`);
+  console.log(`[Capire l'AI] File src/data/articles.json aggiornato con successo! Totale articoli: ${Object.keys(updatedArticles).length}`);
 }
 
 main().catch((err) => {

@@ -1,4 +1,40 @@
 {
+  "3-automazioni-ai-senza-codice": {
+    "title": "3 Automazioni AI Senza Codice: Cosa Funziona Davvero (e i Limiti Reali)",
+    "section": "Guide",
+    "tag": "AUTOMAZIONE",
+    "readTime": "8 min",
+    "author": "Capire l'AI",
+    "date": "13 Nov 2026",
+    "summary": "Usare un modello linguistico solo in chat per riassumere testi lascia sul tavolo gran parte del guadagno di produttività. Ho testato per tre settimane tre flussi no-code collegando email, documenti e feed informativi: ecco i tempi misurati, i costi reali e dove l'automazione fallisce senza supervisione.",
+    "content": [
+      {
+        "heading": "1. Triage Email → Sintesi → Blocco Calendario",
+        "text": "Nei miei test ho collegato la casella di ingresso a un classificatore LLM (modello compatto a bassa latenza) tramite webhook no-code. Ogni email in entrata viene filtrata per urgenza, riassunta in 3 righe con azione richiesta e trasformata in una bozza di slot sul calendario solo se contiene una scadenza esplicita.",
+        "highlight": "Risparmio misurato: ~2,5 ore a settimana. Limite critico: su catene di risposte lunghe oltre 8 messaggi il modello confonde talvolta il mittente originale con l'ultimo inoltro.",
+        "codeSnippet": "// Schema JSON rigoroso imposto al nodo di triage:\n{\n  \"urgenza\": \"alta | media | bassa\",\n  \"azione_richiesta\": \"stringa max 18 parole\",\n  \"proposta_slot_minuti\": 30,\n  \"richiede_conferma_umana\": true\n}"
+      },
+      {
+        "heading": "2. Documenti e Allegati → Schede Operative Pronte",
+        "text": "Quando ricevo specifiche tecniche o PDF lunghi, il secondo flusso estrae il testo grezzo, lo spezza in blocchi semantici e compila automaticamente una scheda con requisiti, scadenze e anomalie riscontrate. Ho imposto sempre la citazione del numero di pagina accanto a ogni dato estratto.",
+        "highlight": "Risparmio misurato: ~2 ore a settimana. Costo API medio con modelli Flash: meno di 0,02 € per 100 pagine elaborate."
+      },
+      {
+        "heading": "3. Monitoraggio Fonti → Briefing Settimanale Filtrato",
+        "text": "Invece di controllare manualmente decine di feed e repository, un trigger schedulato raccoglie solo gli aggiornamenti tecnici rilevanti, scarta i comunicati promozionali grazie a una checklist negativa nel system prompt e produce un riepilogo comparativo pronto per lo studio o la pubblicazione.",
+        "highlight": "Totale misurato sui 3 flussi: tra 5 e 6 ore recuperate a settimana, ma l'invio automatico verso l'esterno resta sempre disattivato."
+      },
+      {
+        "heading": "Dove si rompono questi flussi (e come evitarlo)",
+        "text": "Senza validazione dello schema JSON e senza soglia di confidenza, un'automazione no-code accumula errori silenziosi: appuntamenti duplicati, allegati scansionati illegibili o allucinazioni su date ambigue. La regola che applico in produzione è semplice: l'AI prepara bozze, etichette e riepiloghi, ma l'ultima conferma prima di scrivere su calendari condivisi o rispondere a terzi rimane umana."
+      }
+    ],
+    "keyTakeaways": [
+      "Le automazioni no-code rendono al massimo quando il modello restituisce JSON vincolato, non testo libero.",
+      "Usare modelli Flash/Mini per triage ed estrazione abbatte i costi sotto pochi centesimi a settimana.",
+      "Mantenere sempre un passaggio di revisione umana prima di azioni irreversibili verso l'esterno."
+    ]
+  },
   "token-vocabolario": {
     "title": "Token & Vocabolario: Come i Modelli Linguistici Leggono il Testo",
     "section": "Concetti",

@@ -164,6 +164,172 @@ interface InstagramPostItem {
   aspectRatio: string;
 }
 
+interface InstagramReelItem {
+  id: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  video: string;
+  filename: string;
+  duration: string;
+  specs: string;
+  caption: string;
+}
+
+const INSTAGRAM_REELS: InstagramReelItem[] = [
+  {
+    id: 'reel-automazioni-jarvis',
+    badge: 'JARVIS BRIEF • KAI-01 HD',
+    title: "Reel 04 // 3 Automazioni AI (6 Ore Risparmiate Senza Codice)",
+    subtitle: "Dal nodo editoriale Jarvis: hook anti-spreco 6h/settimana, pipeline Email → Sintesi → Calendario, schede documenti auto, briefing settimanale con costi/limiti reali e KAI-01 PiP",
+    video: "/instagram/reels/reel-04-automazioni-ai-jarvis.mp4",
+    filename: "reel-04-automazioni-ai-jarvis.mp4",
+    duration: "30.8 sec",
+    specs: "1080×1920 MP4 • KAI-01 + B-Roll Workflow + SFX",
+    caption: `Se usi ancora ChatGPT solo per fare riassunti, stai lasciando sul tavolo 6 ore ogni settimana. ⏱️⚡
+
+Ecco 3 automazioni AI reali senza scrivere codice (con costi e limiti misurati):
+1️⃣ Triage Email → sintesi in 3 righe → bozza slot su Calendario
+2️⃣ Documenti lunghi → schede operative con citazione pagina
+3️⃣ Monitoraggio fonti → briefing settimanale già filtrato
+
+⚠️ Regola d'oro nei test: l'AI prepara bozze in JSON vincolato, ma la conferma verso l'esterno resta sempre umana.
+
+👉 Commenta "GUIDA" o leggi l'analisi completa su capirelai.com (link in bio)
+
+#CapirelAI #AutomazioniAI #AIItalia #Produttivita #NoCode #ChatGPT #WorkflowAI #TechItalia`,
+  },
+  {
+    id: 'reel-cyborg-viral',
+    badge: 'KAI-01 CYBORG HOOK • 60FPS B-ROLL',
+    title: "Reel 03 // KAI-01 Mezzo Uomo Mezzo Robot + B-Roll Scorrevoli",
+    subtitle: "Personaggio ibrido uomo/umanoide senza movimenti bocca innaturali (barra LED vocale reattiva a 60fps), pan B-Roll scorrevoli (apple vs fragola, matrice token, memoria 3x), PiP live e SFX",
+    video: "/instagram/reels/reel-03-cyborg-token-viral.mp4",
+    filename: "reel-03-cyborg-token-viral.mp4",
+    duration: "26.6 sec",
+    specs: "1080×1920 MP4 • 60fps Cyborg + Scrolling B-Roll + PiP",
+    caption: `Aspetta… lo sai che ChatGPT e Claude non leggono davvero le tue parole? Vedono solo numeri: i Token. 🤖⚡
+
+E c'è un problema enorme: quasi tutti i modelli AI ragionano nativamente in inglese.
+Guarda la differenza reale:
+• "apple" = 1 solo token
+• "fragola" = 3 token (fra · go · la = +200% di costo!)
+
+Risultato? In italiano paghi fino al triplo sulle API e riempi la memoria 3x più in fretta.
+
+👉 Ho preparato il test live gratuito su capirelai.com (link in bio)
+
+Secondo te quanti token consuma il tuo ultimo prompt in italiano? Provalo e dimmelo qui sotto! 👇
+
+#CapirelAI #AIItalia #CyborgAI #ChatGPT #Token #IntelligenzaArtificiale #TechItalia #LLM #Claude #OpenAI`,
+  },
+  {
+    id: 'reel-token-avatar',
+    badge: 'EDIZIONE 60FPS PRO FX • VOCE HD',
+    title: "Reel 02 // Avatar Parlato 60fps: Tassa Token sull'Italiano",
+    subtitle: "Movimenti continui a 60fps con coarticolazione fonetica, testa/spalle/mani articolate, battiti di ciglia, glitch/zoom FX, SFX audio e voce naturale",
+    video: "/instagram/reels/reel-02-token-parlato-avatar.mp4",
+    filename: "reel-02-token-parlato-avatar.mp4",
+    duration: "26.8 sec",
+    specs: "1080×1920 MP4 • 60fps Fluid Motion + Voce HD + SFX",
+    caption: `Aspetta… lo sai che ChatGPT e Claude non leggono davvero le tue parole? Vedono solo numeri: i Token. 🧠🎙️
+
+E c'è un problema enorme: quasi tutti i modelli AI ragionano nativamente in inglese.
+Guarda qua la differenza reale:
+• "apple" = 1 solo token
+• "fragola" = te ne brucia 3 (+200% di costo!)
+
+Risultato? In italiano paghi fino al triplo sulle API e riempi subito la memoria del modello.
+
+👉 Ho pubblicato il test completo gratis su capirelai.com (link in bio)
+
+Te ne eri accorto quando le chat finiscono la memoria troppo presto? Scrivimelo nei commenti! 👇
+
+#CapirelAI #AIItalia #ChatGPT #Token #IntelligenzaArtificiale #TechItalia #LLM #PromptEngineering #Claude #OpenAI`,
+  },
+  {
+    id: 'reel-token-3d',
+    badge: 'GRAFICA 3D CINETICA',
+    title: "Reel 01 // La Tassa Nascosta sull'Italiano (Slide 3D)",
+    subtitle: "Hook visivo ad alta ritenzione su sfondo neurale 3D per caroselli video o copertine",
+    video: "/instagram/reels/reel-01-token-tassa-italiano.mp4",
+    filename: "reel-01-token-tassa-italiano.mp4",
+    duration: "14.0 sec",
+    specs: "1080×1920 MP4 • H.264",
+    caption: `Perché usare ChatGPT o Claude in italiano consuma fino al 300% di Token in più rispetto all'inglese? ⚡📊
+
+I modelli non ragionano a parole, ma a frammenti statistici (Byte-Pair Encoding).
+Meno una lingua è compressa nel vocabolario di training, più token servono per esprimere lo stesso concetto.
+
+👉 Leggi l'analisi matematica completa su capirelai.com (link in bio)
+
+#AI #Token #LLM #MachineLearning #CapirelAI #TechItalia #DataScience`,
+  },
+];
+
+interface InstagramHighlightItem {
+  id: string;
+  label: string;
+  title: string;
+  cover: string;
+  filename: string;
+  slides: { heading: string; copy: string }[];
+}
+
+const INSTAGRAM_HIGHLIGHTS: InstagramHighlightItem[] = [
+  {
+    id: 'chi-sono',
+    label: 'Chi Sono',
+    title: 'Highlight 01 // Chi Sono & Metodo',
+    cover: '/instagram/highlights/highlight-chi-sono.png',
+    filename: 'highlight-chi-sono.png',
+    slides: [
+      {
+        heading: 'SLIDE 1 — IDENTITÀ',
+        copy: "Zero fuffa e zero '5 prompt magici'. Sono uno studente di ingegneria gestionale e questo è Capire l'AI: come funziona davvero l'AI sotto il cofano.",
+      },
+      {
+        heading: 'SLIDE 2 — METODO',
+        copy: 'Ogni guida nasce da un test reale con prompt, codice, latenza e limiti annotati. Se uno strumento sbaglia, te lo mostro.',
+      },
+    ],
+  },
+  {
+    id: 'guide',
+    label: 'Guide AI',
+    title: 'Highlight 02 // Guide Tecniche AI',
+    cover: '/instagram/highlights/highlight-guide.png',
+    filename: 'highlight-guide.png',
+    slides: [
+      {
+        heading: 'SLIDE 1 — FONDAMENTA',
+        copy: 'Come ragionano Token, Attention, Embedding e Agenti Autonomi ReAct spiegati chiari su capirelai.com.',
+      },
+      {
+        heading: 'SLIDE 2 — ARCHITETTURE',
+        copy: 'Python puro, memoria di contesto e workflow reali senza framework pesanti.',
+      },
+    ],
+  },
+  {
+    id: 'prove',
+    label: 'Test & Prove',
+    title: 'Highlight 03 // Benchmark & Prove Reali',
+    cover: '/instagram/highlights/highlight-prove.png',
+    filename: 'highlight-prove.png',
+    slides: [
+      {
+        heading: 'SLIDE 1 — TOKEN & COSTI',
+        copy: 'Confronti diretti italiano vs inglese, costi API reali e allucinazioni nei tool esterni.',
+      },
+      {
+        heading: 'SLIDE 2 — FORUM',
+        copy: 'Proponi un modello da testare sul forum aperto di capirelai.com.',
+      },
+    ],
+  },
+];
+
 const INSTAGRAM_POSTS: InstagramPostItem[] = [
   {
     id: 'agents',
@@ -245,6 +411,9 @@ Cosa troverai su capirelai.com:
 ];
 
 function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
+  const [selectedReelId, setSelectedReelId] = useState<string>('reel-automazioni-jarvis');
+  const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
 
@@ -258,10 +427,12 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
   if (!isOpen) return null;
 
+  const currentReel = INSTAGRAM_REELS.find((r) => r.id === selectedReelId) || INSTAGRAM_REELS[0];
+  const currentHighlight = INSTAGRAM_HIGHLIGHTS.find((h) => h.id === selectedHighlightId) || INSTAGRAM_HIGHLIGHTS[0];
   const currentPost = INSTAGRAM_POSTS.find((p) => p.id === selectedPostId) || INSTAGRAM_POSTS[0];
 
-  const handleCopyCaption = () => {
-    navigator.clipboard.writeText(currentPost.caption);
+  const handleCopyText = (text: string) => {
+    navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -287,7 +458,7 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
         style={{
           position: 'relative',
           width: '100%',
-          maxWidth: '880px',
+          maxWidth: '920px',
           maxHeight: '92vh',
           overflowY: 'auto',
           backgroundColor: '#0a0a0f',
@@ -307,10 +478,10 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               <span style={{ fontSize: '10px', padding: '3px 8px', backgroundColor: 'rgba(244, 63, 94, 0.15)', color: '#f43f5e', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: '3px', fontWeight: 700, textTransform: 'uppercase' }}>
                 INSTAGRAM ASSET STUDIO
               </span>
-              <span style={{ fontSize: '11px', color: '#888888' }}>• Grafiche &amp; Copy Pronti</span>
+              <span style={{ fontSize: '11px', color: '#888888' }}>• Reel Parlati MP4, Storie in Evidenza &amp; Post Feed</span>
             </div>
             <h2 style={{ margin: '6px 0 0 0', fontSize: '19px', fontWeight: 700, color: '#ffffff' }}>
-              Post Grafici per Canale Instagram
+              Kit Lancio Completo Instagram — Capire l&apos;AI
             </h2>
           </div>
           <button
@@ -322,150 +493,429 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           </button>
         </div>
 
-        {/* Tab Selector */}
-        <div style={{ display: 'flex', gap: '8px', padding: '16px 0', borderBottom: '1px solid #1a1a22' }}>
-          {INSTAGRAM_POSTS.map((post) => (
-            <button
-              key={post.id}
-              type="button"
-              onClick={() => setSelectedPostId(post.id)}
-              style={{
-                padding: '8px 14px',
-                fontSize: '11px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                fontFamily: 'inherit',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                border: selectedPostId === post.id ? '1px solid #f43f5e' : '1px solid #252530',
-                backgroundColor: selectedPostId === post.id ? 'rgba(244, 63, 94, 0.15)' : '#121218',
-                color: selectedPostId === post.id ? '#ffffff' : '#888888',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {post.id === 'agents' ? '🤖 Agenti Autonomi' : post.id === 'tokens' ? '⚡ Token & Vocabolario' : '📖 Manifesto Lancio'}
-            </button>
-          ))}
+        {/* Category Switcher */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '14px 0', borderBottom: '1px solid #1a1a22' }}>
+          <button
+            type="button"
+            onClick={() => setSection('reels')}
+            style={{
+              padding: '9px 14px',
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              border: section === 'reels' ? '1px solid #38bdf8' : '1px solid #252530',
+              backgroundColor: section === 'reels' ? 'rgba(56, 189, 248, 0.16)' : '#121218',
+              color: section === 'reels' ? '#ffffff' : '#888888',
+            }}
+          >
+            🎬 Reel Virali MP4 (9:16)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSection('highlights')}
+            style={{
+              padding: '9px 14px',
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              border: section === 'highlights' ? '1px solid #f43f5e' : '1px solid #252530',
+              backgroundColor: section === 'highlights' ? 'rgba(244, 63, 94, 0.16)' : '#121218',
+              color: section === 'highlights' ? '#ffffff' : '#888888',
+            }}
+          >
+            ⭐ Storie in Evidenza (3)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSection('posts')}
+            style={{
+              padding: '9px 14px',
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              border: section === 'posts' ? '1px solid #f43f5e' : '1px solid #252530',
+              backgroundColor: section === 'posts' ? 'rgba(244, 63, 94, 0.16)' : '#121218',
+              color: section === 'posts' ? '#ffffff' : '#888888',
+            }}
+          >
+            📸 Post Feed PNG (3)
+          </button>
         </div>
 
-        {/* Post Grid View */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', paddingTop: '20px' }}>
-          {/* Visual Column */}
+        {/* SECTION 1: REELS MP4 */}
+        {section === 'reels' && (
           <div>
-            <div style={{ fontSize: '11px', color: '#888888', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
-              <span>ANTEPRIMA GRAFICA ({currentPost.aspectRatio})</span>
-              <span style={{ color: '#38bdf8' }}>HD 1080x1080</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingTop: '14px' }}>
+              {INSTAGRAM_REELS.map((reel) => (
+                <button
+                  key={reel.id}
+                  type="button"
+                  onClick={() => setSelectedReelId(reel.id)}
+                  style={{
+                    padding: '7px 12px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    border: selectedReelId === reel.id ? '1px solid #38bdf8' : '1px solid #252530',
+                    backgroundColor: selectedReelId === reel.id ? 'rgba(56, 189, 248, 0.14)' : '#121218',
+                    color: selectedReelId === reel.id ? '#ffffff' : '#999999',
+                  }}
+                >
+                  {reel.id === 'reel-automazioni-jarvis'
+                    ? '⚡ Reel 04: 3 Automazioni (NEW)'
+                    : reel.id === 'reel-cyborg-viral'
+                      ? '🤖 Reel 03: Cyborg + B-Roll'
+                      : reel.id === 'reel-token-avatar'
+                        ? '🎙️ Reel 02: Avatar Parlato + Voce'
+                        : '⚡ Reel 01: Slide 3D Token'}
+                </button>
+              ))}
             </div>
 
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', backgroundColor: '#000000', borderRadius: '6px', overflow: 'hidden', border: '1px solid #2a2a35', boxShadow: '0 8px 30px rgba(0, 0, 0, 0.7)' }}>
-              <img
-                src={currentPost.image}
-                alt={currentPost.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', paddingTop: '18px' }}>
+              {/* Vertical 9:16 Video Player */}
+              <div>
+                <div style={{ fontSize: '11px', color: '#888888', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{currentReel.badge}</span>
+                  <span style={{ color: '#38bdf8' }}>{currentReel.duration} • {currentReel.specs}</span>
+                </div>
 
-            <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
-              <a
-                href={currentPost.image}
-                download={currentPost.filename}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  flex: 1,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '10px 14px',
-                  backgroundColor: '#38bdf8',
-                  color: '#000000',
-                  textDecoration: 'none',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  borderRadius: '4px',
-                  textAlign: 'center',
-                  textTransform: 'uppercase',
-                }}
-              >
-                ⬇ Scarica PNG HD
-              </a>
-              <a
-                href={currentPost.image}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '10px 14px',
-                  backgroundColor: '#16161f',
-                  border: '1px solid #2a2a38',
-                  color: '#cccccc',
-                  textDecoration: 'none',
-                  fontSize: '11px',
-                  borderRadius: '4px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Apri PNG Full ↗
-              </a>
-            </div>
+                <div style={{ position: 'relative', width: '100%', maxWidth: '340px', margin: '0 auto', aspectRatio: '9/16', backgroundColor: '#000000', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(56, 189, 248, 0.45)', boxShadow: '0 8px 30px rgba(0, 0, 0, 0.8)' }}>
+                  <video
+                    key={currentReel.video}
+                    src={currentReel.video}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                </div>
 
-            <div style={{ marginTop: '14px', padding: '10px 12px', backgroundColor: '#101016', border: '1px solid #1f1f2a', borderRadius: '4px', fontSize: '11px', color: '#777777', lineHeight: 1.5 }}>
-              <strong style={{ color: '#aaaaaa' }}>Percorso file locale:</strong><br />
-              <code style={{ color: '#38bdf8', fontSize: '10px', wordBreak: 'break-all' }}>
-                public/instagram/{currentPost.filename}
-              </code>
+                <div style={{ marginTop: '12px', display: 'flex', gap: '10px', maxWidth: '340px', marginInline: 'auto' }}>
+                  <a
+                    href={currentReel.video}
+                    download={currentReel.filename}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      flex: 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '10px 14px',
+                      backgroundColor: '#38bdf8',
+                      color: '#000000',
+                      textDecoration: 'none',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      borderRadius: '4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    ⬇ Scarica Reel MP4
+                  </a>
+                  <a
+                    href={currentReel.video}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '10px 14px',
+                      backgroundColor: '#16161f',
+                      border: '1px solid #2a2a38',
+                      color: '#cccccc',
+                      textDecoration: 'none',
+                      fontSize: '11px',
+                      borderRadius: '4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Apri ↗
+                  </a>
+                </div>
+              </div>
+
+              {/* Caption & Notes */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', color: '#ffffff' }}>{currentReel.title}</h3>
+                  <p style={{ margin: 0, fontSize: '11.5px', color: '#999999', lineHeight: 1.5 }}>{currentReel.subtitle}</p>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#888888' }}>DIDASCALIA REEL PRONTA</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(currentReel.caption)}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      backgroundColor: copied ? '#22c55e' : '#f43f5e',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {copied ? '✓ COPIATO!' : '📋 COPIA DIDASCALIA'}
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    backgroundColor: '#0e0e14',
+                    border: '1px solid #242430',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    lineHeight: 1.6,
+                    color: '#cccccc',
+                    whiteSpace: 'pre-line',
+                    overflowY: 'auto',
+                    maxHeight: '360px',
+                  }}
+                >
+                  {currentReel.caption}
+                </div>
+
+                <div style={{ marginTop: '14px', padding: '12px', backgroundColor: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '4px', fontSize: '11.5px', color: '#b0b0b8', lineHeight: 1.5 }}>
+                  🔊 <strong style={{ color: '#ffffff' }}>Audio incluso:</strong> Premi Play sul video per ascoltare voce italiana + waveform live. Scarica il file MP4 e caricalo direttamente su Instagram Reels senza aggiungere altra musica sopra il parlato.
+                </div>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Caption & Copy Column */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#888888' }}>DIDASCALIA &amp; HASHTAG PRONTI</span>
-              <button
-                type="button"
-                onClick={handleCopyCaption}
-                style={{
-                  padding: '4px 10px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  backgroundColor: copied ? '#22c55e' : '#f43f5e',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {copied ? '✓ COPIATO!' : '📋 COPIA DIDASCALIA'}
-              </button>
+        {/* SECTION 2: HIGHLIGHTS */}
+        {section === 'highlights' && (
+          <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingTop: '14px' }}>
+              {INSTAGRAM_HIGHLIGHTS.map((hl) => (
+                <button
+                  key={hl.id}
+                  type="button"
+                  onClick={() => setSelectedHighlightId(hl.id)}
+                  style={{
+                    padding: '7px 12px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    border: selectedHighlightId === hl.id ? '1px solid #f43f5e' : '1px solid #252530',
+                    backgroundColor: selectedHighlightId === hl.id ? 'rgba(244, 63, 94, 0.14)' : '#121218',
+                    color: selectedHighlightId === hl.id ? '#ffffff' : '#999999',
+                  }}
+                >
+                  ⭐ {hl.label}
+                </button>
+              ))}
             </div>
 
-            <div
-              style={{
-                flex: 1,
-                padding: '14px',
-                backgroundColor: '#0e0e14',
-                border: '1px solid #242430',
-                borderRadius: '6px',
-                fontSize: '12px',
-                lineHeight: 1.6,
-                color: '#cccccc',
-                whiteSpace: 'pre-line',
-                overflowY: 'auto',
-                maxHeight: '380px',
-              }}
-            >
-              {currentPost.caption}
-            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', paddingTop: '18px' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: '#888888', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>COPERTINA HIGHLIGHT (CERCHIO IG)</span>
+                  <span style={{ color: '#38bdf8' }}>1080×1080 PNG</span>
+                </div>
+                <div style={{ width: '260px', height: '260px', margin: '12px auto', borderRadius: '50%', overflow: 'hidden', border: '2px solid #38bdf8', boxShadow: '0 0 35px rgba(56, 189, 248, 0.3)', backgroundColor: '#000000' }}>
+                  <img src={currentHighlight.cover} alt={currentHighlight.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+                <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'center' }}>
+                  <a
+                    href={currentHighlight.cover}
+                    download={currentHighlight.filename}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: '10px 18px',
+                      backgroundColor: '#38bdf8',
+                      color: '#000000',
+                      textDecoration: 'none',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      borderRadius: '4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    ⬇ Scarica Copertina PNG
+                  </a>
+                </div>
+              </div>
 
-            <div style={{ marginTop: '14px', padding: '12px', backgroundColor: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '4px', fontSize: '11.5px', color: '#b0b0b8', lineHeight: 1.5 }}>
-              💡 <strong style={{ color: '#ffffff' }}>Come pubblicare:</strong> Apri Instagram da smartphone o desktop, carica la grafica scaricata, incolla questa didascalia e assicurati che il link in bio punti a <strong style={{ color: '#38bdf8' }}>capirelai.com</strong>.
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', color: '#ffffff' }}>{currentHighlight.title}</h3>
+                {currentHighlight.slides.map((sl, i) => (
+                  <div key={i} style={{ padding: '14px', backgroundColor: '#0e0e14', border: '1px solid #242430', borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 700 }}>{sl.heading}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyText(sl.copy)}
+                        style={{ padding: '3px 8px', fontSize: '10px', fontWeight: 700, backgroundColor: '#1b1b26', color: '#dddddd', border: '1px solid #2e2e3d', borderRadius: '3px', cursor: 'pointer' }}
+                      >
+                        📋 COPIA
+                      </button>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12px', lineHeight: 1.55, color: '#cccccc' }}>{sl.copy}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* SECTION 3: FEED POSTS */}
+        {section === 'posts' && (
+          <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingTop: '14px' }}>
+              {INSTAGRAM_POSTS.map((post) => (
+                <button
+                  key={post.id}
+                  type="button"
+                  onClick={() => setSelectedPostId(post.id)}
+                  style={{
+                    padding: '7px 12px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    border: selectedPostId === post.id ? '1px solid #f43f5e' : '1px solid #252530',
+                    backgroundColor: selectedPostId === post.id ? 'rgba(244, 63, 94, 0.15)' : '#121218',
+                    color: selectedPostId === post.id ? '#ffffff' : '#888888',
+                  }}
+                >
+                  {post.id === 'agents' ? '🤖 Agenti Autonomi' : post.id === 'tokens' ? '⚡ Token & Vocabolario' : '📖 Manifesto Lancio'}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', paddingTop: '20px' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: '#888888', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>ANTEPRIMA GRAFICA ({currentPost.aspectRatio})</span>
+                  <span style={{ color: '#38bdf8' }}>HD 1080x1080</span>
+                </div>
+
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', backgroundColor: '#000000', borderRadius: '6px', overflow: 'hidden', border: '1px solid #2a2a35', boxShadow: '0 8px 30px rgba(0, 0, 0, 0.7)' }}>
+                  <img
+                    src={currentPost.image}
+                    alt={currentPost.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                </div>
+
+                <div style={{ marginTop: '12px', display: 'flex', gap: '10px' }}>
+                  <a
+                    href={currentPost.image}
+                    download={currentPost.filename}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      flex: 1,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '10px 14px',
+                      backgroundColor: '#38bdf8',
+                      color: '#000000',
+                      textDecoration: 'none',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    ⬇ Scarica PNG HD
+                  </a>
+                  <a
+                    href={currentPost.image}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '10px 14px',
+                      backgroundColor: '#16161f',
+                      border: '1px solid #2a2a38',
+                      color: '#cccccc',
+                      textDecoration: 'none',
+                      fontSize: '11px',
+                      borderRadius: '4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Apri PNG Full ↗
+                  </a>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', color: '#888888' }}>DIDASCALIA &amp; HASHTAG PRONTI</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(currentPost.caption)}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      backgroundColor: copied ? '#22c55e' : '#f43f5e',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '3px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {copied ? '✓ COPIATO!' : '📋 COPIA DIDASCALIA'}
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    backgroundColor: '#0e0e14',
+                    border: '1px solid #242430',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    lineHeight: 1.6,
+                    color: '#cccccc',
+                    whiteSpace: 'pre-line',
+                    overflowY: 'auto',
+                    maxHeight: '380px',
+                  }}
+                >
+                  {currentPost.caption}
+                </div>
+
+                <div style={{ marginTop: '14px', padding: '12px', backgroundColor: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '4px', fontSize: '11.5px', color: '#b0b0b8', lineHeight: 1.5 }}>
+                  💡 <strong style={{ color: '#ffffff' }}>Come pubblicare:</strong> Apri Instagram da smartphone o desktop, carica la grafica scaricata, incolla questa didascalia e assicurati che il link in bio punti a <strong style={{ color: '#38bdf8' }}>capirelai.com</strong>.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

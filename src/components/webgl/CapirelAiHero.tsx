@@ -178,6 +178,32 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-pdf-50-pagine-jarvis',
+    badge: 'JARVIS BRIEF • KAI-01 HD',
+    title: "Reel 05 // Contratti e PDF da 50 Pagine in 10 Secondi (Gratis)",
+    subtitle: "Dal nodo editoriale Jarvis: hook anti-spreco su contratti e preventivi, protocollo gratuito con NotebookLM/AI, prompt esatto in 5 punti + rischi OCR e KAI-01 PiP",
+    video: "/instagram/reels/reel-05-pdf-50-pagine-jarvis.mp4",
+    filename: "reel-05-pdf-50-pagine-jarvis.mp4",
+    duration: "35.8 sec",
+    specs: "1080×1920 MP4 • KAI-01 + B-Roll PDF Scan + SFX",
+    caption: `Se leggi ancora PDF, contratti o preventivi da 50 pagine riga per riga, stai buttando ore della tua settimana. 📄⏱️
+
+Ecco il protocollo gratuito in 10 secondi (senza fuffa):
+1️⃣ Carica il PDF su NotebookLM o un modello a contesto esteso
+2️⃣ Incolla questo prompt esatto in 5 punti:
+• Oggetto e obblighi reali
+• Rischi e clausole asimmetriche
+• Costi fissi o nascosti
+• Scadenze di recesso e taciti rinnovi
+• Passaggi ambigui da verificare a mano citando la pagina
+
+⚠️ Regola anti-errore: sulle tabelle scansionate verifica sempre i numeri sul file originale prima di firmare.
+
+👉 Commenta "GUIDA" o leggi il metodo completo su capirelai.com (link in bio)
+
+#CapirelAI #AIItalia #PDF #NotebookLM #Produttivita #Contratti #TechItalia #AIPratica`,
+  },
+  {
     id: 'reel-automazioni-jarvis',
     badge: 'JARVIS BRIEF • KAI-01 HD',
     title: "Reel 04 // 3 Automazioni AI (6 Ore Risparmiate Senza Codice)",
@@ -412,7 +438,7 @@ Cosa troverai su capirelai.com:
 
 function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>('reel-automazioni-jarvis');
+  const [selectedReelId, setSelectedReelId] = useState<string>('reel-pdf-50-pagine-jarvis');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
@@ -572,13 +598,15 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     color: selectedReelId === reel.id ? '#ffffff' : '#999999',
                   }}
                 >
-                  {reel.id === 'reel-automazioni-jarvis'
-                    ? '⚡ Reel 04: 3 Automazioni (NEW)'
-                    : reel.id === 'reel-cyborg-viral'
-                      ? '🤖 Reel 03: Cyborg + B-Roll'
-                      : reel.id === 'reel-token-avatar'
-                        ? '🎙️ Reel 02: Avatar Parlato + Voce'
-                        : '⚡ Reel 01: Slide 3D Token'}
+                  {reel.id === 'reel-pdf-50-pagine-jarvis'
+                    ? '📄 Reel 05: PDF 50 Pag. 10s (NEW)'
+                    : reel.id === 'reel-automazioni-jarvis'
+                      ? '⚡ Reel 04: 3 Automazioni AI'
+                      : reel.id === 'reel-cyborg-viral'
+                        ? '🤖 Reel 03: Cyborg + B-Roll'
+                        : reel.id === 'reel-token-avatar'
+                          ? '🎙️ Reel 02: Avatar Parlato + Voce'
+                          : '⚡ Reel 01: Slide 3D Token'}
                 </button>
               ))}
             </div>

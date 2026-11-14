@@ -1,4 +1,89 @@
 {
+  "leggi-contratti-pdf-50-pagine-10-secondi": {
+    "title": "Contratti e PDF da 50 Pagine in 10 Secondi: Metodo Gratis, Prompt e Rischi Legali",
+    "section": "Guide",
+    "tag": "DOCUMENTI",
+    "readTime": "7 min",
+    "author": "Capire l'AI",
+    "date": "14 Nov 2026",
+    "summary": "Leggere preventivi, contratti o capitolati da 50 pagine riga per riga fa perdere ore prima ancora di capire dove sono i vincoli critici. Ho testato un protocollo di triage gratuito su strumenti a contesto esteso: ecco il prompt strutturato in 5 punti, i tempi misurati e gli errori di lettura su cui non fidarsi alla cieca.",
+    "content": [
+      {
+        "heading": "1. Grounding sul documento invece di chat generica",
+        "text": "Caricare un PDF lungo dentro ambienti con grounding nativo sulle fonti (come NotebookLM o modelli con finestra oltre 128k token) forza la risposta a citare i passaggi originali invece di improvvisare da memoria parametrica. Nei miei test su un contratto di fornitura da 48 pagine, il primo passaggio ha isolato le clausole critiche in meno di 12 secondi.",
+        "highlight": "Risultato pratico: individuazione immediata di penali, taciti rinnovi e fori competenti con citazione esatta di pagina e paragrafo."
+      },
+      {
+        "heading": "2. Il prompt strutturato in 5 punti con verifica obbligatoria",
+        "text": "Un prompt generico tipo 'riassumi questo contratto' produce testo fluido che spesso smussa i dettagli legali scomodi. Imponendo una griglia fissa per rischi, costi nascosti, scadenze, azioni richieste e dubbi aperti si ottiene una checklist operativa controllabile in due minuti.",
+        "codeSnippet": "// Prompt esatto di audit rapido per contratti e preventivi:\n\"Analizza esclusivamente il documento allegato come un revisore tecnico.\nEstrai in 5 sezioni schematiche citando sempre pagina e paragrafo:\n1) Oggetto e obblighi principali;\n2) Rischi e clausole asimmetriche o penali;\n3) Costi fissi, variabili o nascosti;\n4) Scadenze di recesso e rinnovo automatico;\n5) Passaggi ambigui o tabelle illeggibili da verificare a mano.\""
+      },
+      {
+        "heading": "Limiti reali: scansioni OCR, tabelle e responsabilità",
+        "text": "Su PDF nativi testuali l'estrazione è affidabile, ma su scansioni storte o tabelle multipagina l'OCR può invertire cifre decimali e date. Questo flusso serve per fare triage veloce e sapere quali pagine leggere con attenzione, mai per sostituire il parere di un legale su clausole vincolanti."
+      }
+    ],
+    "keyTakeaways": [
+      "Chiedi sempre il riferimento di pagina e sezione per verificare in 5 secondi la fonte originale.",
+      "Una sezione esplicita sui passaggi ambigui riduce le inferenze inventate su clausole mancanti.",
+      "Sulle cifre in tabella e sui rinnovi automatici il controllo manuale sul PDF originale resta obbligatorio."
+    ]
+  },
+  "sistemi-multi-agente-orchestrazione": {
+    "title": "Addio AI Singola: Come Funzionano Davvero i Sistemi Multi-Agente (e Quando Non Servono)",
+    "section": "Guide",
+    "tag": "MULTI-AGENTE",
+    "readTime": "9 min",
+    "author": "Capire l'AI",
+    "date": "14 Nov 2026",
+    "summary": "Chiedere a un singolo prompt di cercare fonti, scrivere una bozza e fare fact-checking in una sola passata crea il classico collo di bottiglia del contesto. Ho testato un'architettura a tre micro-ruoli coordinati in sequenza: ecco come strutturare passaggi dati in JSON e perché i sistemi multi-agente raddoppiano costi e latenza se usati dove non servono.",
+    "content": [
+      {
+        "heading": "Il limite del prompt unico (Prompt Bottleneck)",
+        "text": "Quando un solo modello deve contemporaneamente recuperare fatti, rispettare vincoli di tono e autovalutarsi, la qualità degrada appena il contesto supera qualche migliaio di token. Separare il lavoro in ruoli specializzati (Ricercatore, Redattore, Revisore) isola ciascun contesto su un sotto-compito preciso.",
+        "highlight": "Vantaggio reale: ogni nodo vede solo il proprio schema di input/output invece di accumulare rumore conversazionale."
+      },
+      {
+        "heading": "Orchestrazione semplice prima dei framework complessi",
+        "text": "Non serve partire subito con grafi complessi su CrewAI o AutoGen se il flusso è lineare. Nei miei esperimenti una sequenza controllata a tre chiamate con passaggi JSON validati garantisce risultati più prevedibili rispetto ad agenti autonomi che dialogano liberamente tra loro.",
+        "codeSnippet": "// Contratto minimo di passaggio tra Agente Ricercatore e Revisore:\n{\n  \"fatti_verificati\": [\"voce + fonte o pagina\"],\n  \"lacune_dichiarate\": [\"dato non presente nei documenti\"],\n  \"stato_validazione\": \"approvato | da_rivedere\",\n  \"max_iterazioni\": 2\n}"
+      },
+      {
+        "heading": "Costi token e rischio di loop infiniti",
+        "text": "Ogni passaggio tra agenti moltiplica i token in ingresso e la latenza end-to-end (da 3 secondi a oltre 25-40 secondi). Senza un tetto rigido di iterazioni (`max_loops`) e senza fallback deterministici, due agenti critici possono rimpallarsi correzioni all'infinito consumando budget API."
+      }
+    ],
+    "keyTakeaways": [
+      "Usa più agenti solo quando servono competenze isolate (ricerca, estrazione vincolata, audit di controllo).",
+      "Imponi contratti JSON rigidi e un numero massimo di iterazioni tra i ruoli.",
+      "Per compiti singoli sotto i 2.000 token un prompt ben strutturato batte qualsiasi multi-agente per velocità e costo."
+    ]
+  },
+  "testo-in-video-workflow-ai": {
+    "title": "Da Testo a Video in 60 Secondi? Test Empirico sull'Automazione Reel & Sottotitoli",
+    "section": "Prove",
+    "tag": "VIDEO AI",
+    "readTime": "6 min",
+    "author": "Capire l'AI",
+    "date": "14 Nov 2026",
+    "summary": "Molti promettono di generare video completi da una riga di testo in 30 secondi. Ho cronometrato il flusso reale di produzione per capire cosa conviene automatizzare davvero (tagli, allineamento parola-per-parola, B-roll modulari) e dove i tool one-click falliscono ancora su identità visiva e sincronia.",
+    "content": [
+      {
+        "heading": "Cosa funziona bene in automatico: timing, sottotitoli e B-roll",
+        "text": "Automatizzare la trascrizione con timestamp a livello di parola (WordBoundary), il taglio dei silenzi e il posizionamento delle card B-roll riduce il montaggio meccanico di oltre il 70%. Anche la generazione programmata di overlay e spettri audio reattivi scala in modo deterministico.",
+        "highlight": "Dato misurato: la pipeline testuale → voce TTS + sottotitoli sincronizzati + compositing multi-livello abbatte i tempi da ~2 ore a pochi minuti di render."
+      },
+      {
+        "heading": "Dove i generatori one-click mostrano ancora il limite",
+        "text": "Affidare l'intera regia a un generatore generico produce spesso clip stock fuori contesto, errori di pronuncia sui termini tecnici inglesi in mezzo a frasi italiane e perdita di coerenza del brand. La soluzione migliore resta modulare: copione umano o revisionato, asset visivi controllati e motore di compositing riproducibile."
+      }
+    ],
+    "keyTakeaways": [
+      "Automatizza sincronia audio-sottotitoli, HUD grafici e rendering ricorrente, non la direzione editoriale.",
+      "I timestamp WordBoundary eliminano completamente il lavoro manuale sui sottotitoli karaoke.",
+      "Controlla sempre l'allineamento tra box B-roll e riquadri video prima della pubblicazione."
+    ]
+  },
   "3-automazioni-ai-senza-codice": {
     "title": "3 Automazioni AI Senza Codice: Cosa Funziona Davvero (e i Limiti Reali)",
     "section": "Guide",

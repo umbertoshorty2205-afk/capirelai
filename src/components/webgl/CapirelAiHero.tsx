@@ -185,7 +185,7 @@ const INSTAGRAM_REELS: InstagramReelItem[] = [
     video: "/instagram/reels/reel-05-pdf-50-pagine-jarvis.mp4",
     filename: "reel-05-pdf-50-pagine-jarvis.mp4",
     duration: "35.8 sec",
-    specs: "1080×1920 MP4 • KAI-01 + B-Roll PDF Scan + SFX",
+    specs: "1080×1920 MP4 • Voce Naturale + Studio Clean HD",
     caption: `Se leggi ancora PDF, contratti o preventivi da 50 pagine riga per riga, stai buttando ore della tua settimana. 📄⏱️
 
 Ecco il protocollo gratuito in 10 secondi (senza fuffa):
@@ -210,8 +210,8 @@ Ecco il protocollo gratuito in 10 secondi (senza fuffa):
     subtitle: "Dal nodo editoriale Jarvis: hook anti-spreco 6h/settimana, pipeline Email → Sintesi → Calendario, schede documenti auto, briefing settimanale con costi/limiti reali e KAI-01 PiP",
     video: "/instagram/reels/reel-04-automazioni-ai-jarvis.mp4",
     filename: "reel-04-automazioni-ai-jarvis.mp4",
-    duration: "30.8 sec",
-    specs: "1080×1920 MP4 • KAI-01 + B-Roll Workflow + SFX",
+    duration: "39.0 sec",
+    specs: "1080×1920 MP4 • Voce Naturale + Studio Clean HD",
     caption: `Se usi ancora ChatGPT solo per fare riassunti, stai lasciando sul tavolo 6 ore ogni settimana. ⏱️⚡
 
 Ecco 3 automazioni AI reali senza scrivere codice (con costi e limiti misurati):

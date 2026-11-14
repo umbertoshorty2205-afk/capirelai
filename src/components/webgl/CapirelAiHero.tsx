@@ -178,6 +178,27 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-chatbot-vs-agenti-jarvis',
+    badge: 'JARVIS BRIEF • STUDIO CLEAN HD',
+    title: "Reel 06 // Chatbot vs Agenti AI Autonomi (Kit Completo)",
+    subtitle: "Dal nodo editoriale Jarvis: confronto Chatbot vs Agenti AI, esecuzione multi-step con tool esterni, controllo umano finale e preset Studio Clean HD (voce naturale senza FX)",
+    video: "/instagram/reels/reel-06-chatbot-vs-agenti-jarvis.mp4",
+    filename: "reel-06-chatbot-vs-agenti-jarvis.mp4",
+    duration: "34.7 sec",
+    specs: "1080×1920 MP4 • Voce Naturale + Studio Clean HD",
+    caption: `Se usi l'AI solo per farti scrivere un testo o una email, stai sfruttando meno del 10% del suo potenziale. 🤖⚡
+
+Ecco la differenza reale tra un Chatbot e un Agente AI:
+• Chatbot classico = aspetta ogni tuo comando. Chiedi, copi, incolli, controlli e perdi comunque due ore.
+• Agente AI = riceve un obiettivo chiaro, consulta le fonti, interroga i tuoi tool collegati e ti prepara il report ordinato.
+
+⚠️ Regola pratica dai test: delega la raccolta e la bozza al flusso autonomo, ma tieni sempre il controllo umano sulla conferma finale.
+
+👉 Commenta "AGENTE" qui sotto o leggi architettura, tool e limiti reali su capirelai.com (link in bio)
+
+#CapirelAI #AIItalia #AgentiAI #ChatbotVsAgenti #Automazione #Produttivita #TechItalia`,
+  },
+  {
     id: 'reel-pdf-50-pagine-jarvis',
     badge: 'JARVIS BRIEF • KAI-01 HD',
     title: "Reel 05 // Contratti e PDF da 50 Pagine in 10 Secondi (Gratis)",
@@ -438,7 +459,7 @@ Cosa troverai su capirelai.com:
 
 function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>('reel-pdf-50-pagine-jarvis');
+  const [selectedReelId, setSelectedReelId] = useState<string>('reel-chatbot-vs-agenti-jarvis');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);

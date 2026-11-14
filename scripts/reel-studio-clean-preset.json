@@ -1,0 +1,56 @@
+{
+  "presetName": "Studio Clean HD (Standard Default)",
+  "updatedAt": "2026-11-14",
+  "video": {
+    "resolution": "1080x1920",
+    "fps": 30,
+    "codec": "libx264",
+    "crf": 19,
+    "pixFmt": "yuv420p",
+    "faststart": true,
+    "pip": {
+      "sourceCrop": "720x948 at (180,295)",
+      "targetSize": "316x416",
+      "position": { "x": 728, "y": 1029 },
+      "enterTransition": "cubic-ease-out 0.32s"
+    },
+    "broll": {
+      "windowPosition": { "x": 40, "y": 345 },
+      "framedPanSpeed": "smooth slow drift, no shake"
+    },
+    "hud": {
+      "position": { "x": 60, "y": 75 },
+      "enterTransition": "cubic-ease-out 0.28s"
+    },
+    "subtitles": {
+      "style": "centered high-contrast slate pill, zero drawbox progress line",
+      "y": 1480,
+      "mergeAcronyms": ["PDF", "NotebookLM", "ChatGPT", "OCR", "AI", "API", "JSON"]
+    },
+    "footer": {
+      "y": 1758
+    },
+    "disabledFx": [
+      "glitch flashes",
+      "whitestrobes",
+      "camera shake",
+      "cyan laser scanlines",
+      "strobing audio spectrum overlay",
+      "drawbox dynamic progress line"
+    ]
+  },
+  "audio": {
+    "provider": "node-edge-tts",
+    "voice": "it-IT-GiuseppeMultilingualNeural",
+    "rate": "+1%",
+    "pitch": "-1Hz",
+    "sampleRate": 48000,
+    "bitrate": "192k",
+    "filterChain": "highpass=f=75,equalizer=f=180:width_type=o:width=1.4:g=1.4,equalizer=f=5500:width_type=o:width=1.5:g=-1.0,acompressor=threshold=-18dB:ratio=2.2:attack=12:release=90,loudnorm=I=-15:TP=-1.5:LRA=8",
+    "disabledAudioFx": [
+      "aecho metallic comb filter",
+      "3.4kHz harsh boost",
+      "synthetic whoosh/beep SFX"
+    ]
+  }
+}

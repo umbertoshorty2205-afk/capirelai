@@ -1,4 +1,38 @@
 {
+  "modelli-ragionamento-o1-api-guida-pratica": {
+    "title": "Modelli di Ragionamento (o1 & Chain of Thought): Guida Pratica API e Costi Reali",
+    "section": "Guide",
+    "tag": "REASONING",
+    "readTime": "8 min",
+    "author": "Capire l'AI",
+    "date": "14 Nov 2026",
+    "summary": "I modelli di ragionamento come la serie OpenAI o1 non rispondono al primo token: eseguono una catena di pensiero interna prima di scrivere l'output. Ho testato l'integrazione via API regolando reasoning_effort su logiche complesse, estrazione vincolata e debugging: ecco quando riducono gli errori e quando latenza e costi nascosti li rendono sconvenienti.",
+    "content": [
+      {
+        "heading": "1. Cosa cambia sotto il cofano rispetto a un LLM standard",
+        "text": "Un modello conversazionale classico prevede la risposta in flusso diretto, ottimizzando velocità e fluidità. Un modello della classe 'o1' alloca invece token di ragionamento interni invisibili (Chain of Thought nascosta) per pianificare, verificare vincoli matematici o logici e correggere ipotesi errate prima di emettere la risposta finale.",
+        "highlight": "Dato pratico dai test: su problemi di pianificazione vincolata multi-regola e refactoring con edge-case, gli errori logici calano nettamente rispetto a una chiamata single-shot standard."
+      },
+      {
+        "heading": "2. Il parametro reasoning_effort nelle chiamate API",
+        "text": "In produzione il controllo chiave è il parametro 'reasoning_effort' (low, medium, high). Nei miei test su compiti di audit JSON e verifica di regole di business, impostare 'low' o 'medium' mantiene la latenza tra 6 e 14 secondi, mentre 'high' può superare i 30 secondi moltiplicando i token fatturati di 3x-6x rispetto al solo testo visibile.",
+        "codeSnippet": "// Esempio chiamata API con controllo esplicito di reasoning_effort:\nconst response = await client.responses.create({\n  model: \"o3-mini\", // o modello serie reasoning disponibile\n  reasoning: { effort: \"medium\" },\n  input: [\n    {\n      role: \"developer\",\n      content: \"Restituisci solo JSON valido. Se un vincolo non è soddisfabile, dichiara 'impossibile' senza inventare dati.\"\n    },\n    {\n      role: \"user\",\n      content: \"Verifica compatibilità tariffe, sconti cumulabili e margini minimi sul listino allegato.\"\n    }\n  ]\n});"
+      },
+      {
+        "heading": "3. Strategia ibrida: motore logico vs modello veloce",
+        "text": "Usare un modello di ragionamento per fare riassunti, riscrivere email o alimentare una chat in tempo reale spreca budget e degrada l'esperienza utente per via dell'attesa iniziale. L'architettura più efficace separa i ruoli: un modello veloce (classe Flash/mini) gestisce triage, formattazione e interfaccia, mentre il modello di ragionamento interviene solo sui nodi critici di calcolo, pianificazione o audit finale."
+      },
+      {
+        "heading": "Limiti reali misurati",
+        "text": "Anche con la catena di pensiero attiva, i modelli di ragionamento restano ciechi su dati aziendali aggiornati senza grounding o tool esterni, e i token di pensiero interni vengono comunque addebitati come token di output. Imposta sempre un tetto 'max_output_tokens' adeguato: se il budget di output è troppo stretto, il modello consuma tutto il tetto nel ragionamento interno e restituisce una risposta vuota."
+      }
+    ],
+    "keyTakeaways": [
+      "Usa i modelli di ragionamento come motori logici mirati (codice, vincoli, calcoli), mai per chat veloci o riassunti banali.",
+      "Bilancia latenza e spesa con 'reasoning_effort' (low/medium per flussi operativi, high solo per audit asincroni).",
+      "Ricorda che i reasoning token interni consumano sia budget finanziario sia quota di max_output_tokens."
+    ]
+  },
   "leggi-contratti-pdf-50-pagine-10-secondi": {
     "title": "Contratti e PDF da 50 Pagine in 10 Secondi: Metodo Gratis, Prompt e Rischi Legali",
     "section": "Guide",

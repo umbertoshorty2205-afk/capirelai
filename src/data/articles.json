@@ -1,4 +1,190 @@
 {
+  "migliori-tool-ai-lavorare-meglio-pmi": {
+    "title": "Migliori Tool AI per Lavorare Meglio (Guida Pratica Professionisti e PMI)",
+    "section": "Guide",
+    "tag": "HUB PMI • PILLAR",
+    "readTime": "10 min",
+    "author": "Capire l'AI",
+    "date": "15 Nov 2026",
+    "summary": "Hub operativo AI per lavorare meglio in Italia: quali strumenti servono davvero tra chat business, NotebookLM, Perplexity e automazioni n8n, i 5 flussi che fanno risparmiare fino a 5 ore a settimana e i collegamenti diretti alle guide su GDPR, preventivi, Excel e budget reale.",
+    "content": [
+      {
+        "heading": "1. I tre pilastri prima di comprare qualsiasi abbonamento AI",
+        "text": "Per un professionista o una PMI italiana non serve rincorrere decine di strumenti nuovi ogni settimana. Conta una regola semplice: scegliere al massimo un assistente conversazionale business (ChatGPT Team, Claude Pro/Team o Gemini Workspace), un ambiente grounded sui documenti (NotebookLM o contesto esteso) e, solo dove ci sono attività ripetitive ad alto volume, un orchestratore come n8n o Make.",
+        "highlight": "Obiettivo misurabile dai test sul campo: liberare tra 3 e 5 ore a settimana su triage documenti, bozze preventivi, pulizia tabelle e verbali."
+      },
+      {
+        "heading": "2. Mappa comparativa rapida degli strumenti testati",
+        "text": "Ogni categoria copre un lavoro preciso e richiede un diverso livello di controllo umano finale:",
+        "codeSnippet": "ATTIVITA AZIENDALE          | STRUMENTO ADATTO                 | COSTO MESE  | CONTROLLO UMANO\n----------------------------+----------------------------------+-------------+---------------------------\nEmail, preventivi, bozze    | ChatGPT Team / Claude / Gemini   | 0€ - 25€    | Prezzi e tono commerciale\nPDF, contratti, capitolati  | NotebookLM / Finestre 128k+      | Gratis-20€  | Tabelle OCR e scadenze\nRicerche web con fonti      | Perplexity / Search Grounding    | 0€ - 20€    | Numeri normativi aggiornati\nFlussi tra Email, Drive, CRM| n8n (VPS/Cloud) / Make           | 0€ - 30€    | Conferma prima di invii"
+      },
+      {
+        "heading": "3. Il Cluster Spoke completo: privacy, vendite, Excel e costi",
+        "text": "Questo Hub collega quattro guide operative dedicate ai punti critici di una piccola azienda: (1) Alternative ChatGPT per aziende e conformità GDPR; (2) Workflow per preventivi ed email commerciali senza tono artificiale; (3) Automazione Excel, fatture e documenti con controlli di quadratura; (4) Piano costi reale da 0€ a 150€/mese per capire il punto di pareggio senza consulenze fuffa."
+      },
+      {
+        "heading": "Regola anti-fuffa per iniziare domani",
+        "text": "Scegli un solo processo ripetitivo su cui oggi perdi almeno 3 ore a settimana, applicalo con la struttura R.O.F. per 14 giorni cronometrando i minuti risparmiati e solo dopo valuta licenze team condivise o integrazioni API."
+      }
+    ],
+    "keyTakeaways": [
+      "Concentrati su 1 modello chat business + 1 strumento grounded per PDF invece di pagare cinque tool ridondanti.",
+      "Parti dai 5 flussi ad alto ritorno: triage PDF, bozze preventivi, pulizia CSV/Excel, verbali riunioni e confronto offerte.",
+      "Leggi le 4 guide Spoke collegate su GDPR, preventivi, Excel e costi prima di introdurre dati clienti nei prompt."
+    ]
+  },
+  "metodo-r-o-f-10-prompt-chatgpt-da-copiare-subito": {
+    "title": "Metodo R.O.F.: 10 Prompt ChatGPT e Claude da Copiare Subito (Ruolo, Obiettivo, Formato)",
+    "section": "Guide",
+    "tag": "METODO R.O.F.",
+    "readTime": "11 min",
+    "author": "Capire l'AI",
+    "date": "15 Nov 2026",
+    "summary": "Smetti di usare ChatGPT o Claude come un motore di ricerca generico. Ecco la struttura R.O.F. (Ruolo, Obiettivo, Formato) con clausola anti-invenzione e tutti i 10 prompt operativi completi per email, preventivi, riunioni, contratti, Excel, procedure e revisione critica.",
+    "content": [
+      {
+        "heading": "Come funziona la struttura R.O.F. in 15 secondi",
+        "text": "Un prompt generico produce risposte prolisse che devi riscrivere da zero. Prima di premere Invio specifica sempre tre blocchi: R (Ruolo tecnico e registro), O (Obiettivo concreto con vincoli e destinatario) e F (Formato esatto desiderato). Aggiungi la clausola finale: 'Se manca un dato necessario, non inventarlo: segnalalo con [DATO MANCANTE]'.",
+        "highlight": "Risultato pratico: riduce dell'80% i giri di correzione manuale e impone risposte subito utilizzabili."
+      },
+      {
+        "heading": "Prompt 1–3: Amministrazione, Vendite e Riunioni",
+        "text": "Tre template pronti per solleciti cortesi, follow-up commerciali senza sconti inutili e sintesi operative di call/riunioni:",
+        "codeSnippet": "[1] SOLLECITO PAGAMENTO\nRuolo: Responsabile amministrativo PMI italiana.\nObiettivo: Scrivi un primo sollecito per la fattura [NUMERO] di [IMPORTO] scaduta il [DATA] al cliente [NOME]. Tono cordiale ma fermo, chiedendo data certa di bonifico.\nFormato: Oggetto email + max 90 parole + richiesta conferma entro 48h.\n\n[2] FOLLOW-UP PREVENTIVO\nRuolo: Consulente B2B consultivo (zero pressione aggressiva).\nObiettivo: Riprendi il preventivo del [DATA] per [SERVIZIO] chiarendo valore pratico senza offrire sconti non richiesti. Proponi call di 10 minuti o due opzioni.\nFormato: Oggetto + max 120 parole in 3 paragrafi + 2 risposte rapide.\n\n[3] VERBALE OPERATIVO RIUNIONE\nRuolo: Project manager tecnico.\nObiettivo: Estrai dalla trascrizione solo decisioni prese, azioni aperte e blocchi. Non inventare responsabili non citati.\nFormato: 3 elenchi — Decisioni, Tabella [Azione | Responsabile | Scadenza], Punti aperti."
+      },
+      {
+        "heading": "Prompt 4–7: Fornitori, Procedure (SOP), Contratti ed Excel",
+        "text": "Quattro prompt per acquisti, standardizzazione processi aziendali, triage clausole critiche e normalizzazione CSV/tabelle:",
+        "codeSnippet": "[4] CONFRONTO PREVENTIVI FORNITORI\nRuolo: Responsabile acquisti e controllo costi.\nObiettivo: Confronta i preventivi A e B evidenziando costi ricorrenti, setup, rinnovi, penali e voci mancanti.\nFormato: Tabella [Voce | Fornitore A | Fornitore B | Nota] + 3 domande pre-firma.\n\n[5] PROCEDURA INTERNA (SOP)\nRuolo: Operations manager per micro-imprese.\nObiettivo: Trasforma questi appunti grezzi in una procedura ripetibile per un nuovo collaboratore.\nFormato: Titolo + Prerequisiti (3 righe) + Passaggi numerati + Checklist controllo.\n\n[6] AUDIT PRELIMINARE CONTRATTO\nRuolo: Analista documentale (non parere legale).\nObiettivo: Isola clausole sbilanciate, taciti rinnovi, penali e preavvisi citando articolo/pagina.\nFormato: Lista ordinata per rischio [Alta/Media] + 4 punti da verificare con legale.\n\n[7] PULIZIA DATI CSV / EXCEL\nRuolo: Data analyst specializzato in fogli di calcolo.\nObiettivo: Standardizza date (YYYY-MM-DD), numeri e nomi azienda dai dati sotto segnalando duplicati o righe incomplete senza inventare valori.\nFormato: Tabella pulita + elenco separato righe anomale."
+      },
+      {
+        "heading": "Prompt 8–10: Contenuti B2B, Debug Formule e Revisione Critica",
+        "text": "Gli ultimi tre prompt trasformano le obiezioni reali dei clienti in contenuti utili, risolvono formule bloccate ed eliminano frasi fuffa dalle bozze:",
+        "codeSnippet": "[8] CONTENUTI DA OBIEZIONI REALI CLIENTI\nRuolo: Stratega contenuti tecnici B2B.\nObiettivo: Partendo da queste 5 domande reali clienti ([ELENCO]), crea idee concrete senza frasi motivazionali.\nFormato: Tabella 5 righe [Obiezione | Titolo | Hook 3s | Esempio pratico].\n\n[9] DEBUG FORMULA EXCEL / SHEETS\nRuolo: Sviluppatore e specialista fogli di calcolo.\nObiettivo: Spiega perché questa formula dà errore sullo scenario descritto e scrivi la versione corretta (Excel ITA/ENG).\nFormato: (1) Causa in 2 righe, (2) Formula copiabile, (3) Esempio input/output.\n\n[10] REVISIONE CRITICA (RED TEAM)\nRuolo: Revisore scettico del settore [SETTORE].\nObiettivo: Individua frasi vaghe, promesse non dimostrate o tono artificiale nella bozza sotto.\nFormato: Max 5 critiche [Frase originale -> Problema -> Correzione concreta]."
+      }
+    ],
+    "keyTakeaways": [
+      "Ogni prompt efficace contiene sempre tre vincoli chiari: Ruolo, Obiettivo/Contesto e Formato.",
+      "Inserisci sempre la clausola [DATO MANCANTE] quando lavori su documenti o cifre aziendali.",
+      "Salva i 10 template R.O.F. in una libreria condivisa del team per rendere ripetibile la qualità delle bozze."
+    ]
+  },
+  "alternative-chatgpt-privacy-aziende-gdpr": {
+    "title": "Alternative a ChatGPT per Aziende: Privacy, Dati Clienti e Conformità GDPR",
+    "section": "Guide",
+    "tag": "GDPR • SPOKE 1",
+    "readTime": "7 min",
+    "author": "Capire l'AI",
+    "date": "15 Nov 2026",
+    "summary": "Come usare l'AI in una PMI italiana senza esporre dati sensibili di clienti, preventivi o buste paga: confronto reale tra account Free/Plus, piani Team/Enterprise con DPA, endpoint API europei e modelli locali Open-Weights.",
+    "content": [
+      {
+        "heading": "1. Account personali vs Piani Business e API europee",
+        "text": "Incollare contratti nominativi o dati fiscali dentro un account consumer gratuito con opzione di addestramento attiva espone l'azienda a rischi evitabili. I piani Business (ChatGPT Team/Enterprise, Claude Team, Google Workspace Gemini) e gli endpoint API diretti escludono per contratto l'uso dei dati per addestrare i modelli e offrono Data Processing Agreement (DPA) firmati.",
+        "highlight": "Regola operativa: sui piani Free o Plus non incollare mai nomi, codici fiscali, IBAN o dati sanitari reali."
+      },
+      {
+        "heading": "2. Checklist tecnica minima prima di adottare l'AI in ufficio",
+        "text": "Tre azioni semplici mettono subito in sicurezza oltre il 90% dei flussi quotidiani:",
+        "codeSnippet": "1) ANONIMIZZAZIONE PREVENTIVA -> Sostituisci nomi/CF/IBAN con [CLIENTE_A], [FORNITORE_B]\n2) SEPARAZIONE ACCOUNT         -> Usa workspace aziendale con opt-out training verificato\n3) RESIDENZA DATI & REGISTRO   -> Per automazioni usa API con hosting UE (es. Francoforte/Belgio)\n                                  e aggiorna l'elenco fornitori con il consulente GDPR."
+      },
+      {
+        "heading": "3. Quando ha senso un modello locale (Ollama / vLLM)",
+        "text": "Installare modelli Open-Weights su server proprietario o workstation locale elimina qualsiasi invio esterno di dati, ma comporta costi hardware (24–48 GB VRAM) e manutenzione. Conviene soprattutto per archivi riservati offline o elaborazioni ripetitive ad altissimo volume."
+      }
+    ],
+    "keyTakeaways": [
+      "Non usare mai account consumer gratuiti con dati reali non anonimizzati di clienti o dipendenti.",
+      "Preferisci piani Team/Enterprise con DPA o chiamate API configurate in regioni europee.",
+      "Anonimizzare i campi sensibili prima del prompt resta la difesa più veloce ed economica."
+    ]
+  },
+  "ai-scrivere-preventivi-email-commerciali": {
+    "title": "Come Usare l'AI per Scrivere Preventivi ed Email Commerciali Senza Sembrare un Robot",
+    "section": "Guide",
+    "tag": "VENDITE • SPOKE 2",
+    "readTime": "6 min",
+    "author": "Capire l'AI",
+    "date": "15 Nov 2026",
+    "summary": "Workflow pratico in 3 fasi per trasformare appunti vocali o tecnici in preventivi ed email commerciali chiare in 5 minuti, eliminando aggettivi pomposi e formule artificiali.",
+    "content": [
+      {
+        "heading": "Perché le email AI standard abbassano le risposte",
+        "text": "Senza vincoli espliciti i modelli riempiono le proposte di slogan vuoti ('soluzione innovativa a 360 gradi', 'eccellenza su misura') e dimenticano ciò che interessa davvero a chi acquista in Italia: perimetro chiaro, tempi di consegna e cosa è escluso.",
+        "highlight": "Principio chiave: l'AI deve ordinare i tuoi dati tecnici reali, mai inventare benefici commerciali."
+      },
+      {
+        "heading": "Template asciutto per accompagnare un preventivo",
+        "text": "Compila i quattro blocchi con appunti grezzi subito dopo la call con il cliente:",
+        "codeSnippet": "Ruolo: Consulente tecnico commerciale italiano (stile diretto, zero slogan).\nObiettivo: Scrivi l'email di accompagnamento al preventivo usando SOLO questi dati.\nVietato usare parole come 'rivoluzionario', 'leader', 'a 360 gradi'.\nDati reali:\n- Cliente & bisogno: [DETTAGLIO CALL]\n- Cosa consegniamo & tempi: [DELIVERABLE + SETTIMANE]\n- Esclusioni chiare: [COSA RESTA FUORI]\n- Importo & pagamento: [PREZZO + CONDIZIONI]\nFormato: Oggetto specifico + max 140 parole + prossimo passo semplice."
+      },
+      {
+        "heading": "Controllo finale prima dell'invio",
+        "text": "Verifica sempre a mano importi, IVA, validità temporale del preventivo e personalizza la prima riga con un riferimento autentico alla conversazione avuta con il cliente."
+      }
+    ],
+    "keyTakeaways": [
+      "Vieta esplicitamente al modello aggettivi promozionali e frasi fatte americane.",
+      "Includi sempre nel prompt cosa è compreso e cosa è escluso per prevenire contestazioni.",
+      "Non automatizzare l'invio diretto ai prospect senza rilettura umana finale."
+    ]
+  },
+  "automazione-excel-documenti-intelligenza-artificiale": {
+    "title": "Automazione Excel, Fatture e Documenti con l'AI: Estrazione e Controlli Anti-Errore",
+    "section": "Guide",
+    "tag": "EXCEL • SPOKE 3",
+    "readTime": "7 min",
+    "author": "Capire l'AI",
+    "date": "15 Nov 2026",
+    "summary": "Come generare formule Excel/Google Sheets affidabili, ripulire elenchi CSV sporchi ed estrarre voci da fatture o DDT PDF imponendo sempre una verifica matematica di quadratura.",
+    "content": [
+      {
+        "heading": "Dove l'AI accelera davvero il back-office",
+        "text": "Scrivere formule annidate (`CERCA.X`, `MATR.SOMMA.PRODOTTO`, `QUERY`), convertire date incoerenti e preparare tabelle da PDF lunghi richiede spesso 40–60 minuti manuali. L'AI genera formule e normalizzazioni in pochi secondi se specifichi nomi esatti delle colonne e lingua di Excel.",
+        "highlight": "Regola d'oro sui numeri: fai scrivere la formula a Excel/Sheets o a uno script, non far sommare centinaia di righe a mente dal modello."
+      },
+      {
+        "heading": "Prompt con controllo automatico di quadratura",
+        "text": "Quando estrai dati da preventivi o fatture PDF imponi sempre il controllo tra imponibile + IVA e totale finale:",
+        "codeSnippet": "Ruolo: Assistente contabile rigoroso.\nObiettivo: Estrai Fornitore, Numero Documento, Data, Imponibile, IVA e Totale.\nSe un numero è sfocato o ambiguo scrivi esattamente 'DA_VERIFICARE'.\nControllo obbligatorio: somma Imponibile + IVA e confronta col Totale;\nse emerge anche 0,01€ di scarto segnalalo in una riga 'ANOMALIA_QUADRATURA'.\nFormato: Tabella pulita [Campo | Valore | Stato verifica]."
+      }
+    ],
+    "keyTakeaways": [
+      "Indica sempre nel prompt se usi Excel in italiano o in inglese per avere nomi funzione corretti.",
+      "Imponi il segnaposto 'DA_VERIFICARE' sui campi incerti provenienti da PDF scansionati.",
+      "Usa l'AI per generare formule deterministiche o Apps Script, non per calcoli mentali su grandi liste."
+    ]
+  },
+  "quanto-costa-implementare-ai-piccola-azienda": {
+    "title": "Quanto Costa Implementare l'AI in una Piccola Azienda: Piano Reale da 0€ a 150€/Mese",
+    "section": "Guide",
+    "tag": "COSTI PMI • SPOKE 4",
+    "readTime": "6 min",
+    "author": "Capire l'AI",
+    "date": "15 Nov 2026",
+    "summary": "Stima trasparente dei costi mensili per introdurre l'AI in una piccola impresa italiana senza preventivi gonfiati: licenze solo/team, API pay-per-use, n8n e calcolo pratico delle ore per andare in pareggio.",
+    "content": [
+      {
+        "heading": "1. Tre fasce di spesa reali (senza consulenze da migliaia di euro)",
+        "text": "Oltre l'80% delle esigenze di una piccola azienda (1–15 persone) si copre con strumenti modulari standard sotto i 150€ al mese complessivi, restando proprietari di account e flussi.",
+        "highlight": "Soglia pratica di ROI: un piano team per 3–5 persone (~80–110€/mese) si ripaga interamente appena ciascuno risparmia 30–45 minuti a settimana."
+      },
+      {
+        "heading": "2. Confronto trasparente delle fasce mensili",
+        "text": "Scegli la fascia adeguata al volume operativo reale prima di scalare:",
+        "codeSnippet": "FASCIA 1 (0€ - 25€/mese)   -> Professionista singolo: 1 licenza Pro + NotebookLM gratis\nFASCIA 2 (60€ - 120€/mese) -> Piccolo Team 3-5 persone: Piano Business no-training + 10 prompt R.O.F.\nFASCIA 3 (40€ - 150€/mese) -> Automazioni con n8n/Make + API compatte pay-per-use"
+      },
+      {
+        "heading": "3. I tre sprechi più frequenti da evitare",
+        "text": "(1) Pagare 4–5 abbonamenti sovrapposti usati una volta al mese; (2) Usare modelli di ragionamento costosi per riscrivere email semplici; (3) Comprare chatbot personalizzati complessi prima ancora di avere procedure interne ordinate."
+      }
+    ],
+    "keyTakeaways": [
+      "Parti dalla Fascia 1 o 2 su un processo concreto prima di costruire automazioni complesse.",
+      "Mantieni sempre la proprietà diretta di chiavi API, workspace e workflow n8n.",
+      "Valuta ogni strumento sulle ore effettivamente risparmiate dopo 30 giorni di utilizzo reale."
+    ]
+  },
   "modelli-ragionamento-o1-api-guida-pratica": {
     "title": "Modelli di Ragionamento (o1 & Chain of Thought): Guida Pratica API e Costi Reali",
     "section": "Guide",

@@ -174,29 +174,40 @@ interface InstagramReelItem {
   duration: string;
   specs: string;
   caption: string;
+  pinnedComment?: string;
 }
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
     id: 'reel-chatbot-vs-agenti-jarvis',
-    badge: 'JARVIS BRIEF • STUDIO CLEAN HD',
-    title: "Reel 06 // Chatbot vs Agenti AI Autonomi (Kit Completo)",
-    subtitle: "Dal nodo editoriale Jarvis: confronto Chatbot vs Agenti AI, esecuzione multi-step con tool esterni, controllo umano finale e preset Studio Clean HD (voce naturale senza FX)",
+    badge: 'JARVIS BRIEF • STUDIO CLEAN HD v2',
+    title: "Reel 06 // Chatbot vs Agenti AI: Smetti di Fare Copia-Incolla",
+    subtitle: "Versione ottimizzata (31.2s, Studio Clean HD): hook anti-copia-incolla, HUD ad alto contrasto, confronto Chatbot vs Agente AI con tool reali, controllo umano e CTA Follow + Commento",
     video: "/instagram/reels/reel-06-chatbot-vs-agenti-jarvis.mp4",
     filename: "reel-06-chatbot-vs-agenti-jarvis.mp4",
-    duration: "34.7 sec",
+    duration: "31.2 sec",
     specs: "1080×1920 MP4 • Voce Naturale + Studio Clean HD",
-    caption: `Se usi l'AI solo per farti scrivere un testo o una email, stai sfruttando meno del 10% del suo potenziale. 🤖⚡
+    caption: `Usi ancora ChatGPT come un blocco note dove copi e incolli tutto a mano? Ecco perché perdi 2 ore al giorno. 👇
 
-Ecco la differenza reale tra un Chatbot e un Agente AI:
-• Chatbot classico = aspetta ogni tuo comando. Chiedi, copi, incolli, controlli e perdi comunque due ore.
-• Agente AI = riceve un obiettivo chiaro, consulta le fonti, interroga i tuoi tool collegati e ti prepara il report ordinato.
+La differenza che quasi nessuno ti mostra sul serio:
+❌ CHATBOT = aspetta ogni tuo prompt. Chiedi, copi, incolli, verifichi gli errori e ricominci da zero. Il "motore" sei ancora tu.
+✅ AGENTE AI = riceve un obiettivo, decide i passaggi, interroga i tuoi tool (Docs, CRM, Web, fogli), incrocia i dati e ti consegna la bozza finale pronta da approvare.
 
-⚠️ Regola pratica dai test: delega la raccolta e la bozza al flusso autonomo, ma tieni sempre il controllo umano sulla conferma finale.
+⚠️ Regola d'oro dai nostri test su capirelai.com: non delegare l'invio cieco — delega ricerca, raccolta e prima bozza, poi tieni il controllo umano sull'ultimo click.
 
-👉 Commenta "AGENTE" qui sotto o leggi architettura, tool e limiti reali su capirelai.com (link in bio)
+💬 Scrivi "AGENTE" nei commenti e salvati il Reel (ti lascio nel primo commento fissato i 3 stack gratuiti per iniziare subito).
+➕ Seguimi se vuoi test AI reali ogni giorno senza fuffa.
 
-#CapirelAI #AIItalia #AgentiAI #ChatbotVsAgenti #Automazione #Produttivita #TechItalia`,
+#CapirelAI #AgentiAI #AIItalia #ChatGPTItalia #AutomazioneAI #Produttivita #TechItalia #IntelligenzaArtificiale`,
+    pinnedComment: `📌 BONUS PROMESSO QUI SOTTO (salva e seguimi per i prossimi test reali):
+
+Se vuoi passare oggi dal "copia-incolla" al primo flusso autonomo a costo zero, i 3 punti di partenza più affidabili dai nostri test sono:
+1️⃣ Claude / ChatGPT con Connettori + Projects (per istruzioni fisse e file aziendali)
+2️⃣ n8n Self-Hosted o Make Free Tier (per collegare Email, Drive, Slack e webhook)
+3️⃣ Perplexity / Tavily API + controllo finale umano prima dell'invio
+
+👇 Dimmi la verità nei commenti: oggi per cosa perdi più tempo a fare copia-incolla a mano? (Email, PDF, report o preventivi?)
+💬 Scrivi "AGENTE" se vuoi vedere il prossimo Reel con un flusso costruito passo-passo da zero su capirelai.com — e premi Segui per non perderlo! 🚀`,
   },
   {
     id: 'reel-pdf-50-pagine-jarvis',
@@ -463,6 +474,7 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
+  const [copiedComment, setCopiedComment] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -482,6 +494,12 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleCopyComment = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedComment(true);
+    setTimeout(() => setCopiedComment(false), 2500);
   };
 
   return (
@@ -619,15 +637,17 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     color: selectedReelId === reel.id ? '#ffffff' : '#999999',
                   }}
                 >
-                  {reel.id === 'reel-pdf-50-pagine-jarvis'
-                    ? '📄 Reel 05: PDF 50 Pag. 10s (NEW)'
-                    : reel.id === 'reel-automazioni-jarvis'
-                      ? '⚡ Reel 04: 3 Automazioni AI'
-                      : reel.id === 'reel-cyborg-viral'
-                        ? '🤖 Reel 03: Cyborg + B-Roll'
-                        : reel.id === 'reel-token-avatar'
-                          ? '🎙️ Reel 02: Avatar Parlato + Voce'
-                          : '⚡ Reel 01: Slide 3D Token'}
+                  {reel.id === 'reel-chatbot-vs-agenti-jarvis'
+                    ? '🤖 Reel 06: Chatbot vs Agenti (NEW)'
+                    : reel.id === 'reel-pdf-50-pagine-jarvis'
+                      ? '📄 Reel 05: PDF 50 Pag. 10s'
+                      : reel.id === 'reel-automazioni-jarvis'
+                        ? '⚡ Reel 04: 3 Automazioni AI'
+                        : reel.id === 'reel-cyborg-viral'
+                          ? '🤖 Reel 03: Cyborg + B-Roll'
+                          : reel.id === 'reel-token-avatar'
+                            ? '🎙️ Reel 02: Avatar Parlato + Voce'
+                            : '⚡ Reel 01: Slide 3D Token'}
                 </button>
               ))}
             </div>
@@ -737,14 +757,56 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     color: '#cccccc',
                     whiteSpace: 'pre-line',
                     overflowY: 'auto',
-                    maxHeight: '360px',
+                    maxHeight: currentReel.pinnedComment ? '220px' : '360px',
                   }}
                 >
                   {currentReel.caption}
                 </div>
 
+                {currentReel.pinnedComment && (
+                  <div style={{ marginTop: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#38bdf8' }}>
+                        📌 PRIMO COMMENTO DA PUBBLICARE SUBITO SOTTO (PER PRENDERE FOLLOWER)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyComment(currentReel.pinnedComment!)}
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '10.5px',
+                          fontWeight: 700,
+                          backgroundColor: copiedComment ? '#22c55e' : '#0284c7',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '3px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {copiedComment ? '✓ COMMENTO COPIATO!' : '📋 COPIA COMMENTO'}
+                      </button>
+                    </div>
+                    <div
+                      style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(56, 189, 248, 0.06)',
+                        border: '1px solid rgba(56, 189, 248, 0.3)',
+                        borderRadius: '6px',
+                        fontSize: '11.5px',
+                        lineHeight: 1.55,
+                        color: '#d8e9f5',
+                        whiteSpace: 'pre-line',
+                        overflowY: 'auto',
+                        maxHeight: '190px',
+                      }}
+                    >
+                      {currentReel.pinnedComment}
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ marginTop: '14px', padding: '12px', backgroundColor: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '4px', fontSize: '11.5px', color: '#b0b0b8', lineHeight: 1.5 }}>
-                  🔊 <strong style={{ color: '#ffffff' }}>Audio incluso:</strong> Premi Play sul video per ascoltare voce italiana + waveform live. Scarica il file MP4 e caricalo direttamente su Instagram Reels senza aggiungere altra musica sopra il parlato.
+                  🔊 <strong style={{ color: '#ffffff' }}>Audio incluso:</strong> Premi Play sul video per ascoltare voce italiana + waveform live. Scarica il file MP4 e caricalo direttamente su Instagram Reels senza aggiungere altra musica sopra il parlato. Pubblica la didascalia e incolla subito il <strong style={{ color: '#38bdf8' }}>Primo Commento fissato in alto</strong> per spingere salvataggi e nuovi follower.
                 </div>
               </div>
             </div>
@@ -1734,8 +1796,8 @@ export default function CapirelAiHero() {
                 L&apos;EVOLUZIONE DELL&apos;AI
               </span>
             </h1>
-            <p style={{ margin: '14px auto 0', fontSize: '13px', color: '#8a8a8a', maxWidth: '580px', lineHeight: 1.5 }}>
-              Nessun hype: spiegare i concetti tecnici, pubblicare guide pratiche testate e confrontarsi nella community.
+            <p style={{ margin: '14px auto 0', fontSize: '13px', color: '#8a8a8a', maxWidth: '620px', lineHeight: 1.55 }}>
+              L&apos;AI spiegata semplice per professionisti, sviluppatori e PMI italiane: zero hype, test reali, metodo R.O.F. e guide pratiche verificate sul campo.
             </p>
           </div>
 
@@ -1806,15 +1868,64 @@ export default function CapirelAiHero() {
 
         {/* SEZIONE 2: GUIDE */}
         <section id="guide" style={{ minHeight: '100vh', padding: '100px 24px', maxWidth: '1200px', margin: '0 auto', boxSizing: 'border-box' }}>
-          <div style={{ marginBottom: '40px', borderBottom: '1px solid #222222', paddingBottom: '20px' }}>
+          <div style={{ marginBottom: '28px', borderBottom: '1px solid #222222', paddingBottom: '20px' }}>
             <span style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', padding: '3px 8px', backgroundColor: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '3px' }}>
-              02 // PRATICA
+              02 // PRATICA &amp; HUB PMI
             </span>
             <h2 style={{ fontSize: '32px', fontWeight: 700, color: '#ffffff', margin: '12px 0 6px 0' }}>Guide</h2>
-            <p style={{ margin: 0, fontSize: '14px', color: '#aaaaaa', maxWidth: '750px', lineHeight: 1.6 }}>
-              Tutorial operativi, prompt engineering avanzato e workflow per accelerare la produttività quotidiana.
+            <p style={{ margin: 0, fontSize: '14px', color: '#aaaaaa', maxWidth: '780px', lineHeight: 1.6 }}>
+              Tutorial operativi, Metodo R.O.F., Hub strumenti per PMI e flussi reali per risparmiare fino a 5 ore a settimana.
             </p>
           </div>
+
+          {/* Cluster Hub PMI Quick Bar */}
+          <div
+            style={{
+              marginBottom: '28px',
+              padding: '16px 18px',
+              backgroundColor: 'rgba(10, 14, 22, 0.92)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              borderRadius: '6px',
+            }}
+          >
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8', marginBottom: '10px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              PERCORSO RAPIDO • HUB &quot;AI PER LAVORARE MEGLIO&quot; (PILLAR + SPOKE PMI)
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {[
+                { key: 'migliori-tool-ai-lavorare-meglio-pmi', label: '★ Pillar: Migliori Tool AI PMI' },
+                { key: 'metodo-r-o-f-10-prompt-chatgpt-da-copiare-subito', label: '⚡ Metodo R.O.F. (10 Prompt)' },
+                { key: 'alternative-chatgpt-privacy-aziende-gdpr', label: 'Spoke 1: GDPR & Privacy' },
+                { key: 'ai-scrivere-preventivi-email-commerciali', label: 'Spoke 2: Preventivi & Email' },
+                { key: 'automazione-excel-documenti-intelligenza-artificiale', label: 'Spoke 3: Excel & Fatture' },
+                { key: 'quanto-costa-implementare-ai-piccola-azienda', label: 'Spoke 4: Costi Reali PMI' },
+              ].map((item) => {
+                const art = ARTICLES_DATABASE[item.key];
+                if (!art) return null;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setActiveArticle(art)}
+                    style={{
+                      padding: '7px 12px',
+                      fontSize: '11px',
+                      fontWeight: item.key === 'migliori-tool-ai-lavorare-meglio-pmi' ? 700 : 600,
+                      fontFamily: 'inherit',
+                      color: item.key === 'migliori-tool-ai-lavorare-meglio-pmi' ? '#000000' : '#d8e9f5',
+                      backgroundColor: item.key === 'migliori-tool-ai-lavorare-meglio-pmi' ? '#38bdf8' : 'rgba(56, 189, 248, 0.1)',
+                      border: '1px solid rgba(56, 189, 248, 0.35)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
             {Object.entries(ARTICLES_DATABASE).filter(([_, a]) => (a.section || '').toLowerCase() === 'guide').map(([k, art]) => (
               <div

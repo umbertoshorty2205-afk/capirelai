@@ -290,11 +290,15 @@ async function startServer() {
 
   app.post('/api/github/publish', async (req: Request, res: Response) => {
     const targetRepo = 'umbertoshorty2205-afk/capirelai';
-    const body = (req.body || {}) as { commitMessage?: string; files?: string[] };
+    const body = (req.body || {}) as { commitMessage?: string; files?: string[]; deleteFiles?: string[] };
     const commitMessage =
       typeof body.commitMessage === 'string' && body.commitMessage.trim()
         ? body.commitMessage.trim()
         : "Aggiornamento Capire l'AI: nuovo articolo Jarvis & Reel 03/04 KAI-01";
+    const deleteSet = new Set(
+      (Array.isArray(body.deleteFiles) ? body.deleteFiles : [])
+        .filter((p): p is string => typeof p === 'string' && Boolean(p) && !p.startsWith('/') && !p.includes('..'))
+    );
 
     const requestedFiles = Array.isArray(body.files) && body.files.length > 0
       ? body.files
@@ -304,6 +308,7 @@ async function startServer() {
           'tsconfig.json',
           'vite.config.ts',
           'vercel.json',
+          '.npmrc',
           'api/newsletter/status.ts',
           'api/newsletter/subscribe.ts',
           'api/newsletter/send-campaign.ts',
@@ -380,13 +385,49 @@ async function startServer() {
         treeEntries.push({ path: relPath, mode: '100644', type: 'blob', sha: blobSha });
       }
 
-      if (treeEntries.length === 0) {
+      if (treeEntries.length === 0 && deleteSet.size === 0) {
         return res.status(400).json({ published: false, error: 'Nessun file valido da pubblicare' });
+      }
+
+      let treePayload: { base_tree?: string; tree: Array<{ path: string; mode: string; type: string; sha: string }> } = {
+        base_tree: baseTreeSha,
+        tree: treeEntries,
+      };
+
+      if (deleteSet.size > 0) {
+        const fullTreeRes = await githubFetch(`/repos/${targetRepo}/git/trees/${baseTreeSha}?recursive=1`);
+        if (!fullTreeRes.ok) {
+          return res.status(fullTreeRes.status).json({ published: false, step: 'get-full-tree', details: fullTreeRes.data });
+        }
+        const fullTreeData = fullTreeRes.data as {
+          truncated?: boolean;
+          tree?: Array<{ path?: string; mode?: string; type?: string; sha?: string }>;
+        };
+        if (fullTreeData.truncated || !Array.isArray(fullTreeData.tree)) {
+          return res.status(500).json({ published: false, error: 'Albero repository troncato: impossibile eliminare file in sicurezza' });
+        }
+        const updatedPaths = new Set(treeEntries.map((t) => t.path));
+        const keptEntries = fullTreeData.tree
+          .filter(
+            (item) =>
+              item.type === 'blob' &&
+              item.path &&
+              item.sha &&
+              !deleteSet.has(item.path) &&
+              !updatedPaths.has(item.path)
+          )
+          .map((item) => ({
+            path: item.path as string,
+            mode: item.mode || '100644',
+            type: 'blob',
+            sha: item.sha as string,
+          }));
+        treePayload = { tree: [...keptEntries, ...treeEntries] };
       }
 
       const newTreeRes = await githubFetch(`/repos/${targetRepo}/git/trees`, {
         method: 'POST',
-        body: JSON.stringify({ base_tree: baseTreeSha, tree: treeEntries }),
+        body: JSON.stringify(treePayload),
       });
       if (!newTreeRes.ok) {
         return res.status(newTreeRes.status).json({ published: false, step: 'create-tree', details: newTreeRes.data });

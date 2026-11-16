@@ -1,4 +1,65 @@
 {
+  "basta-testi-ai-robotici-protocollo-esempio-divieto": {
+    "title": "Basta testi che sembrano scritti da un robot: il metodo Esempio + Divieto in 3 passi",
+    "section": "Guide",
+    "tag": "REEL 07 • PROMPT",
+    "readTime": "6 min",
+    "author": "Capire l'AI",
+    "date": "16 Nov 2026",
+    "summary": "Il trucco da 20 secondi mostrato nel Reel 07 su @capirelai: invece di chiedere a ChatGPT o Claude di scrivere da zero, applica il protocollo 2 Esempi Reali + Parole Vietate per ottenere email e post indistinguibili dal tuo stile naturale.",
+    "content": [
+      {
+        "heading": "1. Perché quasi tutti i testi generati dall'AI suonano finti",
+        "text": "Quando apri una chat e scrivi semplicemente \"Scrivimi un'email per questo cliente\", il modello pesca la media statistica del web aziendale: aperture enfatiche, frasi tipo \"Nel dinamico mondo di oggi\", aggettivi gonfiati e chiose burocratiche. Il risultato fa capire in due secondi che il messaggio non lo hai scritto tu.",
+        "highlight": "Regola base del metodo anti-robot: l'AI non deve mai indovinare il tuo stile da zero — glielo fai estrarre da due tuoi testi veri prima di generare."
+      },
+      {
+        "heading": "2. Il protocollo Esempio + Divieto in 3 passaggi",
+        "text": "Prima di chiedere la nuova email, il preventivo o il post LinkedIn, segui sempre questa sequenza esatta:",
+        "codeSnippet": "PASSO 1 — ESTRAI LA SCHEDA STILE (2 ESEMPI REALI)\n\"Analizza queste 2 mie email/post reali che ho scritto io. Estrai in 5 righe il mio tono, la lunghezza media delle frasi, come apro e come chiudo. Non scrivere ancora nulla di nuovo.\"\n[INCOLLA TESTO A] + [INCOLLA TESTO B]\n\nPASSO 2 — LISTA DI PAROLE VIETATE\n\"Regola ferrea: non usare MAI queste parole o formule: inoltre, rivoluzionario, sinergia, nel panorama attuale, soluzione all'avanguardia, non esitare a contattarmi, spero che questa email ti trovi bene.\"\n\nPASSO 3 — GENERA IL TESTO FINALE\n\"Ora applica quella scheda stile e la lista divieti per scrivere [DESCRIVI EMAIL/POST]. Se manca un dato reale, segnalalo tra parentesi [DA VERIFICARE].\""
+      },
+      {
+        "heading": "3. Test pratico: prima vs dopo su un'email commerciale",
+        "text": "Nei test comparativi interni su offerte B2B reali, eliminare i connettivi scolastici (\"inoltre\", \"pertanto\", \"al fine di\") e vincolare la lunghezza massima a 110 parole dimezza il tempo di revisione umana. Se usi spesso lo stesso registro, salva la scheda stile generata al Passo 1 dentro le Istruzioni Personalizzate o in un Project dedicato su Claude/ChatGPT.",
+        "highlight": "Vuoi salvare il prompt completo insieme ai 5 template R.O.F. in formato .md? Iscriviti nella sezione Newsletter in fondo alla pagina per sbloccare il file."
+      }
+    ],
+    "keyTakeaways": [
+      "Non chiedere mai all'AI di scrivere da zero senza prima fornirle almeno due tuoi testi reali come riferimento di ritmo e vocabolario.",
+      "Una lista esplicita di 6–10 parole vietate elimina quasi tutte le frasi cliché che tradiscono l'uso automatico di ChatGPT.",
+      "Salva la scheda stile estratta dal Passo 1 per riutilizzarla ogni settimana su email commerciali, preventivi e post social."
+    ]
+  },
+  "agenti-ai-freelance-pmi-2026-risparmiare-10-ore": {
+    "title": "Agenti AI per Freelance e PMI nel 2026: come risparmiare 10 ore a settimana (senza codice)",
+    "section": "Guide",
+    "tag": "AGENTI PMI",
+    "readTime": "8 min",
+    "author": "Capire l'AI",
+    "date": "16 Nov 2026",
+    "summary": "Passare dal copia-incolla manuale su ChatGPT a veri flussi operativi no-code con Make, Zapier o n8n: i 3 agenti più concreti per freelance e piccole aziende (lead & preventivi, fatture PDF e briefing pre-call) con controllo umano finale.",
+    "content": [
+      {
+        "heading": "1. Dal copia-incolla in chat ai flussi collegati ai tuoi strumenti",
+        "text": "Se sei un freelance o guidi una piccola impresa, il vero collo di bottiglia non è la mancanza di idee ma il tempo bruciato tra email in ingresso, allegati PDF e preparazione call. La differenza operativa non la fa scrivere un prompt occasionale in chat, ma collegare un modello AI ai tuoi strumenti quotidiani (Gmail, Drive, Google Sheets, Calendar) con orchestratori no-code come Make, n8n o Zapier.",
+        "highlight": "Regola di sicurezza PMI: l'agente legge, classifica e prepara la bozza; la conferma finale di invio resta sempre umana."
+      },
+      {
+        "heading": "2. I 3 Agenti AI ad alto ritorno immediato (Senza Codice)",
+        "text": "Questi tre flussi coprono le attività ripetitive più costose in termini di ore lavorate ogni settimana:",
+        "codeSnippet": "[AGENTE 1] LEAD & PREVENTIVI (stima -3/4h a settimana)\nTrigger: Nuova email su Gmail con oggetto/testo \"preventivo\" o \"collaborazione\"\nAzione AI: Analizza richiesta, individua servizio e prepara bozza risposta personalizzata\nOutput: Salva in Bozze Gmail (tu approvi prima di inviare) + riga su Google Sheets\n\n[AGENTE 2] AMMINISTRAZIONE & FATTURE PDF (stima -2/3h a settimana)\nTrigger: Email in arrivo con allegato PDF (fattura fornitore o ricevuta)\nAzione AI: Estrae Data, Fornitore, P.IVA, Imponibile, IVA e Totale in JSON strutturato\nOutput: Archivia il PDF su Google Drive nella cartella mese + aggiorna foglio contabile\n\n[AGENTE 3] BRIEFING PRE-CALL (stima -2/3h a settimana)\nTrigger: Evento su Google Calendar a 2 ore dall'inizio con contatto esterno\nAzione AI: Analizza sito web del prospect e note appuntamento\nOutput: Invia su Telegram, Slack o Email un riassunto in 5 punti + 2 domande chiave"
+      },
+      {
+        "heading": "3. Checklist Pre-Lancio per attivarli senza errori",
+        "text": "Prima di mettere un flusso in produzione verifica sempre tre condizioni: (1) usa un filtro mittente/oggetto rigoroso per non sprecare crediti API su newsletter o spam; (2) imponi un output JSON con controllo formato sulle cifre prima di scrivere su Google Sheets; (3) attiva l'invio automatico SOLO su notifiche interne (bozze Gmail o messaggi Slack verso te stesso), mai direttamente verso clienti o fornitori."
+      }
+    ],
+    "keyTakeaways": [
+      "Parti da un singolo trigger chiaro (es. email con allegato PDF o parola chiave \"preventivo\") invece di provare ad automatizzare l'intera azienda insieme.",
+      "Con Make, n8n o Zapier e un prompt con output strutturato puoi risparmiare fino a 8–10 ore settimanali su triage e segreteria operativa.",
+      "Mantieni sempre l'approvazione umana sull'ultimo click verso l'esterno per azzerare il rischio di errori o allucinazioni."
+    ]
+  },
   "migliori-tool-ai-lavorare-meglio-pmi": {
     "title": "Migliori Tool AI per Lavorare Meglio (Guida Pratica Professionisti e PMI)",
     "section": "Guide",

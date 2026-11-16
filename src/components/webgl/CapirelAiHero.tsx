@@ -182,6 +182,37 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-testi-anti-robot-jarvis',
+    badge: 'JARVIS TOP PICK • STUDIO CLEAN HD',
+    title: "Reel 07 // Basta Testi AI Robotici: Il Metodo Esempio + Divieto",
+    subtitle: "Scelto dal brief Jarvis ad alto impatto (+5k–12k views, conversione newsletter): hook anti-robot, protocollo in 3 passi, sottotitoli sincronizzati, PiP KAI-01 e CTA verso il Kit .md su capirelai.com",
+    video: "/instagram/reels/reel-07-testi-anti-robot-jarvis.mp4",
+    filename: "reel-07-testi-anti-robot-jarvis.mp4",
+    duration: "42.4 sec",
+    specs: "1080×1920 MP4 • Voce HD + Studio Clean",
+    caption: `Se i testi che generi con ChatGPT sembrano scritti da un robot aziendale ("Nel dinamico mondo di oggi..."), guarda questo trucco da 20 secondi. 👇
+
+Il 99% delle persone chiede all'AI di scrivere da zero.
+Fai invece questi 3 passaggi prima di chiedere qualsiasi email o post:
+
+1️⃣ INCOLLA 2 TUOI TESTI REALI: scrivi "Analizza il mio tono, la lunghezza delle frasi e il ritmo"
+2️⃣ AGGIUNGI PAROLE VIETATE: es. "Non usare mai: inoltre, rivoluzionario, nel panorama attuale, sinergia"
+3️⃣ GENERA SOLO ALLA FINE: chiedi il testo applicando quella scheda di stile
+
+Risultato? Sembra scritto da te al 100% ✅
+
+🎁 Ho messo il prompt esatto copia-incolla e il Kit Operativo R.O.F. (.md) gratis nella newsletter su capirelai.com (link in bio).
+💬 Scrivi "ROBOT" nei commenti e salvati il Reel prima di scrivere la prossima email!
+
+#CapirelAI #ChatGPTItalia #AIItalia #PromptEngineering #Produttivita #MarketingDigitale #PMI #IntelligenzaArtificiale`,
+    pinnedComment: `📌 ECCO IL PROMPT COPIA-INCOLLA DA USARE SUBITO (salva il post!):
+
+"Analizza questi 2 miei testi reali [INCOLLA 2 EMAIL/POST] ed estrai una scheda stile su tono, lunghezza frasi e ritmo. Regola ferrea: non usare mai parole gonfiate o cliché come inoltre, rivoluzionario, sinergia, nel panorama attuale. Ora scrivi [IL TUO TESTO] applicando esattamente questa scheda stile."
+
+🎁 Vuoi il Kit Operativo R.O.F. completo con i 5 prompt + checklist GDPR PMI (.md)?
+👉 Lo scarichi gratis appena ti iscrivi su https://www.capirelai.com/#newsletter (link in bio @capirelai)!`,
+  },
+  {
     id: 'reel-chatbot-vs-agenti-jarvis',
     badge: 'JARVIS BRIEF • STUDIO CLEAN HD v2',
     title: "Reel 06 // Chatbot vs Agenti AI: Smetti di Fare Copia-Incolla",
@@ -473,7 +504,7 @@ Cosa troverai su capirelai.com:
 
 function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>('reel-chatbot-vs-agenti-jarvis');
+  const [selectedReelId, setSelectedReelId] = useState<string>('reel-testi-anti-robot-jarvis');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
@@ -640,8 +671,10 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     color: selectedReelId === reel.id ? '#ffffff' : '#999999',
                   }}
                 >
-                  {reel.id === 'reel-chatbot-vs-agenti-jarvis'
-                    ? '🤖 Reel 06: Chatbot vs Agenti (NEW)'
+                  {reel.id === 'reel-testi-anti-robot-jarvis'
+                    ? '🤖 Reel 07: Testi Anti-Robot (NEW)'
+                    : reel.id === 'reel-chatbot-vs-agenti-jarvis'
+                      ? '🤖 Reel 06: Chatbot vs Agenti'
                     : reel.id === 'reel-pdf-50-pagine-jarvis'
                       ? '📄 Reel 05: PDF 50 Pag. 10s'
                       : reel.id === 'reel-automazioni-jarvis'

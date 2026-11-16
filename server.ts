@@ -347,6 +347,7 @@ async function startServer() {
           'public/instagram/reels/reel-04-automazioni-ai-jarvis.mp4',
           'public/instagram/reels/reel-05-pdf-50-pagine-jarvis.mp4',
           'public/instagram/reels/reel-06-chatbot-vs-agenti-jarvis.mp4',
+          'public/instagram/reels/reel-07-testi-anti-robot-jarvis.mp4',
         ];
 
     try {

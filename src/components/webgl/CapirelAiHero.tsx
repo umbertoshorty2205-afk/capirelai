@@ -2175,51 +2175,73 @@ export default function CapirelAiHero() {
 
       {/* Footer Pulito — Forum Spostato in Secondo Piano */}
       <footer className="relative z-10 border-t border-white/10 bg-[#050507]/95 py-10 px-6">
-        <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <div>
-            <strong className="text-white">Capire l&apos;AI</strong> · capirelai.com · Divulgazione pratica e test reali AI
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <div>
+              <strong className="text-white">Capire l&apos;AI</strong> · capirelai.com · Divulgazione pratica e test reali AI
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-5">
+              <button
+                type="button"
+                onClick={() => scrollTo('newsletter')}
+                className="text-sky-400 hover:text-sky-300 bg-transparent border-none cursor-pointer p-0 font-medium"
+              >
+                Newsletter &amp; Kit R.O.F.
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  scrollTo('newsletter');
+                  setExternalInquiry('sponsor_newsletter');
+                }}
+                className="text-slate-300 hover:text-white bg-transparent border-none cursor-pointer p-0"
+              >
+                Sponsor &amp; Media Kit
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsInstagramOpen(true)}
+                className="text-slate-300 hover:text-white bg-transparent border-none cursor-pointer p-0"
+              >
+                Studio Instagram
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsForumModalOpen(true)}
+                className="text-slate-500 hover:text-slate-300 bg-transparent border-none cursor-pointer p-0"
+                title="Spazio secondario domande e discussioni archiviate"
+              >
+                Archivio Forum (Q&amp;A)
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsFounderOpen(true)}
+                className="text-slate-400 hover:text-sky-400 bg-transparent border border-white/10 rounded px-2.5 py-1 cursor-pointer"
+              >
+                Area Fondatore
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-5">
-            <button
-              type="button"
-              onClick={() => scrollTo('newsletter')}
-              className="text-sky-400 hover:text-sky-300 bg-transparent border-none cursor-pointer p-0 font-medium"
-            >
-              Newsletter &amp; Kit R.O.F.
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                scrollTo('newsletter');
-                setExternalInquiry('sponsor_newsletter');
-              }}
-              className="text-slate-300 hover:text-white bg-transparent border-none cursor-pointer p-0"
-            >
-              Sponsor &amp; Media Kit
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsInstagramOpen(true)}
-              className="text-slate-300 hover:text-white bg-transparent border-none cursor-pointer p-0"
-            >
-              Studio Instagram
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsForumModalOpen(true)}
-              className="text-slate-500 hover:text-slate-300 bg-transparent border-none cursor-pointer p-0"
-              title="Spazio secondario domande e discussioni archiviate"
-            >
-              Archivio Forum (Q&amp;A)
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsFounderOpen(true)}
-              className="text-slate-400 hover:text-sky-400 bg-transparent border border-white/10 rounded px-2.5 py-1 cursor-pointer"
-            >
-              Area Fondatore
-            </button>
+          <div className="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+            <span className="text-slate-500">Contatti per collaborazioni, sponsorizzazioni e partnership:</span>
+            <div className="flex flex-wrap items-center justify-center gap-5">
+              <a
+                href="mailto:infocapirelai@gmail.com"
+                className="text-slate-200 hover:text-sky-400 no-underline font-medium transition-colors"
+              >
+                ✉ infocapirelai@gmail.com
+              </a>
+              <a
+                href="https://www.instagram.com/capirelai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-400 hover:text-sky-300 no-underline font-semibold transition-colors"
+              >
+                Instagram @capirelai ↗
+              </a>
+            </div>
           </div>
         </div>
       </footer>

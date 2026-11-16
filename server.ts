@@ -301,6 +301,8 @@ async function startServer() {
       : [
           'index.html',
           'package.json',
+          'tsconfig.json',
+          'vite.config.ts',
           'vercel.json',
           'api/newsletter/status.ts',
           'api/newsletter/subscribe.ts',
@@ -308,6 +310,8 @@ async function startServer() {
           'firebase-applet-config.json',
           'firebase-blueprint.json',
           'firestore.rules',
+          'src/main.tsx',
+          'src/App.tsx',
           'src/index.css',
           'src/lib/firebase.ts',
           'src/data/newsletterData.ts',

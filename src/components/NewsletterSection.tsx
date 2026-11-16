@@ -9,10 +9,12 @@ import {
 } from '../lib/firebase';
 import {
   LEAD_MAGNET_ID,
-  LEAD_MAGNET_MARKDOWN,
   VERIFIED_AFFILIATE_STACK,
   SPONSOR_TIERS,
 } from '../data/newsletterData';
+
+const KIT_TOKEN_STORAGE_KEY = 'capirelai_kit_token_v1';
+const KIT_EMAIL_STORAGE_KEY = 'capirelai_kit_email_v1';
 
 interface NewsletterSectionProps {
   leadSource?: string;
@@ -33,6 +35,10 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
 
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [kitToken, setKitToken] = useState<string>('');
+  const [kitMarkdown, setKitMarkdown] = useState<string>('');
+  const [kitLoading, setKitLoading] = useState(false);
+  const [kitError, setKitError] = useState('');
   const [successInfo, setSuccessInfo] = useState<{
     alreadySubscribed: boolean;
     emailDispatched: boolean;
@@ -61,6 +67,21 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
 
   useEffect(() => {
     fetchPublicMonetizationCatalog().then(setCatalog);
+    try {
+      const savedToken = localStorage.getItem(KIT_TOKEN_STORAGE_KEY) || '';
+      const savedEmail = localStorage.getItem(KIT_EMAIL_STORAGE_KEY) || '';
+      if (savedToken && savedEmail) {
+        setKitToken(savedToken);
+        setSuccessInfo({
+          alreadySubscribed: true,
+          emailDispatched: false,
+          provider: 'brevo',
+          email: savedEmail,
+        });
+      }
+    } catch {
+      // ignore storage errors
+    }
   }, []);
 
   useEffect(() => {
@@ -87,8 +108,71 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
     onCloseExternalInquiry?.();
   };
 
-  const handleDownloadKit = () => {
-    const blob = new Blob([LEAD_MAGNET_MARKDOWN], { type: 'text/markdown;charset=utf-8' });
+  const resetLockedState = (msg: string) => {
+    setKitToken('');
+    setKitMarkdown('');
+    setIsKitPreviewOpen(false);
+    setSuccessInfo(null);
+    setFormError(msg);
+    try {
+      localStorage.removeItem(KIT_TOKEN_STORAGE_KEY);
+      localStorage.removeItem(KIT_EMAIL_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+  };
+
+  const loadGatedKitMarkdown = async (activeToken: string): Promise<string | null> => {
+    if (!activeToken) return null;
+    if (kitMarkdown) return kitMarkdown;
+    setKitLoading(true);
+    setKitError('');
+    try {
+      const resp = await fetch(`/api/newsletter/kit?token=${encodeURIComponent(activeToken)}&format=json`, {
+        headers: { 'x-kit-token': activeToken },
+      });
+      if (resp.status === 401 || resp.status === 403) {
+        resetLockedState('Accesso al file .md riservato agli iscritti alla newsletter: completa prima l’iscrizione.');
+        return null;
+      }
+      if (!resp.ok) {
+        setKitError('Impossibile caricare il Kit dal server in questo momento. Riprova tra poco.');
+        return null;
+      }
+      const data = (await resp.json()) as { ok?: boolean; markdown?: string };
+      if (!data.ok || !data.markdown) {
+        setKitError('Contenuto non disponibile.');
+        return null;
+      }
+      setKitMarkdown(data.markdown);
+      return data.markdown;
+    } catch {
+      setKitError('Errore di rete durante il recupero del Kit.');
+      return null;
+    } finally {
+      setKitLoading(false);
+    }
+  };
+
+  const handleOpenGatedPreview = async () => {
+    if (!kitToken) {
+      document.getElementById('nl-name')?.focus();
+      setFormError('Iscriviti alla newsletter qui a fianco per sbloccare e leggere il file .md.');
+      return;
+    }
+    setIsKitPreviewOpen(true);
+    await loadGatedKitMarkdown(kitToken);
+  };
+
+  const handleDownloadKit = async () => {
+    if (!kitToken) {
+      document.getElementById('nl-name')?.focus();
+      setFormError('Iscriviti prima alla newsletter per poter scaricare il file .md.');
+      return;
+    }
+    const md = await loadGatedKitMarkdown(kitToken);
+    if (!md) return;
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -100,7 +184,8 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
   };
 
   const handleCopyKit = () => {
-    navigator.clipboard.writeText(LEAD_MAGNET_MARKDOWN);
+    if (!kitMarkdown) return;
+    navigator.clipboard.writeText(kitMarkdown);
     setKitCopied(true);
     setTimeout(() => setKitCopied(false), 2200);
   };
@@ -134,6 +219,17 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
         leadMagnet: LEAD_MAGNET_ID,
         gdprConsent: true,
       });
+
+      if (outcome.kitToken) {
+        setKitToken(outcome.kitToken);
+        setKitMarkdown('');
+        try {
+          localStorage.setItem(KIT_TOKEN_STORAGE_KEY, outcome.kitToken);
+          localStorage.setItem(KIT_EMAIL_STORAGE_KEY, cleanEmail);
+        } catch {
+          // ignore storage errors
+        }
+      }
 
       setSuccessInfo({
         alreadySubscribed: outcome.alreadySubscribed,
@@ -266,13 +362,25 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
 
           <div className="mt-8 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
             <span>Frequenza: 1 email / settimana · Zero spam</span>
-            <button
-              type="button"
-              onClick={() => setIsKitPreviewOpen(true)}
-              className="text-sky-400 hover:text-sky-300 underline underline-offset-4 cursor-pointer bg-transparent border-none p-0 font-medium"
-            >
-              Vedi anteprima del Kit ↓
-            </button>
+            {kitToken ? (
+              <button
+                type="button"
+                onClick={handleOpenGatedPreview}
+                className="text-emerald-300 hover:text-emerald-200 underline underline-offset-4 cursor-pointer bg-transparent border-none p-0 font-medium"
+              >
+                ✓ Sbloccato: Apri Kit (.md) ↓
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  document.getElementById('nl-name')?.focus();
+                }}
+                className="text-slate-300 hover:text-sky-300 cursor-pointer bg-transparent border-none p-0 font-medium"
+              >
+                🔒 File .md riservato agli iscritti →
+              </button>
+            )}
           </div>
         </div>
 
@@ -387,19 +495,35 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
               </p>
 
               <div className="flex flex-col gap-2.5 pt-2">
+                {kitToken ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleDownloadKit}
+                      disabled={kitLoading}
+                      className="w-full h-11 px-4 bg-sky-400 hover:bg-sky-300 disabled:opacity-60 text-slate-950 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                    >
+                      {kitLoading ? 'Recupero file .md...' : '⬇ Scarica Kit Operativo R.O.F. (.md)'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleOpenGatedPreview}
+                      className="w-full h-11 px-4 bg-white/5 hover:bg-white/10 border border-white/15 text-white font-medium text-xs rounded-lg transition-colors cursor-pointer"
+                    >
+                      Leggi o copia i prompt nel browser
+                    </button>
+                  </>
+                ) : (
+                  <div className="p-3 bg-amber-500/10 border border-amber-400/30 rounded-lg text-xs text-amber-200">
+                    Token di accesso non disponibile. Controlla la tua email per il link di download diretto oppure riprova.
+                  </div>
+                )}
                 <button
                   type="button"
-                  onClick={handleDownloadKit}
-                  className="w-full h-11 px-4 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                  onClick={() => resetLockedState('')}
+                  className="text-[11px] text-slate-400 hover:text-white underline bg-transparent border-none cursor-pointer pt-1 text-left"
                 >
-                  ⬇ Scarica Kit Operativo R.O.F. (.md)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsKitPreviewOpen(true)}
-                  className="w-full h-11 px-4 bg-white/5 hover:bg-white/10 border border-white/15 text-white font-medium text-xs rounded-lg transition-colors cursor-pointer"
-                >
-                  Leggi o copia i prompt nel browser
+                  Usa un altro indirizzo email
                 </button>
               </div>
             </div>
@@ -491,8 +615,8 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
         </div>
       </div>
 
-      {/* Modale Anteprima Kit R.O.F. */}
-      {isKitPreviewOpen && (
+      {/* Modale Kit R.O.F. — Accessibile SOLO con iscrizione verificata (kitToken) */}
+      {isKitPreviewOpen && Boolean(kitToken) && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
           onClick={() => setIsKitPreviewOpen(false)}
@@ -503,7 +627,7 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
           >
             <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4">
               <div>
-                <div className="text-xs font-mono text-sky-400">Lead Magnet Capire l&apos;AI</div>
+                <div className="text-xs font-mono text-sky-400">Contenuto Riservato Iscritti</div>
                 <h3 className="text-lg font-bold text-white m-0">
                   Kit Operativo R.O.F. &amp; Checklist PMI
                 </h3>
@@ -521,22 +645,34 @@ export const NewsletterSection: React.FC<NewsletterSectionProps> = ({
               <button
                 type="button"
                 onClick={handleDownloadKit}
-                className="px-4 py-2 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs rounded-lg cursor-pointer border-none"
+                disabled={kitLoading || !kitMarkdown}
+                className="px-4 py-2 bg-sky-400 hover:bg-sky-300 disabled:opacity-50 text-slate-950 font-bold text-xs rounded-lg cursor-pointer border-none"
               >
                 ⬇ Scarica File (.md)
               </button>
               <button
                 type="button"
                 onClick={handleCopyKit}
-                className="px-4 py-2 bg-white/10 hover:bg-white/15 text-white font-semibold text-xs rounded-lg cursor-pointer border border-white/15"
+                disabled={kitLoading || !kitMarkdown}
+                className="px-4 py-2 bg-white/10 hover:bg-white/15 disabled:opacity-50 text-white font-semibold text-xs rounded-lg cursor-pointer border border-white/15"
               >
                 {kitCopied ? '✓ Contenuto Copiato!' : '📋 Copia Tutto'}
               </button>
             </div>
 
-            <pre className="p-4 bg-black/70 border border-white/10 rounded-lg text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed overflow-x-auto">
-              {LEAD_MAGNET_MARKDOWN}
-            </pre>
+            {kitLoading ? (
+              <div className="p-6 text-center text-xs text-slate-400 font-mono">
+                Verifica iscrizione e caricamento file .md in corso...
+              </div>
+            ) : kitError ? (
+              <div className="p-4 bg-rose-500/10 border border-rose-500/35 rounded-lg text-xs text-rose-200">
+                {kitError}
+              </div>
+            ) : (
+              <pre className="p-4 bg-black/70 border border-white/10 rounded-lg text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed overflow-x-auto">
+                {kitMarkdown}
+              </pre>
+            )}
           </div>
         </div>
       )}

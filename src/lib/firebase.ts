@@ -152,6 +152,7 @@ export interface SubscribeOutcome {
   emailDispatched: boolean;
   provider: string;
   subscriberId: string;
+  kitToken?: string;
 }
 
 export async function subscribeToNewsletter(input: SubscriberInput): Promise<SubscribeOutcome> {
@@ -191,28 +192,33 @@ export async function subscribeToNewsletter(input: SubscriberInput): Promise<Sub
 
   let emailDispatched = false;
   let provider = 'kit-immediato';
+  let kitToken: string | undefined;
 
-  if (!alreadySubscribed) {
-    try {
-      const resp = await fetch('/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: cleanEmail,
-          name: cleanName,
-          segment: input.segment,
-          source: cleanSource,
-          leadMagnet: cleanMagnet,
-        }),
-      });
-      if (resp.ok) {
-        const data = (await resp.json()) as { emailDispatched?: boolean; provider?: string };
-        emailDispatched = Boolean(data.emailDispatched);
-        provider = data.provider || provider;
-      }
-    } catch {
-      // Static deploy fallback (e.g. Netlify without backend email endpoint) still keeps Firestore cloud persistence & instant Kit access
+  try {
+    const resp = await fetch('/api/newsletter/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: cleanEmail,
+        name: cleanName,
+        segment: input.segment,
+        source: cleanSource,
+        leadMagnet: cleanMagnet,
+        returningSubscriber: alreadySubscribed,
+      }),
+    });
+    if (resp.ok) {
+      const data = (await resp.json()) as {
+        emailDispatched?: boolean;
+        provider?: string;
+        kitToken?: string;
+      };
+      emailDispatched = Boolean(data.emailDispatched);
+      provider = data.provider || provider;
+      kitToken = typeof data.kitToken === 'string' && data.kitToken ? data.kitToken : undefined;
     }
+  } catch {
+    // Fallback gracefully if network interrupted
   }
 
   return {
@@ -221,6 +227,7 @@ export async function subscribeToNewsletter(input: SubscriberInput): Promise<Sub
     emailDispatched,
     provider,
     subscriberId,
+    kitToken,
   };
 }
 

@@ -2,5 +2,11 @@
   "framework": "vite",
   "installCommand": "npm install --legacy-peer-deps --no-package-lock",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|instagram/|logo\\.png).*)",
+      "destination": "/index.html"
+    }
+  ]
 }

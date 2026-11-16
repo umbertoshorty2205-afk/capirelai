@@ -1663,10 +1663,72 @@ export default function CapirelAiHero() {
     testFirestoreConnection();
   }, []);
 
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  const scrollTo = (id: string, updateHash = true) => {
+    const cleanId = id.replace(/^#/, '').trim();
+    if (!cleanId) return;
+
+    if (updateHash && typeof window !== 'undefined') {
+      const targetHash = `#${cleanId}`;
+      if (window.location.hash !== targetHash) {
+        window.history.replaceState(null, '', targetHash);
+      }
+    }
+
+    const attemptScroll = (behavior: ScrollBehavior) => {
+      const el = document.getElementById(cleanId);
+      if (!el) return false;
+      const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72);
+      window.scrollTo({ top, behavior });
+      return true;
+    };
+
+    if (!attemptScroll('smooth')) {
+      setTimeout(() => attemptScroll('smooth'), 120);
+    }
   };
+
+  useEffect(() => {
+    const KNOWN_SECTIONS = new Set(['hero', 'concetti', 'guide', 'prove', 'aggiornamenti', 'newsletter']);
+
+    const resolveTargetFromUrl = (): string | null => {
+      const hashTarget = window.location.hash.replace(/^#/, '').toLowerCase();
+      if (KNOWN_SECTIONS.has(hashTarget)) return hashTarget;
+
+      const pathSeg = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+      if (KNOWN_SECTIONS.has(pathSeg)) return pathSeg;
+      return null;
+    };
+
+    const syncFromUrl = () => {
+      const target = resolveTargetFromUrl();
+      if (!target) return;
+      if (window.location.pathname !== '/' && target !== 'hero') {
+        window.history.replaceState(null, '', `/#${target}`);
+      }
+      requestAnimationFrame(() => {
+        const el = document.getElementById(target);
+        if (el) {
+          const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72);
+          window.scrollTo({ top, behavior: 'auto' });
+        }
+      });
+      setTimeout(() => {
+        const el = document.getElementById(target);
+        if (el) {
+          const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - 72);
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      }, 260);
+    };
+
+    syncFromUrl();
+    window.addEventListener('hashchange', syncFromUrl);
+    window.addEventListener('popstate', syncFromUrl);
+    return () => {
+      window.removeEventListener('hashchange', syncFromUrl);
+      window.removeEventListener('popstate', syncFromUrl);
+    };
+  }, []);
 
   const handleGoNewsletter = (sourceLabel: string) => {
     setNewsletterSource(sourceLabel);
@@ -1681,7 +1743,7 @@ export default function CapirelAiHero() {
         minHeight: '100vh',
         backgroundColor: '#050507',
         color: '#e2e8f0',
-        overflowX: 'hidden',
+        overflowX: 'clip',
       }}
     >
       {/* Sfondo 3D WebGL Fisso */}
@@ -1699,9 +1761,9 @@ export default function CapirelAiHero() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '32px',
+          gap: '16px',
           padding: '0 24px',
-          backgroundColor: 'rgba(5, 5, 7, 0.86)',
+          backgroundColor: 'rgba(5, 5, 7, 0.88)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           boxSizing: 'border-box',
@@ -1768,23 +1830,66 @@ export default function CapirelAiHero() {
         </button>
 
         <nav className="hidden md:flex items-center gap-6">
-          <button type="button" onClick={() => scrollTo('concetti')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Concetti</button>
-          <button type="button" onClick={() => scrollTo('guide')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Guide</button>
-          <button type="button" onClick={() => scrollTo('prove')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Prove</button>
-          <button type="button" onClick={() => scrollTo('aggiornamenti')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Aggiornamenti</button>
+          {[
+            { id: 'concetti', label: 'Concetti' },
+            { id: 'guide', label: 'Guide' },
+            { id: 'prove', label: 'Prove' },
+            { id: 'aggiornamenti', label: 'Aggiornamenti' },
+          ].map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollTo(item.id);
+              }}
+              className="text-sm font-medium text-slate-300 hover:text-white transition-colors no-underline whitespace-nowrap shrink-0"
+            >
+              {item.label}
+            </a>
+          ))}
           <button type="button" onClick={() => setIsChiSonoOpen(true)} className="text-sm font-medium text-slate-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Chi Sono</button>
         </nav>
 
         <div className="flex items-center shrink-0">
-          <button
-            type="button"
-            onClick={() => scrollTo('newsletter')}
-            className="px-4 h-10 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs rounded-lg border-none cursor-pointer transition-colors whitespace-nowrap shrink-0"
+          <a
+            href="#newsletter"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollTo('newsletter');
+            }}
+            className="inline-flex items-center justify-center px-4 h-10 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs rounded-lg no-underline transition-colors whitespace-nowrap shrink-0"
           >
             Newsletter Gratis
-          </button>
+          </a>
         </div>
       </header>
+
+      {/* Barra Rapida Mobile per Concetti / Guide / Prove / Aggiornamenti / Newsletter */}
+      <nav
+        aria-label="Navigazione sezioni mobile"
+        className="md:hidden fixed top-[68px] left-0 right-0 z-[95] flex items-center gap-4 px-4 h-10 bg-[#050507]/90 backdrop-blur-md border-b border-white/10 overflow-x-auto no-scrollbar"
+      >
+        {[
+          { id: 'concetti', label: 'Concetti' },
+          { id: 'guide', label: 'Guide' },
+          { id: 'prove', label: 'Prove' },
+          { id: 'aggiornamenti', label: 'Aggiornamenti' },
+          { id: 'newsletter', label: 'Newsletter' },
+        ].map((item) => (
+          <a
+            key={item.id}
+            href={`#${item.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollTo(item.id);
+            }}
+            className="text-xs font-medium text-slate-300 hover:text-sky-400 no-underline whitespace-nowrap shrink-0"
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
 
       {/* Contenuto della Pagina */}
       <main style={{ position: 'relative', width: '100%' }}>

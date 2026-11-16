@@ -1,4 +1,4 @@
-import { createKitToken } from './_kitContent';
+import crypto from 'node:crypto';
 
 interface VercelReq {
   method?: string;
@@ -8,6 +8,36 @@ interface VercelReq {
 interface VercelRes {
   status: (code: number) => VercelRes;
   json: (data: unknown) => void;
+}
+
+function getSigningSecret(): string {
+  return (
+    process.env.KIT_SIGNING_SECRET ||
+    process.env.BREVO_API_KEY ||
+    process.env.RESEND_API_KEY ||
+    process.env.GITHUB_JARVIS_TOKEN ||
+    'capirelai-kit-signing-fallback-2026'
+  ).trim();
+}
+
+function toBase64Url(input: Buffer | string): string {
+  return Buffer.from(input)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
+export function createKitToken(email: string): string {
+  const cleanEmail = email.trim().toLowerCase();
+  const payloadObj = {
+    email: cleanEmail,
+    exp: Date.now() + 180 * 24 * 60 * 60 * 1000,
+  };
+  const payloadB64 = toBase64Url(JSON.stringify(payloadObj));
+  const sig = crypto.createHmac('sha256', getSigningSecret()).update(payloadB64).digest();
+  const sigB64 = toBase64Url(sig);
+  return `${payloadB64}.${sigB64}`;
 }
 
 function escapeHtml(str: string): string {

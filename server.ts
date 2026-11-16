@@ -4,7 +4,8 @@ import type { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { LEAD_MAGNET_MARKDOWN, createKitToken, verifyKitToken } from './api/newsletter/_kitContent';
+import { LEAD_MAGNET_MARKDOWN, verifyKitToken } from './api/newsletter/kit';
+import { createKitToken } from './api/newsletter/subscribe';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -314,7 +315,6 @@ async function startServer() {
           'api/newsletter/subscribe.ts',
           'api/newsletter/send-campaign.ts',
           'api/newsletter/kit.ts',
-          'api/newsletter/_kitContent.ts',
           'firebase-applet-config.json',
           'firebase-blueprint.json',
           'firestore.rules',

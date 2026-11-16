@@ -1,0 +1,186 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 3 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedEmail() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedEmail() && (
+        request.auth.token.email == 'umbertoshorty2205@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidEmail(val) {
+      return val is string && val.size() >= 5 && val.size() <= 160 && val.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidNewsletterSubscriber(data) {
+      return data.keys().hasAll([
+          'email', 'name', 'segment', 'source', 'leadMagnet',
+          'gdprConsent', 'status', 'welcomeSent', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'email', 'name', 'segment', 'source', 'leadMagnet',
+          'gdprConsent', 'status', 'welcomeSent', 'createdAt', 'updatedAt'
+        ])
+        && isValidEmail(data.email)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
+        && data.segment in ['pmi', 'professionista', 'sviluppatore', 'curioso']
+        && data.source is string && data.source.size() >= 1 && data.source.size() <= 80
+        && data.leadMagnet is string && data.leadMagnet.size() >= 1 && data.leadMagnet.size() <= 80
+        && data.gdprConsent is bool && data.gdprConsent == true
+        && data.status in ['active', 'unsubscribed', 'bounced']
+        && data.welcomeSent is bool
+        && data.createdAt is timestamp
+        && (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+
+    function isValidMonetizationInquiry(data) {
+      return data.keys().hasAll([
+          'kind', 'contactName', 'contactEmail', 'company',
+          'budgetRange', 'notes', 'status', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'kind', 'contactName', 'contactEmail', 'company',
+          'budgetRange', 'notes', 'status', 'createdAt'
+        ])
+        && data.kind in ['sponsor_newsletter', 'audit_pmi', 'affiliate_partner']
+        && data.contactName is string && data.contactName.size() >= 2 && data.contactName.size() <= 80
+        && isValidEmail(data.contactEmail)
+        && data.company is string && data.company.size() >= 1 && data.company.size() <= 120
+        && data.budgetRange is string && data.budgetRange.size() >= 1 && data.budgetRange.size() <= 40
+        && data.notes is string && data.notes.size() >= 5 && data.notes.size() <= 1500
+        && data.status in ['new', 'contacted', 'booked', 'archived']
+        && data.createdAt is timestamp;
+    }
+
+    function isValidNewsletterCampaign(data) {
+      return data.keys().hasAll([
+          'subject', 'previewText', 'segmentTarget', 'bodyHtml',
+          'recipientCount', 'provider', 'status', 'ownerEmail', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'subject', 'previewText', 'segmentTarget', 'bodyHtml',
+          'recipientCount', 'provider', 'status', 'ownerEmail', 'createdAt'
+        ])
+        && data.subject is string && data.subject.size() >= 3 && data.subject.size() <= 160
+        && data.previewText is string && data.previewText.size() >= 1 && data.previewText.size() <= 200
+        && data.segmentTarget in ['all', 'pmi', 'professionista', 'sviluppatore', 'curioso']
+        && data.bodyHtml is string && data.bodyHtml.size() >= 10 && data.bodyHtml.size() <= 20000
+        && data.recipientCount is number && data.recipientCount >= 0
+        && data.provider is string && data.provider.size() >= 2 && data.provider.size() <= 30
+        && data.status in ['draft', 'sent', 'failed']
+        && isValidEmail(data.ownerEmail)
+        && data.createdAt is timestamp;
+    }
+
+    function isValidPublicCatalog(data) {
+      return data.keys().hasAll([
+          'sponsorStatus', 'sponsorPriceLabel', 'recommendedToolsSummary', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'sponsorStatus', 'sponsorPriceLabel', 'recommendedToolsSummary', 'updatedAt'
+        ])
+        && data.sponsorStatus is string && data.sponsorStatus.size() >= 2 && data.sponsorStatus.size() <= 60
+        && data.sponsorPriceLabel is string && data.sponsorPriceLabel.size() >= 2 && data.sponsorPriceLabel.size() <= 60
+        && data.recommendedToolsSummary is string && data.recommendedToolsSummary.size() >= 2 && data.recommendedToolsSummary.size() <= 500
+        && data.updatedAt is timestamp;
+    }
+
+    // 4. Collection Rules
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list, write: if false;
+    }
+
+    match /newsletter_subscribers/{subscriberId} {
+      allow get, list, delete: if isAdmin();
+
+      allow create: if isValidId(subscriberId)
+        && isValidNewsletterSubscriber(incoming())
+        && incoming().status == 'active'
+        && incoming().welcomeSent == false
+        && incoming().createdAt == request.time;
+
+      allow update: if isAdmin()
+        && isValidId(subscriberId)
+        && isValidNewsletterSubscriber(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().email == existing().email
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'welcomeSent', 'segment', 'updatedAt'])
+        && incoming().updatedAt == request.time;
+    }
+
+    match /monetization_inquiries/{inquiryId} {
+      allow get, list, delete: if isAdmin();
+
+      allow create: if isValidId(inquiryId)
+        && isValidMonetizationInquiry(incoming())
+        && incoming().status == 'new'
+        && incoming().createdAt == request.time;
+
+      allow update: if isAdmin()
+        && isValidId(inquiryId)
+        && isValidMonetizationInquiry(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().contactEmail == existing().contactEmail
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'notes']);
+    }
+
+    match /newsletter_campaigns/{campaignId} {
+      allow list: if isAdmin();
+      allow get, delete: if isAdmin() && isValidId(campaignId);
+
+      allow create: if isAdmin()
+        && isValidId(campaignId)
+        && isValidNewsletterCampaign(incoming())
+        && incoming().ownerEmail == request.auth.token.email
+        && incoming().createdAt == request.time;
+
+      allow update: if isAdmin()
+        && isValidId(campaignId)
+        && isValidNewsletterCampaign(incoming())
+        && incoming().ownerEmail == existing().ownerEmail
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'recipientCount', 'provider', 'subject', 'bodyHtml', 'previewText']);
+    }
+
+    match /public_catalog/{docId} {
+      allow get: if isValidId(docId);
+      allow list: if false;
+
+      allow create, update: if isAdmin()
+        && isValidId(docId)
+        && isValidPublicCatalog(incoming())
+        && incoming().updatedAt == request.time;
+
+      allow delete: if isAdmin() && isValidId(docId);
+    }
+  }
+}

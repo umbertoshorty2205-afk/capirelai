@@ -1,0 +1,282 @@
+{
+  "entities": {
+    "NewsletterSubscriber": {
+      "title": "NewsletterSubscriber",
+      "description": "Real email subscriber captured via Capire l'AI newsletter and lead magnet forms.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 5,
+          "maxLength": 160,
+          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+          "description": "Subscriber email address (lowercase trimmed)."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Subscriber first name or nickname."
+        },
+        "segment": {
+          "type": "string",
+          "enum": ["pmi", "professionista", "sviluppatore", "curioso"],
+          "minLength": 3,
+          "maxLength": 20,
+          "description": "Audience segment for targeted email sequences and B2B monetization."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Origin page, section, or article slug where the user subscribed."
+        },
+        "leadMagnet": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Identifier of the requested lead magnet kit."
+        },
+        "gdprConsent": {
+          "type": "boolean",
+          "description": "Explicit GDPR consent checkbox state."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "unsubscribed", "bounced"],
+          "minLength": 4,
+          "maxLength": 16,
+          "description": "Subscription lifecycle state."
+        },
+        "welcomeSent": {
+          "type": "boolean",
+          "description": "Whether the automated welcome email has been dispatched."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the subscription was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest update by admin."
+        }
+      },
+      "required": [
+        "email",
+        "name",
+        "segment",
+        "source",
+        "leadMagnet",
+        "gdprConsent",
+        "status",
+        "welcomeSent",
+        "createdAt"
+      ]
+    },
+    "MonetizationInquiry": {
+      "title": "MonetizationInquiry",
+      "description": "Inbound B2B sponsorship booking or PMI AI workflow audit request.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["sponsor_newsletter", "audit_pmi", "affiliate_partner"],
+          "minLength": 4,
+          "maxLength": 24,
+          "description": "Type of commercial inquiry."
+        },
+        "contactName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80,
+          "description": "Requester full name."
+        },
+        "contactEmail": {
+          "type": "string",
+          "format": "email",
+          "minLength": 5,
+          "maxLength": 160,
+          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+          "description": "Business email address."
+        },
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Company or SaaS product name."
+        },
+        "budgetRange": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Selected sponsorship slot or audit budget tier."
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 1500,
+          "description": "Campaign brief, tool link, or PMI process goals."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "contacted", "booked", "archived"],
+          "minLength": 3,
+          "maxLength": 16,
+          "description": "Pipeline review status."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of submission."
+        }
+      },
+      "required": [
+        "kind",
+        "contactName",
+        "contactEmail",
+        "company",
+        "budgetRange",
+        "notes",
+        "status",
+        "createdAt"
+      ]
+    },
+    "NewsletterCampaign": {
+      "title": "NewsletterCampaign",
+      "description": "Email campaign or automated sequence log created by the founder.",
+      "type": "object",
+      "properties": {
+        "subject": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160,
+          "description": "Email subject line."
+        },
+        "previewText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Inbox preheader text."
+        },
+        "segmentTarget": {
+          "type": "string",
+          "enum": ["all", "pmi", "professionista", "sviluppatore", "curioso"],
+          "minLength": 3,
+          "maxLength": 20,
+          "description": "Target audience segment."
+        },
+        "bodyHtml": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 20000,
+          "description": "Campaign content."
+        },
+        "recipientCount": {
+          "type": "number",
+          "description": "Number of targeted recipients."
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 30,
+          "description": "Delivery provider used (brevo, resend, or draft)."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "sent", "failed"],
+          "minLength": 4,
+          "maxLength": 16,
+          "description": "Dispatch status."
+        },
+        "ownerEmail": {
+          "type": "string",
+          "format": "email",
+          "minLength": 5,
+          "maxLength": 160,
+          "description": "Founder email owning the campaign."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation."
+        }
+      },
+      "required": [
+        "subject",
+        "previewText",
+        "segmentTarget",
+        "bodyHtml",
+        "recipientCount",
+        "provider",
+        "status",
+        "ownerEmail",
+        "createdAt"
+      ]
+    },
+    "PublicMonetizationCatalog": {
+      "title": "PublicMonetizationCatalog",
+      "description": "Public non-PII configuration for recommended affiliate tools and newsletter sponsor slot availability.",
+      "type": "object",
+      "properties": {
+        "sponsorStatus": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "description": "Public availability label for weekly sponsor slot."
+        },
+        "sponsorPriceLabel": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60,
+          "description": "Display price tier for sponsor slot."
+        },
+        "recommendedToolsSummary": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 500,
+          "description": "Short note for affiliate stack."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of update."
+        }
+      },
+      "required": [
+        "sponsorStatus",
+        "sponsorPriceLabel",
+        "recommendedToolsSummary",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/newsletter_subscribers/{subscriberId}": {
+      "schema": {
+        "$ref": "#/entities/NewsletterSubscriber"
+      },
+      "description": "Stores real newsletter subscriber profiles and email automation state. Strictly admin-only read/list/update/delete; validated public create."
+    },
+    "/monetization_inquiries/{inquiryId}": {
+      "schema": {
+        "$ref": "#/entities/MonetizationInquiry"
+      },
+      "description": "Stores sponsor bookings and PMI workflow audit leads. Strictly admin-only read/list/update/delete; validated public create."
+    },
+    "/newsletter_campaigns/{campaignId}": {
+      "schema": {
+        "$ref": "#/entities/NewsletterCampaign"
+      },
+      "description": "Stores founder email campaigns and automated sequence logs. Strictly admin-only read and write."
+    },
+    "/public_catalog/{docId}": {
+      "schema": {
+        "$ref": "#/entities/PublicMonetizationCatalog"
+      },
+      "description": "Non-PII public sponsorship availability and verified affiliate showcase config."
+    }
+  }
+}

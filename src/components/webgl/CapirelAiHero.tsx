@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AxonCanvas } from './AxonCanvas';
+import { NewsletterSection } from '../NewsletterSection';
+import { FounderNewsletterModal } from '../FounderNewsletterModal';
+import { testFirestoreConnection, type InquiryKind } from '../../lib/firebase';
 
 import initialArticles from '../../data/articles.json';
 
@@ -131,12 +134,12 @@ function ChiSonoModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
               type="button"
               onClick={() => {
                 onClose();
-                const el = document.getElementById('forum');
+                const el = document.getElementById('newsletter');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
               style={{ background: 'none', border: 'none', color: '#38bdf8', textDecoration: 'underline', cursor: 'pointer', padding: 0, font: 'inherit' }}
             >
-              Vai al Forum ↓
+              Iscriviti alla Newsletter ↓
             </button>
             <a
               href="mailto:contact@capirelai.com"
@@ -1035,7 +1038,15 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 // ==========================================
 // 3. LETTORE ARTICOLI MODALE
 // ==========================================
-function ArticleReaderModal({ article, onClose }: { article: FullArticleData | null; onClose: () => void }) {
+function ArticleReaderModal({
+  article,
+  onClose,
+  onGoNewsletter,
+}: {
+  article: FullArticleData | null;
+  onClose: () => void;
+  onGoNewsletter: (sourceTitle: string) => void;
+}) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -1148,21 +1159,19 @@ function ArticleReaderModal({ article, onClose }: { article: FullArticleData | n
         </div>
 
         <div style={{ paddingTop: '16px', borderTop: '1px solid #222222', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-          <span style={{ fontSize: '11px', color: '#777777' }}>
-            Vuoi confrontarti su questo argomento nel forum?
+          <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+            Vuoi ricevere i prossimi test AI e il Kit Operativo R.O.F. ogni settimana?
           </span>
           <button
             type="button"
             onClick={() => {
+              const title = article.title;
               onClose();
-              setTimeout(() => {
-                const el = document.getElementById('forum');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }, 100);
+              onGoNewsletter(title);
             }}
-            style={{ padding: '8px 16px', fontSize: '12px', fontWeight: 600, backgroundColor: '#38bdf8', border: 'none', color: '#000000', borderRadius: '2px', cursor: 'pointer' }}
+            style={{ padding: '10px 18px', fontSize: '12px', fontWeight: 700, backgroundColor: '#38bdf8', border: 'none', color: '#020617', borderRadius: '6px', cursor: 'pointer' }}
           >
-            Partecipa alla Discussione nel Forum ↓
+            Scarica il Kit nella Newsletter ↓
           </button>
         </div>
       </div>
@@ -1644,11 +1653,24 @@ function InteractiveForum() {
 export default function CapirelAiHero() {
   const [isChiSonoOpen, setIsChiSonoOpen] = useState(false);
   const [isInstagramOpen, setIsInstagramOpen] = useState(false);
+  const [isFounderOpen, setIsFounderOpen] = useState(false);
+  const [isForumModalOpen, setIsForumModalOpen] = useState(false);
   const [activeArticle, setActiveArticle] = useState<FullArticleData | null>(null);
+  const [newsletterSource, setNewsletterSource] = useState<string>('homepage');
+  const [externalInquiry, setExternalInquiry] = useState<InquiryKind | null>(null);
+
+  useEffect(() => {
+    testFirestoreConnection();
+  }, []);
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleGoNewsletter = (sourceLabel: string) => {
+    setNewsletterSource(sourceLabel);
+    setTimeout(() => scrollTo('newsletter'), 80);
   };
 
   return (
@@ -1657,16 +1679,15 @@ export default function CapirelAiHero() {
         position: 'relative',
         width: '100%',
         minHeight: '100vh',
-        backgroundColor: '#000000',
-        color: '#dddddd',
-        fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace',
+        backgroundColor: '#050507',
+        color: '#e2e8f0',
         overflowX: 'hidden',
       }}
     >
       {/* Sfondo 3D WebGL Fisso */}
       <AxonCanvas />
 
-      {/* Header Fisso di Navigazione */}
+      {/* Header Fisso 3-Zone Contract */}
       <header
         style={{
           position: 'fixed',
@@ -1678,10 +1699,11 @@ export default function CapirelAiHero() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: '32px',
           padding: '0 24px',
-          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          backgroundColor: 'rgba(5, 5, 7, 0.86)',
           backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #1c1c1f',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           boxSizing: 'border-box',
         }}
       >
@@ -1691,24 +1713,25 @@ export default function CapirelAiHero() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            gap: '10px',
             background: 'none',
             border: 'none',
             padding: 0,
             cursor: 'pointer',
             textAlign: 'left',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
           }}
-          title="Clicca per aprire Chi Sono"
+          title="Chi Sono e Metodo Capire l'AI"
         >
           <div
             style={{
               position: 'relative',
-              width: '44px',
-              height: '44px',
+              width: '38px',
+              height: '38px',
               borderRadius: '50%',
               overflow: 'hidden',
-              border: '1.5px solid #38bdf8',
-              boxShadow: '0 0 18px rgba(56, 189, 248, 0.45)',
+              border: '1px solid rgba(56, 189, 248, 0.6)',
               backgroundColor: '#0a0a10',
               display: 'flex',
               alignItems: 'center',
@@ -1720,6 +1743,7 @@ export default function CapirelAiHero() {
             <img
               src="/assets/aistudio/Black_Blue_and_White_Modern_Store_Logo__1__e6632dec.png"
               alt="Capire l'AI"
+              referrerPolicy="no-referrer"
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block', position: 'relative', zIndex: 1 }}
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
@@ -1734,40 +1758,32 @@ export default function CapirelAiHero() {
                 }
               }}
             />
-            {/* Fallback grafico nel caso il file immagine non sia ancora presente nella cartella locale */}
-            <span
-              style={{
-                position: 'absolute',
-                fontSize: '11px',
-                fontWeight: 900,
-                color: '#38bdf8',
-                letterSpacing: '0.05em',
-                pointerEvents: 'none',
-                zIndex: 0,
-              }}
-            >
+            <span style={{ position: 'absolute', fontSize: '11px', fontWeight: 800, color: '#38bdf8', pointerEvents: 'none', zIndex: 0 }}>
               AI
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', letterSpacing: '0.05em' }}>
-              CAPIRE L&apos;AI
-            </span>
-            <span style={{ fontSize: '9px', color: '#8a8a8a', letterSpacing: '0.03em' }}>
-              FORUM &amp; RICERCA • EST. 2026
-            </span>
-          </div>
+          <span style={{ fontSize: '17px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+            Capire l&apos;AI
+          </span>
         </button>
 
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button type="button" onClick={() => scrollTo('concetti')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#cccccc', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Concetti</button>
-          <button type="button" onClick={() => scrollTo('guide')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#cccccc', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Guide</button>
-          <button type="button" onClick={() => scrollTo('prove')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#cccccc', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Prove</button>
-          <button type="button" onClick={() => scrollTo('aggiornamenti')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#cccccc', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>Aggiornamenti</button>
-          <button type="button" onClick={() => scrollTo('forum')} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#38bdf8', fontWeight: 700, background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '3px', cursor: 'pointer', fontFamily: 'inherit' }}>Forum Community</button>
-          <button type="button" onClick={() => setIsInstagramOpen(true)} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#f43f5e', fontWeight: 700, background: 'rgba(244, 63, 94, 0.12)', border: '1px solid rgba(244, 63, 94, 0.4)', borderRadius: '3px', cursor: 'pointer', fontFamily: 'inherit' }}>📸 Instagram</button>
-          <button type="button" onClick={() => setIsChiSonoOpen(true)} style={{ padding: '6px 12px', fontSize: '11px', textTransform: 'uppercase', color: '#8a8a8a', border: '1px solid #26262a', background: 'none', borderRadius: '3px', cursor: 'pointer', fontFamily: 'inherit' }}>Chi Sono</button>
+        <nav className="hidden md:flex items-center gap-6">
+          <button type="button" onClick={() => scrollTo('concetti')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Concetti</button>
+          <button type="button" onClick={() => scrollTo('guide')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Guide</button>
+          <button type="button" onClick={() => scrollTo('prove')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Prove</button>
+          <button type="button" onClick={() => scrollTo('aggiornamenti')} className="text-sm font-medium text-slate-300 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Aggiornamenti</button>
+          <button type="button" onClick={() => setIsChiSonoOpen(true)} className="text-sm font-medium text-slate-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer whitespace-nowrap shrink-0">Chi Sono</button>
         </nav>
+
+        <div className="flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={() => scrollTo('newsletter')}
+            className="px-4 h-10 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs rounded-lg border-none cursor-pointer transition-colors whitespace-nowrap shrink-0"
+          >
+            Newsletter Gratis
+          </button>
+        </div>
       </header>
 
       {/* Contenuto della Pagina */}
@@ -1782,51 +1798,72 @@ export default function CapirelAiHero() {
             justifyContent: 'space-between',
             alignItems: 'center',
             textAlign: 'center',
-            padding: '120px 20px 40px',
+            padding: '120px 24px 48px',
             boxSizing: 'border-box',
           }}
         >
-          <div style={{ paddingTop: '30px' }}>
-            <span style={{ display: 'inline-block', padding: '4px 12px', fontSize: '10px', textTransform: 'uppercase', fontWeight: 600, color: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '999px', marginBottom: '16px', letterSpacing: '0.1em' }}>
-              DIVULGAZIONE, RICERCA &amp; FORUM
-            </span>
-            <h1 style={{ margin: 0, fontSize: '38px', fontWeight: 800, color: '#ffffff', letterSpacing: '0.05em', lineHeight: 1.25 }}>
-              COMPRENDERE E DOMINARE <br />
-              <span style={{ color: '#38bdf8', textShadow: '0 0 25px rgba(56, 189, 248, 0.6)' }}>
-                L&apos;EVOLUZIONE DELL&apos;AI
-              </span>
+          <div style={{ paddingTop: '28px', maxWidth: '820px' }}>
+            <div className="text-xs font-mono text-sky-400 tracking-wide mb-4">
+              Divulgazione pratica e test empirici AI
+            </div>
+            <h1
+              style={{
+                margin: 0,
+                fontSize: 'clamp(2.1rem, 4.4vw, 3.5rem)',
+                fontWeight: 800,
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.15,
+                textWrap: 'balance',
+              }}
+            >
+              Comprendere e usare l&apos;AI{' '}
+              <span style={{ color: '#38bdf8' }}>nel lavoro reale</span>
             </h1>
-            <p style={{ margin: '14px auto 0', fontSize: '13px', color: '#8a8a8a', maxWidth: '620px', lineHeight: 1.55 }}>
-              L&apos;AI spiegata semplice per professionisti, sviluppatori e PMI italiane: zero hype, test reali, metodo R.O.F. e guide pratiche verificate sul campo.
+            <p style={{ margin: '18px auto 0', fontSize: '15px', color: '#94a3b8', maxWidth: '620px', lineHeight: 1.65 }}>
+              Spiegazioni chiare, metodo R.O.F., analisi costi per PMI italiane e una newsletter settimanale con test verificati sul campo.
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
               <button
                 type="button"
-                onClick={() => scrollTo('concetti')}
-                style={{ padding: '10px 20px', fontSize: '12px', textTransform: 'uppercase', fontWeight: 700, backgroundColor: '#38bdf8', color: '#000000', border: 'none', borderRadius: '3px', cursor: 'pointer', boxShadow: '0 0 20px rgba(56, 189, 248, 0.4)' }}
+                onClick={() => scrollTo('newsletter')}
+                style={{
+                  padding: '13px 24px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  backgroundColor: '#38bdf8',
+                  color: '#020617',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
               >
-                LEGGI GLI ARTICOLI ↓
+                Newsletter + Kit R.O.F. Gratis
               </button>
               <button
                 type="button"
-                onClick={() => scrollTo('forum')}
-                style={{ padding: '10px 18px', fontSize: '12px', textTransform: 'uppercase', color: '#38bdf8', backgroundColor: 'rgba(0,0,0,0.7)', border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: '3px', cursor: 'pointer' }}
+                onClick={() => scrollTo('guide')}
+                style={{
+                  padding: '13px 22px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#e2e8f0',
+                  backgroundColor: 'rgba(10, 11, 16, 0.78)',
+                  border: '1px solid rgba(255, 255, 255, 0.16)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
               >
-                ENTRA NEL FORUM
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsChiSonoOpen(true)}
-                style={{ padding: '10px 18px', fontSize: '12px', textTransform: 'uppercase', color: '#cccccc', backgroundColor: 'rgba(0,0,0,0.7)', border: '1px solid #333333', borderRadius: '3px', cursor: 'pointer' }}
-              >
-                CHI SONO
+                Esplora le Guide PMI
               </button>
             </div>
-            <span style={{ fontSize: '10px', color: '#666666', letterSpacing: '0.1em' }}>
-              ↓ SCORRI PER ESPLORARE • L&apos;ANELLO 3D RUOTA MENTRE SCENDI TRA LE SEZIONI ↓
+            <span style={{ fontSize: '11px', color: '#64748b' }}>
+              Scorri per esplorare le guide · L&apos;anello 3D reagisce allo scorrimento
             </span>
           </div>
         </section>
@@ -2023,16 +2060,101 @@ export default function CapirelAiHero() {
           </div>
         </section>
 
-        {/* SEZIONE 5: FORUM COMMUNITY */}
-        <section id="forum" style={{ minHeight: '100vh', padding: '100px 24px', maxWidth: '1200px', margin: '0 auto', boxSizing: 'border-box' }}>
-          <InteractiveForum />
-        </section>
+        {/* SEZIONE 5: NEWSLETTER & MONETIZZAZIONE REALE (Ex Forum) */}
+        <NewsletterSection
+          leadSource={newsletterSource}
+          externalInquiryOpen={externalInquiry}
+          onCloseExternalInquiry={() => setExternalInquiry(null)}
+        />
       </main>
+
+      {/* Footer Pulito — Forum Spostato in Secondo Piano */}
+      <footer className="relative z-10 border-t border-white/10 bg-[#050507]/95 py-10 px-6">
+        <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <div>
+            <strong className="text-white">Capire l&apos;AI</strong> · capirelai.com · Divulgazione pratica e test reali AI
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-5">
+            <button
+              type="button"
+              onClick={() => scrollTo('newsletter')}
+              className="text-sky-400 hover:text-sky-300 bg-transparent border-none cursor-pointer p-0 font-medium"
+            >
+              Newsletter &amp; Kit R.O.F.
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                scrollTo('newsletter');
+                setExternalInquiry('sponsor_newsletter');
+              }}
+              className="text-slate-300 hover:text-white bg-transparent border-none cursor-pointer p-0"
+            >
+              Sponsor &amp; Media Kit
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsInstagramOpen(true)}
+              className="text-slate-300 hover:text-white bg-transparent border-none cursor-pointer p-0"
+            >
+              Studio Instagram
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsForumModalOpen(true)}
+              className="text-slate-500 hover:text-slate-300 bg-transparent border-none cursor-pointer p-0"
+              title="Spazio secondario domande e discussioni archiviate"
+            >
+              Archivio Forum (Q&amp;A)
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsFounderOpen(true)}
+              className="text-slate-400 hover:text-sky-400 bg-transparent border border-white/10 rounded px-2.5 py-1 cursor-pointer"
+            >
+              Area Fondatore
+            </button>
+          </div>
+        </div>
+      </footer>
 
       {/* Modali */}
       <ChiSonoModal isOpen={isChiSonoOpen} onClose={() => setIsChiSonoOpen(false)} />
-      <ArticleReaderModal article={activeArticle} onClose={() => setActiveArticle(null)} />
+      <ArticleReaderModal
+        article={activeArticle}
+        onClose={() => setActiveArticle(null)}
+        onGoNewsletter={handleGoNewsletter}
+      />
       <InstagramKitModal isOpen={isInstagramOpen} onClose={() => setIsInstagramOpen(false)} />
+      <FounderNewsletterModal isOpen={isFounderOpen} onClose={() => setIsFounderOpen(false)} />
+
+      {/* Forum secondario su richiesta dal footer */}
+      {isForumModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          onClick={() => setIsForumModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-[960px] max-h-[90vh] overflow-y-auto bg-[#08090d] border border-white/15 rounded-xl p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/10">
+              <span className="text-xs text-slate-400">
+                Archivio Forum &amp; Q&amp;A Community (spazio secondario — per aggiornamenti settimanali iscriviti alla Newsletter)
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsForumModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white bg-transparent border-none text-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <InteractiveForum />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

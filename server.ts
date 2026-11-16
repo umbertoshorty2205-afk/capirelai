@@ -300,6 +300,19 @@ async function startServer() {
       ? body.files
       : [
           'index.html',
+          'package.json',
+          'vercel.json',
+          'api/newsletter/status.ts',
+          'api/newsletter/subscribe.ts',
+          'api/newsletter/send-campaign.ts',
+          'firebase-applet-config.json',
+          'firebase-blueprint.json',
+          'firestore.rules',
+          'src/index.css',
+          'src/lib/firebase.ts',
+          'src/data/newsletterData.ts',
+          'src/components/NewsletterSection.tsx',
+          'src/components/FounderNewsletterModal.tsx',
           'src/components/webgl/CapirelAiHero.tsx',
           'src/data/articles.json',
           'src/content/guide/metodo-r-o-f-10-prompt-chatgpt-da-copiare-subito.md',
@@ -409,6 +422,257 @@ async function startServer() {
       const message = err instanceof Error ? err.message : 'Errore pubblicazione su GitHub';
       return res.status(500).json({ published: false, error: message });
     }
+  });
+
+  function getNewsletterConfig() {
+    const brevoKey = (process.env.BREVO_API_KEY || '').trim();
+    const resendKey = (process.env.RESEND_API_KEY || '').trim();
+    const brevoListId = Number(process.env.BREVO_LIST_ID || 0) || undefined;
+    const fromEmail = (process.env.NEWSLETTER_FROM_EMAIL || 'newsletter@capirelai.com').trim();
+    const fromName = (process.env.NEWSLETTER_FROM_NAME || "Capire l'AI — Radar Pratica").trim();
+    const provider = brevoKey ? 'brevo' : resendKey ? 'resend' : 'none';
+    return {
+      configured: Boolean(brevoKey || resendKey),
+      provider,
+      brevoKey,
+      brevoListId,
+      resendKey,
+      fromEmail,
+      fromName,
+    };
+  }
+
+  function escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  async function sendEmailViaProvider(params: {
+    toEmail: string;
+    toName: string;
+    subject: string;
+    textContent: string;
+    htmlContent: string;
+  }): Promise<{ ok: boolean; provider: string; error?: string }> {
+    const cfg = getNewsletterConfig();
+    if (!cfg.configured) {
+      return { ok: false, provider: 'none', error: 'Nessun provider email configurato' };
+    }
+
+    if (cfg.provider === 'brevo') {
+      const resp = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': cfg.brevoKey,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: cfg.fromName, email: cfg.fromEmail },
+          to: [{ email: params.toEmail, name: params.toName }],
+          subject: params.subject,
+          htmlContent: params.htmlContent,
+          textContent: params.textContent,
+        }),
+      });
+      if (!resp.ok) {
+        const errTxt = await resp.text().catch(() => 'Brevo error');
+        return { ok: false, provider: 'brevo', error: errTxt };
+      }
+      return { ok: true, provider: 'brevo' };
+    }
+
+    const resp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cfg.resendKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: `${cfg.fromName} <${cfg.fromEmail}>`,
+        to: [params.toEmail],
+        subject: params.subject,
+        html: params.htmlContent,
+        text: params.textContent,
+      }),
+    });
+    if (!resp.ok) {
+      const errTxt = await resp.text().catch(() => 'Resend error');
+      return { ok: false, provider: 'resend', error: errTxt };
+    }
+    return { ok: true, provider: 'resend' };
+  }
+
+  async function verifyFounderIdToken(bearerHeader: string | undefined): Promise<{ ok: boolean; email?: string }> {
+    if (!bearerHeader || !bearerHeader.startsWith('Bearer ')) return { ok: false };
+    const idToken = bearerHeader.slice(7).trim();
+    if (!idToken) return { ok: false };
+
+    const cfgPath = path.join(__dirname, 'firebase-applet-config.json');
+    if (!fs.existsSync(cfgPath)) return { ok: false };
+    const fbCfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) as { apiKey?: string };
+    if (!fbCfg.apiKey) return { ok: false };
+
+    const verifyRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(fbCfg.apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+    if (!verifyRes.ok) return { ok: false };
+    const data = (await verifyRes.json()) as {
+      users?: Array<{ email?: string; emailVerified?: boolean }>;
+    };
+    const user = data.users?.[0];
+    if (!user?.email || !user.emailVerified) return { ok: false };
+    if (user.email.toLowerCase() !== 'umbertoshorty2205@gmail.com') return { ok: false };
+    return { ok: true, email: user.email };
+  }
+
+  app.get('/api/newsletter/status', (_req: Request, res: Response) => {
+    const cfg = getNewsletterConfig();
+    return res.json({
+      configured: cfg.configured,
+      provider: cfg.provider,
+      fromEmail: cfg.fromEmail,
+      fromName: cfg.fromName,
+    });
+  });
+
+  app.post('/api/newsletter/subscribe', async (req: Request, res: Response) => {
+    const body = (req.body || {}) as {
+      email?: string;
+      name?: string;
+      segment?: string;
+      source?: string;
+      leadMagnet?: string;
+    };
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim().slice(0, 80) : 'Lettore';
+    const segment = typeof body.segment === 'string' ? body.segment.trim().slice(0, 24) : 'pmi';
+    const source = typeof body.source === 'string' ? body.source.trim().slice(0, 80) : 'homepage';
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ ok: false, error: 'Email non valida' });
+    }
+
+    const cfg = getNewsletterConfig();
+    if (!cfg.configured) {
+      return res.json({
+        ok: true,
+        emailDispatched: false,
+        provider: 'kit-immediato',
+      });
+    }
+
+    try {
+      if (cfg.provider === 'brevo') {
+        await fetch('https://api.brevo.com/v3/contacts', {
+          method: 'POST',
+          headers: {
+            'api-key': cfg.brevoKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            attributes: { NOME: name, SEGMENTO: segment, SOURCE: source },
+            ...(cfg.brevoListId ? { listIds: [cfg.brevoListId] } : {}),
+            updateEnabled: true,
+          }),
+        }).catch(() => {});
+      }
+
+      const safeName = escapeHtml(name);
+      const subject = 'Il tuo Kit Operativo R.O.F. (10 Prompt & Checklist PMI)';
+      const textContent = `Ciao ${name},\n\nbenvenuto in Radar AI Pratica (https://capirelai.com).\n\nIl tuo Kit Operativo R.O.F. (Ruolo · Obiettivo · Formato) + Checklist GDPR PMI è già sbloccato su https://capirelai.com/#newsletter.\n\nRispondi pure a questa email scrivendo in 1 riga su quale attività perdi più tempo oggi (email, documenti/PDF, preventivi o fogli Excel): leggo ogni risposta.\n\nA presto,\nFondatore di Capire l'AI`;
+      const htmlContent = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #111827; line-height: 1.6;">
+          <h2 style="color: #0284c7;">Benvenuto in Radar AI Pratica, ${safeName}</h2>
+          <p>Grazie per esserti iscritto su <strong>capirelai.com</strong>. Il tuo <strong>Kit Operativo R.O.F. + Checklist Tool &amp; GDPR PMI</strong> è attivo.</p>
+          <p>Trovi sempre l&apos;accesso diretto e le guide operative nella sezione Newsletter:</p>
+          <p><a href="https://capirelai.com/#newsletter" style="display:inline-block;padding:10px 18px;background:#0284c7;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">Apri Kit Operativo R.O.F.</a></p>
+          <p style="font-size: 13px; color: #4b5563;"><strong>Domanda veloce:</strong> rispondi a questa mail dicendomi in una riga su cosa perdi più tempo oggi (email, preventivi, PDF o Excel). Calibrerò i prossimi test reali su questo.</p>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+          <p style="font-size: 12px; color: #6b7280;">Capire l&apos;AI — Test pratici, zero fuffa.</p>
+        </div>`;
+
+      const sent = await sendEmailViaProvider({
+        toEmail: email,
+        toName: name,
+        subject,
+        textContent,
+        htmlContent,
+      });
+
+      return res.json({
+        ok: true,
+        emailDispatched: sent.ok,
+        provider: sent.provider,
+      });
+    } catch {
+      return res.json({ ok: true, emailDispatched: false, provider: cfg.provider });
+    }
+  });
+
+  app.post('/api/newsletter/send-campaign', async (req: Request, res: Response) => {
+    const authCheck = await verifyFounderIdToken(req.headers.authorization);
+    if (!authCheck.ok) {
+      return res.status(401).json({ sent: false, error: 'Non autorizzato: accesso consentito solo al fondatore.' });
+    }
+
+    const cfg = getNewsletterConfig();
+    if (!cfg.configured) {
+      return res.status(400).json({
+        sent: false,
+        provider: 'none',
+        error: 'Configura BREVO_API_KEY o RESEND_API_KEY nei Secrets per inviare campagne email reali.',
+      });
+    }
+
+    const body = (req.body || {}) as {
+      subject?: string;
+      previewText?: string;
+      bodyText?: string;
+      recipients?: Array<{ email?: string; name?: string }>;
+    };
+
+    const subject = typeof body.subject === 'string' ? body.subject.trim().slice(0, 160) : '';
+    const rawBody = typeof body.bodyText === 'string' ? body.bodyText.trim() : '';
+    const recipients = Array.isArray(body.recipients) ? body.recipients : [];
+
+    if (!subject || !rawBody || recipients.length === 0) {
+      return res.status(400).json({ sent: false, error: 'Oggetto, testo o destinatari mancanti.' });
+    }
+
+    let dispatchedCount = 0;
+    for (const r of recipients) {
+      const toEmail = typeof r.email === 'string' ? r.email.trim().toLowerCase() : '';
+      const toName = typeof r.name === 'string' && r.name.trim() ? r.name.trim() : 'Lettore';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail)) continue;
+
+      const personalized = rawBody.replace(/\{\{NOME\}\}/g, toName);
+      const htmlContent = `<div style="font-family:sans-serif;max-width:620px;margin:0 auto;color:#111827;line-height:1.65;">${escapeHtml(personalized).replace(/\n/g, '<br/>')}<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/><p style="font-size:12px;color:#6b7280;">Capire l&apos;AI • https://capirelai.com</p></div>`;
+
+      const out = await sendEmailViaProvider({
+        toEmail,
+        toName,
+        subject,
+        textContent: personalized,
+        htmlContent,
+      });
+      if (out.ok) dispatchedCount += 1;
+    }
+
+    return res.json({
+      sent: dispatchedCount > 0,
+      provider: cfg.provider,
+      dispatchedCount,
+    });
   });
 
   if (process.env.NODE_ENV !== 'production') {

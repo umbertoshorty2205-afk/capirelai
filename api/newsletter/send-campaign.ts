@@ -1,4 +1,5 @@
-import firebaseConfig from '../../firebase-applet-config.json';
+import fs from 'node:fs';
+import path from 'node:path';
 
 interface VercelReq {
   method?: string;
@@ -9,6 +10,18 @@ interface VercelReq {
 interface VercelRes {
   status: (code: number) => VercelRes;
   json: (data: unknown) => void;
+}
+
+function getFirebaseWebApiKey(): string {
+  const fromEnv = (process.env.FIREBASE_WEB_API_KEY || process.env.VITE_FIREBASE_API_KEY || '').trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const cfgPath = path.join(process.cwd(), 'firebase-applet-config.json');
+    const parsed = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) as { apiKey?: string };
+    return (parsed.apiKey || '').trim();
+  } catch {
+    return '';
+  }
 }
 
 function escapeHtml(str: string): string {
@@ -23,10 +36,11 @@ async function verifyFounderBearer(authHeader: string | string[] | undefined): P
   const raw = Array.isArray(authHeader) ? authHeader[0] : authHeader;
   if (!raw || !raw.startsWith('Bearer ')) return false;
   const idToken = raw.slice(7).trim();
-  if (!idToken || !firebaseConfig.apiKey) return false;
+  const apiKey = getFirebaseWebApiKey();
+  if (!idToken || !apiKey) return false;
 
   const verifyRes = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(firebaseConfig.apiKey)}`,
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(apiKey)}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

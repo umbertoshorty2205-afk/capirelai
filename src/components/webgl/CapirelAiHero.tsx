@@ -182,6 +182,37 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-regola-rof-risposte-banali-jarvis',
+    badge: 'JARVIS BRIEF • STUDIO CLEAN HD',
+    title: "Reel 08 // Perché l'AI ti dà Risposte Banali (Usa la Regola R.O.F.)",
+    subtitle: "Dal brief Jarvis (17 Nov): hook anti-ricerca Google, la regola pratica R.O.F. (Ruolo · Obiettivo + Contesto · Formato), esempio reale su mail commerciale da 3 righe, sottotitoli sincronizzati, PiP KAI-01 e CTA al Kit .md",
+    video: "/instagram/reels/reel-08-regola-rof-risposte-banali-jarvis.mp4",
+    filename: "reel-08-regola-rof-risposte-banali-jarvis.mp4",
+    duration: "33.3 sec",
+    specs: "1080×1920 MP4 • Voce HD + Studio Clean",
+    caption: `Se chiedi qualcosa a ChatGPT e ti risponde con le solite frasi robotiche da manuale, non è colpa del modello: lo stai usando come se fosse Google. 👇
+
+Una domanda secca genera sempre una risposta media, generica e dimenticabile.
+Prima di premere Invio, applica sempre la Regola R.O.F.:
+
+1️⃣ R — RUOLO: chi deve essere il modello (es. "Consulente commerciale senior B2B")
+2️⃣ O — OBIETTIVO + CONTESTO: cosa vuoi ottenere e la situazione reale (es. "Cliente che ha ritenuto alto il preventivo e non risponde da 4 giorni")
+3️⃣ F — FORMATO ESATTO: come vuoi il risultato (es. "Massimo 3 righe dirette, tono umano, zero frasi fatte e zero parole gonfiate")
+
+Risultato? Smetti di correggere bozze infinite e ottieni testi utilizzabili al primo colpo. ✅
+
+🎁 Ho inserito il Prompt R.O.F. completo e i template pronti nel Kit Operativo (.md) gratuito su capirelai.com (link in bio).
+💬 Scrivi "ROF" nei commenti se vuoi ricevere altri esempi reali per il tuo lavoro e salvati il Reel!
+
+#CapirelAI #RegolaROF #PromptEngineering #ChatGPTItalia #AIItalia #Produttivita #PMI #IntelligenzaArtificiale`,
+    pinnedComment: `📌 COPIA-INCOLLA SUBITO IL PROMPT R.O.F. DI QUESTO REEL (salva il post!):
+
+"Agisci come un consulente commerciale senior B2B (R). Scrivi un follow-up per recuperare un cliente che ha rifiutato il nostro preventivo 4 giorni fa per il prezzo senza chiudere la trattativa (O). Usa al massimo 3 righe dirette, tono calmo e umano, zero frasi fatte tipo 'nel caso cambiassi idea' o 'rimango a disposizione' (F)."
+
+🎁 Vuoi il Kit Operativo R.O.F. (.md) con i 10 prompt pronti e la checklist PMI?
+👉 Sbloccalo gratis appena ti iscrivi su https://www.capirelai.com/#newsletter (link in bio @capirelai)!`,
+  },
+  {
     id: 'reel-testi-anti-robot-jarvis',
     badge: 'JARVIS TOP PICK • STUDIO CLEAN HD',
     title: "Reel 07 // Basta Testi AI Robotici: Il Metodo Esempio + Divieto",
@@ -504,7 +535,7 @@ Cosa troverai su capirelai.com:
 
 function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>('reel-testi-anti-robot-jarvis');
+  const [selectedReelId, setSelectedReelId] = useState<string>('reel-regola-rof-risposte-banali-jarvis');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
@@ -671,19 +702,21 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     color: selectedReelId === reel.id ? '#ffffff' : '#999999',
                   }}
                 >
-                  {reel.id === 'reel-testi-anti-robot-jarvis'
-                    ? '🤖 Reel 07: Testi Anti-Robot (NEW)'
-                    : reel.id === 'reel-chatbot-vs-agenti-jarvis'
-                      ? '🤖 Reel 06: Chatbot vs Agenti'
-                    : reel.id === 'reel-pdf-50-pagine-jarvis'
-                      ? '📄 Reel 05: PDF 50 Pag. 10s'
-                      : reel.id === 'reel-automazioni-jarvis'
-                        ? '⚡ Reel 04: 3 Automazioni AI'
-                        : reel.id === 'reel-cyborg-viral'
-                          ? '🤖 Reel 03: Cyborg + B-Roll'
-                          : reel.id === 'reel-token-avatar'
-                            ? '🎙️ Reel 02: Avatar Parlato + Voce'
-                            : '⚡ Reel 01: Slide 3D Token'}
+                  {reel.id === 'reel-regola-rof-risposte-banali-jarvis'
+                    ? '⚡ Reel 08: Regola R.O.F. (NEW)'
+                    : reel.id === 'reel-testi-anti-robot-jarvis'
+                      ? '🤖 Reel 07: Testi Anti-Robot'
+                      : reel.id === 'reel-chatbot-vs-agenti-jarvis'
+                        ? '🤖 Reel 06: Chatbot vs Agenti'
+                        : reel.id === 'reel-pdf-50-pagine-jarvis'
+                          ? '📄 Reel 05: PDF 50 Pag. 10s'
+                          : reel.id === 'reel-automazioni-jarvis'
+                            ? '⚡ Reel 04: 3 Automazioni AI'
+                            : reel.id === 'reel-cyborg-viral'
+                              ? '🤖 Reel 03: Cyborg + B-Roll'
+                              : reel.id === 'reel-token-avatar'
+                                ? '🎙️ Reel 02: Avatar Parlato + Voce'
+                                : '⚡ Reel 01: Slide 3D Token'}
                 </button>
               ))}
             </div>

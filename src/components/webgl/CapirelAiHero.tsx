@@ -182,6 +182,41 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-spot-3d-chatgpt-rof',
+    badge: '3D CINEMA ENGINE • THREE.JS + SFX',
+    title: "Reel 09 // Lo Spot 3D che ChatGPT Non Farà Mai (Token 3× + R.O.F.)",
+    subtitle: "Nuovo motore video 100% via codice (Three.js 3D + animazioni spring + musica dark-tech + SFX sincronizzati): monitor curvo 3D con dolly-in, cubi Token 3D apple vs fragola, glitch Google Trap, monoliti 3D R.O.F. e finale capirelai.com",
+    video: "/instagram/reels/reel-09-spot-3d-chatgpt-rof.mp4",
+    filename: "reel-09-spot-3d-chatgpt-rof.mp4",
+    duration: "29.8 sec",
+    specs: "1080×1920 24fps Cinema • 3D WebGL + Musica + SFX",
+    caption: `Lo spot che ChatGPT non avrà mai il coraggio di fare. 🎬⚡
+
+Scrivi una parola in inglese ("apple"): 1 solo token.
+La scrivi in italiano ("fragola"): si spezza in 3 token (fra · go · la). Paghi il triplo e bruci la memoria 3× più in fretta.
+
+E non finisce qui: se gli fai domande secche come su Google, ti sputa fuori frasi da robot aziendale.
+
+La svolta sta in 3 lettere — la Regola R.O.F.:
+1️⃣ R — RUOLO (chi deve essere il modello)
+2️⃣ O — OBIETTIVO + CONTESTO (situazione reale)
+3️⃣ F — FORMATO ESATTO (lunghezza, tono, zero cliché)
+
+Meno token sprecati, risultati 10× più umani. ✅
+(Ps: questo video è generato 100% via codice 3D — niente riprese, niente Blender, niente After Effects.)
+
+🎁 Il Kit Operativo R.O.F. (.md) con 10 prompt pronti è gratis su capirelai.com (link in bio).
+💬 Scrivi "SPOT" nei commenti se vuoi altri video così e salvati il Reel!
+
+#CapirelAI #ChatGPTItalia #AIItalia #3DMotion #PromptEngineering #RegolaROF #TechItalia #IntelligenzaArtificiale`,
+    pinnedComment: `📌 VUOI IL KIT OPERATIVO R.O.F. (.md) CITATO NELLO SPOT?
+
+Dentro trovi i 10 prompt copia-incolla pronti per email, preventivi, documenti e analisi + la checklist anti-cliché per smettere di bruciare token in italiano.
+
+👉 Lo sblocchi gratis appena ti iscrivi su https://www.capirelai.com/#newsletter (link in bio @capirelai)!
+💬 Dimmi nei commenti: ti piace questo nuovo stile 3D rispetto ai Reel classici?`,
+  },
+  {
     id: 'reel-regola-rof-risposte-banali-jarvis',
     badge: 'JARVIS BRIEF • STUDIO CLEAN HD',
     title: "Reel 08 // Perché l'AI ti dà Risposte Banali (Usa la Regola R.O.F.)",
@@ -535,7 +570,7 @@ Cosa troverai su capirelai.com:
 
 function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>('reel-regola-rof-risposte-banali-jarvis');
+  const [selectedReelId, setSelectedReelId] = useState<string>('reel-spot-3d-chatgpt-rof');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
@@ -702,21 +737,23 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                     color: selectedReelId === reel.id ? '#ffffff' : '#999999',
                   }}
                 >
-                  {reel.id === 'reel-regola-rof-risposte-banali-jarvis'
-                    ? '⚡ Reel 08: Regola R.O.F. (NEW)'
-                    : reel.id === 'reel-testi-anti-robot-jarvis'
-                      ? '🤖 Reel 07: Testi Anti-Robot'
-                      : reel.id === 'reel-chatbot-vs-agenti-jarvis'
-                        ? '🤖 Reel 06: Chatbot vs Agenti'
-                        : reel.id === 'reel-pdf-50-pagine-jarvis'
-                          ? '📄 Reel 05: PDF 50 Pag. 10s'
-                          : reel.id === 'reel-automazioni-jarvis'
-                            ? '⚡ Reel 04: 3 Automazioni AI'
-                            : reel.id === 'reel-cyborg-viral'
-                              ? '🤖 Reel 03: Cyborg + B-Roll'
-                              : reel.id === 'reel-token-avatar'
-                                ? '🎙️ Reel 02: Avatar Parlato + Voce'
-                                : '⚡ Reel 01: Slide 3D Token'}
+                  {reel.id === 'reel-spot-3d-chatgpt-rof'
+                    ? '🎬 Reel 09: Spot 3D ChatGPT (NEW)'
+                    : reel.id === 'reel-regola-rof-risposte-banali-jarvis'
+                      ? '⚡ Reel 08: Regola R.O.F.'
+                      : reel.id === 'reel-testi-anti-robot-jarvis'
+                        ? '🤖 Reel 07: Testi Anti-Robot'
+                        : reel.id === 'reel-chatbot-vs-agenti-jarvis'
+                          ? '🤖 Reel 06: Chatbot vs Agenti'
+                          : reel.id === 'reel-pdf-50-pagine-jarvis'
+                            ? '📄 Reel 05: PDF 50 Pag. 10s'
+                            : reel.id === 'reel-automazioni-jarvis'
+                              ? '⚡ Reel 04: 3 Automazioni AI'
+                              : reel.id === 'reel-cyborg-viral'
+                                ? '🤖 Reel 03: Cyborg + B-Roll'
+                                : reel.id === 'reel-token-avatar'
+                                  ? '🎙️ Reel 02: Avatar Parlato + Voce'
+                                  : '⚡ Reel 01: Slide 3D Token'}
                 </button>
               ))}
             </div>

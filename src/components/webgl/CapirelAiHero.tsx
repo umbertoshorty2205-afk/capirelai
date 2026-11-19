@@ -184,6 +184,41 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-onetake-3d-spot-chatgpt',
+    badge: 'ONE-TAKE 3D SPOT • ZERO TAGLI + VOCE DIEGO',
+    title: "Reel 11 // Quante Volte ti Ha Fregato ChatGPT? (Spot One-Take 3D)",
+    subtitle: "Costruito con la Skill 1 (stile spot Ryanair/HyperFrames): 34.3s con ZERO tagli, 1 mondo 3D continuo (hall → nastro trasportatore → tende di gomma e scanner laser rosso → pista stellata con jet in decollo sopra @CAPIRELAI), valigetta 3D PROMPT protagonista, parole 3D estruse spezzate/esplose su 'SCHERZO.' e voce naturale Diego",
+    video: "/instagram/reels/reel-11-onetake-3d-spot-chatgpt.mp4",
+    poster: "/instagram/reels/reel-11-poster.jpg",
+    filename: "reel-11-onetake-3d-spot-chatgpt.mp4",
+    duration: "34.3 sec",
+    specs: "1080×1920 24fps • One-Take 0 Tagli • IG Safe 9:16 • Voce Naturale Diego",
+    caption: `Quante volte ti ha fregato ChatGPT con una risposta da robot? 🤖✂️
+
+Tranquillo, sei in buona compagnia: 4 utenti su 5 lo usano ancora come Google.
+Paghi 22€ al mese… e poi riscrivi tutto a mano.
+
+Per questo oggi ti regalo il prompt magico. 🎁
+SCHERZO. 💥 I prompt magici non esistono.
+
+Dentro lo scanner contano solo 3 cose:
+1️⃣ RUOLO
+2️⃣ OBIETTIVO
+3️⃣ FORMATO
+
+Vuoi risparmiare fino a 10 ore a settimana senza impazzire?
+🚀 I 5 prompt pronti sono gratis nell'Hub su capirelai.com (link in bio).
+
+(Ps: questo spot è 1 sola ripresa 3D continua con ZERO tagli, creata interamente via codice 3D.)
+💬 Scrivi "SCANNER" nei commenti se vuoi che porti lo stesso formato sui nuovi Agenti AI!
+
+#CapirelAI #ChatGPTItalia #PromptEngineering #AIItalia #3DMotion #OneTake3D #Produttivita #IntelligenzaArtificiale`,
+    pinnedComment: `📌 VUOI I 5 PROMPT PRONTI CITATI NELLO SPOT ONE-TAKE?
+
+Li copi gratis con un click nell'Hub interattivo su https://www.capirelai.com/#hub-prompt (link in bio @capirelai)!
+💬 Dimmi nei commenti: meglio questo formato One-Take 3D senza tagli o il formato classico?`,
+  },
+  {
     id: 'reel-agenti-ai-usano-pc',
     badge: 'JARVIS 3D ENGINE • IG SAFE + VOCE DIEGO',
     title: "Reel 10 // Gli Agenti AI che Usano il PC al Posto Tuo",
@@ -615,7 +650,7 @@ function InstagramKitModal({
   initialReelId?: string;
 }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>(initialReelId || 'reel-agenti-ai-usano-pc');
+  const [selectedReelId, setSelectedReelId] = useState<string>(initialReelId || 'reel-onetake-3d-spot-chatgpt');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
@@ -1858,7 +1893,12 @@ export default function CapirelAiHero() {
 
     const syncFromUrl = () => {
       const rawHash = window.location.hash.replace(/^#/, '').toLowerCase();
-      if (rawHash === 'reel-10' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+      if (rawHash === 'reel-11' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+        setInitialInstagramReelId('reel-onetake-3d-spot-chatgpt');
+        setIsInstagramOpen(true);
+        return;
+      }
+      if (rawHash === 'reel-10') {
         setInitialInstagramReelId('reel-agenti-ai-usano-pc');
         setIsInstagramOpen(true);
         return;

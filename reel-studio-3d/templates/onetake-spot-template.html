@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "/three/build/three.module.js",
+    "three/addons/": "/three/examples/jsm/"
+  }
+}
+</script>
+<style>
+  @font-face { font-family: 'JBMono'; src: url('/fonts/JetBrainsMono-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'DisplaySans'; src: url('/fonts/LiberationSans-Bold.ttf') format('truetype'); font-weight: 900; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #040916;
+    color: #ffffff;
+    font-family: 'DisplaySans', 'DejaVu Sans', sans-serif;
+  }
+
+  #webgl-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    display: block;
+    z-index: 1;
+  }
+
+  /* Subtle cinematic framing vignette + motion-blur speed lines on fast camera sweeps */
+  #vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 48%, rgba(0,0,0,0) 44%, rgba(2,5,14,0.72) 100%);
+  }
+
+  #speed-blur {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(56,189,248,0) 35%, rgba(56,189,248,0.18) 100%);
+  }
+
+  #red-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(239,68,68,0.08) 25%, rgba(220,38,38,0.42) 100%);
+  }
+
+  /* Quiet IG-safe top brand watermark (y=215px, never clashes with IG Reels header) */
+  #top-mark {
+    position: absolute;
+    top: 215px;
+    left: 64px;
+    right: 64px;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.22em;
+    color: rgba(226, 232, 240, 0.78);
+    text-transform: uppercase;
+  }
+  #top-mark .line { width: 26px; height: 2px; background: #facc15; }
+
+  #progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    z-index: 20;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #facc15, #38bdf8, #4ade80);
+  }
+</style>
+</head>
+<body>
+  <canvas id="webgl-canvas"></canvas>
+  <div id="vignette"></div>
+  <div id="speed-blur"></div>
+  <div id="red-flash"></div>
+
+  <div id="top-mark">
+    <span class="line"></span>
+    <span>@CAPIRELAI • ONE-TAKE 3D</span>
+    <span class="line"></span>
+  </div>
+
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import {
+  setupOneTakeStudio,
+  create3DWordBlock,
+  createShardBurst,
+  createHeroPromptCase,
+  buildContinuousWorld,
+} from '/models/onetake-3d-engine.js';
+
+const CUES = await fetch('/cues.json').then((r) => r.json());
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (e0, e1, x) => {
+  const t = clamp01((x - e0) / Math.max(0.0001, e1 - e0));
+  return t * t * (3 - 2 * t);
+};
+function springLand(tLocal, freq = 15, damp = 7.2) {
+  if (tLocal <= 0) return 0;
+  if (tLocal > 1.1) return 1;
+  return 1 - Math.exp(-damp * tLocal) * Math.cos(freq * tLocal);
+}
+
+// Wait for fonts BEFORE drawing CanvasTextures for 3D words!
+await document.fonts.ready;
+
+const canvas = document.getElementById('webgl-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: true,
+});
+// 480x854 anti-aliased WebGL buffer stretched cleanly to 1080x1920 -> crisp 3D + fast 2-worker render (~3 min)
+renderer.setSize(480, 854, false);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x040b1a);
+scene.fog = new THREE.FogExp2(0x040b1a, 0.024);
+
+const { rimLight, scannerLight } = setupOneTakeStudio(renderer, scene);
+const camera = new THREE.PerspectiveCamera(46, 1080 / 1920, 0.1, 140);
+
+// ONE continuous 3D world (4 connected environments, ZERO CUTS!)
+const worldEnv = buildContinuousWorld(renderer, scene);
+
+// ONE Hero 3D Object ("Il Filo") that NEVER leaves the scene
+const hero = createHeroPromptCase(renderer);
+scene.add(hero.group);
+
+// CAMERA-ATTACHED 3D TYPOGRAPHY RIG ("Le parole viaggiano con la camera così restano nitide e mai tagliate!")
+// Placed inside a rig locked slightly in front of the camera in 3D space (perspective-true extruded 3D words!)
+const wordRig = new THREE.Group();
+scene.add(wordRig);
+
+// Beat 1: Hook ("QUANTE VOLTE TI HA" [white] + "FREGATO" [giant yellow, SMASHED IN TWO!])
+// Viewport width at z = -5.6 (fov 46, 9:16) is 2.67 units -> all worldWidths <= 2.22 guarantee ZERO clipped letters!
+const w1Top = create3DWordBlock(renderer, { text: 'QUANTE VOLTE TI HA', color: '#f8fafc', sideColor: 0x475569, fontSize: 78, worldWidth: 2.15, depth: 0.14 });
+const w1Big = create3DWordBlock(renderer, { text: 'FREGATO', color: '#facc15', sideColor: 0x854d0e, fontSize: 152, worldWidth: 2.02, depth: 0.26, bgGlow: true, splitHalves: true });
+const w1Sub = create3DWordBlock(renderer, { text: 'CHATGPT?', color: '#38bdf8', sideColor: 0x0369a1, fontSize: 118, worldWidth: 1.92, depth: 0.20, bgGlow: true });
+
+// Beat 2: The Queue ("4 SU 5" [giant yellow] + "LO USANO COME GOOGLE" [white])
+const w2Top = create3DWordBlock(renderer, { text: 'SEI IN BUONA COMPAGNIA:', color: '#f8fafc', sideColor: 0x475569, fontSize: 66, worldWidth: 2.18, depth: 0.12 });
+const w2Big = create3DWordBlock(renderer, { text: '4 SU 5', color: '#facc15', sideColor: 0x854d0e, fontSize: 175, worldWidth: 2.12, depth: 0.28, bgGlow: true });
+const w2Sub = create3DWordBlock(renderer, { text: 'LO USANO COME GOOGLE', color: '#e2e8f0', sideColor: 0x475569, fontSize: 68, worldWidth: 2.18, depth: 0.13 });
+
+// Beat 3: The Price & Fake Promise ("22€ / MESE" + "MAGICO" [gold])
+const w3Top = create3DWordBlock(renderer, { text: 'PAGHI OGNI MESE', color: '#f8fafc', sideColor: 0x475569, fontSize: 78, worldWidth: 2.05, depth: 0.13 });
+const w3Price = create3DWordBlock(renderer, { text: '22€ / MESE', color: '#facc15', sideColor: 0x854d0e, fontSize: 148, worldWidth: 2.20, depth: 0.26, bgGlow: true });
+const w3FakeTop = create3DWordBlock(renderer, { text: 'OGGI TI REGALO IL PROMPT', color: '#f8fafc', sideColor: 0x475569, fontSize: 62, worldWidth: 2.18, depth: 0.13 });
+const w3Magic = create3DWordBlock(renderer, { text: 'MAGICO', color: '#facc15', sideColor: 0x854d0e, fontSize: 165, worldWidth: 2.18, depth: 0.28, bgGlow: true });
+
+// Beat 4: THE TWIST! Crimson "SCHERZO." explodes "MAGICO" into flying 3D gold shards!
+const w4Scherzo = create3DWordBlock(renderer, { text: 'SCHERZO.', color: '#ef4444', sideColor: 0x7f1d1d, fontSize: 162, worldWidth: 2.22, depth: 0.30, bgGlow: true });
+const magicShards = createShardBurst(0xfacc15, 28);
+
+// Beat 5: Inside Red-Laser X-Ray Scanner ("RUOLO · OBIETTIVO · FORMATO" — floating cleanly inside red laser light!)
+const w5Top = create3DWordBlock(renderer, { text: 'CONTANO SOLO 3 COSE:', color: '#fecdd3', sideColor: 0x881337, fontSize: 72, worldWidth: 2.16, depth: 0.13 });
+const w5R = create3DWordBlock(renderer, { text: 'RUOLO', color: '#facc15', sideColor: 0x854d0e, fontSize: 138, worldWidth: 1.85, depth: 0.22, bgGlow: true });
+const w5O = create3DWordBlock(renderer, { text: 'OBIETTIVO', color: '#38bdf8', sideColor: 0x075985, fontSize: 126, worldWidth: 2.08, depth: 0.22, bgGlow: true });
+const w5F = create3DWordBlock(renderer, { text: 'FORMATO', color: '#4ade80', sideColor: 0x166534, fontSize: 132, worldWidth: 1.98, depth: 0.22, bgGlow: true });
+
+// Beat 6: Final Launchpad ("10 ORE" + "CAPIRELAI.COM" + "5 PROMPT GRATIS")
+const w6Top = create3DWordBlock(renderer, { text: 'RISPARMIA FINO A', color: '#f8fafc', sideColor: 0x475569, fontSize: 74, worldWidth: 2.05, depth: 0.13 });
+const w6Hours = create3DWordBlock(renderer, { text: '10 ORE', color: '#ef4444', sideColor: 0x7f1d1d, fontSize: 170, worldWidth: 2.15, depth: 0.28, bgGlow: true });
+const w6Url = create3DWordBlock(renderer, { text: 'CAPIRELAI.COM', color: '#38bdf8', sideColor: 0x0369a1, fontSize: 118, worldWidth: 2.22, depth: 0.24, bgGlow: true });
+const w6Cta = create3DWordBlock(renderer, { text: '5 PROMPT GRATIS · LINK IN BIO', color: '#4ade80', sideColor: 0x14532d, fontSize: 58, worldWidth: 2.20, depth: 0.12 });
+
+const allWords = [
+  w1Top, w1Big, w1Sub,
+  w2Top, w2Big, w2Sub,
+  w3Top, w3Price, w3FakeTop, w3Magic,
+  w4Scherzo, magicShards,
+  w5Top, w5R, w5O, w5F,
+  w6Top, w6Hours, w6Url, w6Cta,
+];
+for (const w of allWords) {
+  w.visible = false;
+  wordRig.add(w);
+}
+
+const elProgress = document.getElementById('progress-fill');
+const elSpeedBlur = document.getElementById('speed-blur');
+const elRedFlash = document.getElementById('red-flash');
+
+// Smooth multi-point camera spline helper (ONE CONTINUOUS SHOT, ZERO CUTS!)
+// Precisely aligned with the 4 physical 3D environments:
+// 1. Hall:           z = +3.0 -> -8.8  (0 .. b2Start)
+// 2. Conveyor Belt:  z = -8.8 -> -30.5 (b2Start .. scannerWord - 0.35 -> MAGICO & SCHERZO open on belt!)
+// 3. Red X-Ray Scan: z = -30.5 -> -50.2 (scannerWord - 0.35 .. b6Start -> INSIDE red laser tunnel!)
+// 4. Starry Launch:  z = -50.2 -> -61.8 (b6Start .. duration -> Jet Takeoff + @CAPIRELAI Billboard!)
+function getTrackZ(t) {
+  const scanEntry = CUES.scannerWord - 0.35;
+  const p1 = smoothstep(0, CUES.b2Start, t);
+  const p2 = smoothstep(CUES.b2Start, scanEntry, t);
+  const p3 = smoothstep(scanEntry, CUES.b6Start, t);
+  const p4 = smoothstep(CUES.b6Start, CUES.duration, t);
+
+  if (t < CUES.b2Start) return lerp(3.0, -8.8, p1);
+  if (t < scanEntry) return lerp(-8.8, -30.5, p2);
+  if (t < CUES.b6Start) return lerp(-30.5, -51.5, p3);
+  return lerp(-51.5, -65.8, p4);
+}
+
+window.setReelTime = function (t) {
+  elProgress.style.width = `${clamp01(t / CUES.duration) * 100}%`;
+  for (const w of allWords) w.visible = false;
+  elSpeedBlur.style.opacity = '0';
+  elRedFlash.style.opacity = '0';
+
+  const camZ = getTrackZ(t);
+  const heroZ = camZ - 5.3;
+
+  // Dynamic camera height & pitch: low/heroic through Hall/Belt/Scanner, lifts smoothly at Launchpad for Jet + Billboard!
+  const endLift = smoothstep(CUES.b6Start, CUES.b6Start + 2.2, t);
+  const scannerDip = smoothstep(CUES.scannerWord - 0.2, CUES.scannerWord + 0.9, t) * (1 - endLift);
+
+  // Subtle physical camera shake on FREGATO smash and SCHERZO explosion!
+  let shakeX = 0;
+  let shakeY = 0;
+  if (t >= CUES.fregatoWord && t < CUES.fregatoWord + 0.42) {
+    const m = (1 - (t - CUES.fregatoWord) / 0.42) * 0.20;
+    shakeX += Math.sin(t * 78) * m;
+    shakeY += Math.cos(t * 64) * m;
+  }
+  if (t >= CUES.scherzoWord && t < CUES.scherzoWord + 0.5) {
+    const m = (1 - (t - CUES.scherzoWord) / 0.5) * 0.26;
+    shakeX += Math.sin(t * 88) * m;
+    shakeY += Math.cos(t * 72) * m;
+  }
+
+  const camX = Math.sin(t * 0.75) * 0.22 * (1 - endLift) + shakeX;
+  const camY = lerp(2.05, 2.35, endLift) - scannerDip * 0.22 + shakeY;
+  const lookY = lerp(1.55, 2.95, endLift) - scannerDip * 0.10;
+
+  camera.position.set(camX, camY, camZ);
+  camera.lookAt(0, lookY, camZ - 9.0);
+
+  // Dynamic FOV speed punch when shooting into the scanner right after SCHERZO!
+  const rushPulse = smoothstep(CUES.scannerWord - 0.7, CUES.scannerWord, t) * (1 - smoothstep(CUES.scannerWord, CUES.scannerWord + 1.0, t));
+  camera.fov = 46 + rushPulse * 8;
+  camera.updateProjectionMatrix();
+  elSpeedBlur.style.opacity = String(rushPulse * 0.72);
+
+  // Lock 3D Word Rig cleanly in front of camera so 3D extruded typography is ALWAYS readable and IG-safe!
+  wordRig.position.copy(camera.position);
+  wordRig.quaternion.copy(camera.quaternion);
+
+  // Animate Conveyor Belt Ribs continuously
+  for (let i = 0; i < worldEnv.beltRibs.length; i++) {
+    const base = -11.5 - i * 0.72;
+    const offset = ((t * 2.8) % 0.72);
+    worldEnv.beltRibs[i].position.z = base - offset;
+  }
+
+  // Animate Hero 3D Prompt Case ("Il Filo" — sleek scale 0.66 in lower-middle so it NEVER covers 3D typography!)
+  const dropP = springLand(t - (CUES.fregatoWord - 0.14), 12, 6.2);
+  const beltRise = smoothstep(CUES.b2Start - 0.4, CUES.b2Start + 0.3, t) * (1 - smoothstep(CUES.b6Start - 0.6, CUES.b6Start + 0.2, t));
+  const heroFloorY = 0.56 + beltRise * 0.28;
+  const heroY = t < CUES.fregatoWord - 0.14
+    ? 5.6
+    : lerp(5.6, heroFloorY, dropP) + Math.abs(Math.sin(t * 5.2)) * 0.05 * (1 - endLift);
+
+  hero.group.visible = endLift < 0.80;
+  hero.group.scale.setScalar(0.66);
+  hero.group.position.set(Math.sin(t * 1.4) * 0.18, heroY - endLift * 2.2, heroZ);
+  hero.group.rotation.y = Math.sin(t * 1.1) * 0.22;
+  hero.group.rotation.z = Math.sin(t * 5.2) * 0.035;
+  for (const w of hero.wheels) w.rotation.x = t * 9.0;
+
+  // Gift ribbon wraps the Hero Case during "finta promessa", pops off at "SCHERZO."!
+  const ribbonOn = t >= CUES.regaloWord - 0.1 && t < CUES.scherzoWord;
+  hero.ribbonGroup.visible = ribbonOn;
+  if (ribbonOn) {
+    const rp = springLand(t - (CUES.regaloWord - 0.1), 15, 6.5);
+    hero.ribbonGroup.scale.setScalar(Math.max(0.01, rp));
+  }
+
+  // Physical Black Rubber Curtain Flaps swing UP & AWAY cleanly as Hero Case + Camera push through!
+  const swingFlaps = (flaps, zWall) => {
+    const dist = Math.abs(heroZ - zWall);
+    const camDist = Math.abs(camZ - zWall);
+    const openAmt = Math.max(clamp01(1 - dist / 2.6), clamp01(1 - camDist / 3.0));
+    for (let i = 0; i < flaps.length; i++) {
+      flaps[i].rotation.x = openAmt * 1.45;
+      flaps[i].position.y = 2.15 + openAmt * 1.95;
+    }
+  };
+  swingFlaps(worldEnv.entryFlaps, -38.1);
+  swingFlaps(worldEnv.exitFlaps, -57.9);
+
+  // Red Laser X-Ray Scanner Lighting & Atmosphere Shift!
+  const inScanner = smoothstep(-34.5, -38.8, camZ) * (1 - smoothstep(-54.5, -58.5, camZ));
+  scannerLight.intensity = inScanner * 58;
+  scannerLight.position.z = camZ - 3.0;
+  worldEnv.laserPlane.position.z = -48 + Math.sin(t * 5.5) * 5.5;
+  elRedFlash.style.opacity = String(inScanner * (0.42 + 0.16 * Math.sin(t * 14)));
+
+  const bgCol = new THREE.Color(0x040b1a).lerp(new THREE.Color(0x28040b), inScanner);
+  scene.background.copy(bgCol);
+  scene.fog.color.copy(bgCol);
+  rimLight.position.set(camX - 2.5, camY + 1.5, camZ - 3.0);
+  rimLight.color.setHex(inScanner > 0.3 ? 0xff2a44 : 0x38bdf8);
+
+  // Final 3D Jet Takeoff directly above @CAPIRELAI illuminated billboard (visibly soaring in sky!)
+  const jetP = smoothstep(CUES.b6Start + 0.2, CUES.duration, t);
+  worldEnv.jetGroup.position.set(0, lerp(3.6, 5.4, jetP), lerp(-83, -72, jetP));
+  worldEnv.jetGroup.rotation.x = -0.18;
+  worldEnv.stars.rotation.z = t * 0.02;
+
+  // =========================================================================
+  // 3D EXTRUDED TYPOGRAPHY IN SCENE (Synced <= 80ms BEFORE/ON spoken words!)
+  // Strictly framed inside IG Safe Zones ABOVE the Hero Case (y: +1.46 to +0.28)
+  // =========================================================================
+  const placeWord = (w, tStart, x, y, z = -5.6, scale = 1.0) => {
+    const dt = t - (tStart - 0.08);
+    if (dt < 0) return;
+    w.visible = true;
+    const pop = springLand(dt, 16, 7.0);
+    w.position.set(x, y + lerp(0.45, 0, pop), z);
+    w.scale.setScalar(Math.max(0.01, pop) * scale);
+    w.rotation.y = Math.sin(t * 1.8) * 0.04;
+  };
+
+  // BEAT 1: "Quante volte ti ha FREGATO ChatGPT?" (cleanly BELOW @CAPIRELAI opening gantry!)
+  if (t < CUES.b2Start) {
+    placeWord(w1Top, 0.0, 0, 1.16, -5.6, 0.94);
+    placeWord(w1Big, CUES.fregatoWord - 0.12, 0, 0.72, -5.55, 0.98);
+    if (w1Big.visible) {
+      const smashP = clamp01((t - CUES.fregatoWord) / 0.35);
+      const { left, right, baseX } = w1Big.userData;
+      left.position.x = -baseX - smashP * 0.14;
+      left.rotation.z = smashP * 0.14;
+      right.position.x = baseX + smashP * 0.14;
+      right.rotation.z = -smashP * 0.14;
+    }
+    placeWord(w1Sub, CUES.chatgptWord, 0, 0.24, -5.6, 0.94);
+  }
+
+  // BEAT 2: "Tranquillo, sei in buona compagnia: 4 SU 5 lo usano come Google"
+  else if (t < CUES.b3Start) {
+    placeWord(w2Top, CUES.b2Start, 0, 1.50, -5.6, 0.95);
+    placeWord(w2Big, CUES.quattroWord, 0, 0.94, -5.55, 1.04);
+    placeWord(w2Sub, CUES.googleWord - 0.35, 0, 0.36, -5.6, 0.95);
+  }
+
+  // BEAT 3: "22€ AL MESE" -> Fake Promise "PROMPT MAGICO" (open on conveyor belt!)
+  else if (t < CUES.scherzoWord) {
+    if (t < CUES.regaloWord - 0.15) {
+      placeWord(w3Top, CUES.b3Start, 0, 1.45, -5.6, 0.95);
+      placeWord(w3Price, CUES.euroWord - 0.25, 0, 0.90, -5.55, 1.04);
+    } else {
+      placeWord(w3FakeTop, CUES.regaloWord - 0.1, 0, 1.48, -5.6, 0.95);
+      placeWord(w3Magic, CUES.magicoWord - 0.15, 0, 0.88, -5.55, 1.04);
+    }
+  }
+
+  // BEAT 4: "SCHERZO." explodes "MAGICO" into flying 3D gold shards!
+  else if (t < CUES.scannerWord) {
+    const dt = t - CUES.scherzoWord;
+    placeWord(w4Scherzo, CUES.scherzoWord, 0, 0.98, -5.45, 1.06);
+    if (dt >= 0 && dt < 1.35) {
+      magicShards.visible = true;
+      magicShards.position.set(0, 0.94, -5.5);
+      for (const sh of magicShards.userData.shards) {
+        const u = sh.userData;
+        sh.position.set(u.vx * dt, u.vy * dt - 4.2 * dt * dt, u.vz * dt);
+        sh.rotation.set(u.rx * dt, u.ry * dt, 0);
+        sh.scale.setScalar(Math.max(0.01, 1 - dt / 1.35));
+      }
+    }
+  }
+
+  // BEAT 5: Inside the Red-Laser X-Ray Scanner — "CONTANO SOLO 3 COSE: RUOLO · OBIETTIVO · FORMATO"
+  else if (t < CUES.b6Start) {
+    placeWord(w5Top, CUES.scannerWord, 0, 1.56, -5.6, 0.94);
+    placeWord(w5R, CUES.ruoloWord, 0, 1.12, -5.55, 0.94);
+    placeWord(w5O, CUES.obiettivoWord, 0, 0.68, -5.55, 0.92);
+    placeWord(w5F, CUES.formatoWord, 0, 0.24, -5.55, 0.94);
+  }
+
+  // BEAT 6: Starry Night Launchpad + 3D Jet Takeoff + "10 ORE" + "CAPIRELAI.COM"
+  // Positioned cleanly ABOVE and BELOW the @CAPIRELAI illuminated billboard (ZERO overlap!)
+  else {
+    if (t < CUES.urlWord - 0.25) {
+      placeWord(w6Top, CUES.b6Start, 0, 1.50, -5.6, 0.95);
+      placeWord(w6Hours, CUES.dieciWord, 0, 0.96, -5.55, 1.04);
+    } else {
+      placeWord(w6Url, CUES.urlWord - 0.15, 0, 1.44, -5.55, 1.00);
+      placeWord(w6Cta, CUES.urlWord + 0.25, 0, -0.78, -5.6, 0.98);
+    }
+  }
+
+  renderer.render(scene, camera);
+};
+
+window.__REEL_READY__ = true;
+</script>
+</body>
+</html>

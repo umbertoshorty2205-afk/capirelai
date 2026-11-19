@@ -15,24 +15,35 @@ export async function synthesizeNaturalMaleVoice({
   voice = 'it-IT-DiegoNeural',
   rate = '+2%',
   pitch = '-3Hz',
-  edgeTtsModulePath = '/tmp/tts-runtime/node_modules/node-edge-tts',
+  msEdgeTtsPath = '/tmp/tts-runtime/node_modules/msedge-tts',
 }) {
   fs.mkdirSync(outDir, { recursive: true });
-  const { EdgeTTS } = require(edgeTtsModulePath);
+  const { MsEdgeTTS, OUTPUT_FORMAT } = require(msEdgeTtsPath);
 
-  const tts = new EdgeTTS({
-    voice,
-    lang: 'it-IT',
-    outputFormat: 'audio-24khz-96kbitrate-mono-mp3',
+  const tts = new MsEdgeTTS();
+  await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3, {
+    wordBoundaryEnabled: true,
+  });
+
+  const { audioFilePath, metadataFilePath } = await tts.toFile(outDir, text, {
     rate,
     pitch,
-    saveSubtitles: true,
-    timeout: 30000,
   });
 
   const rawMp3 = `${outDir}/voice_raw.mp3`;
-  await tts.ttsPromise(text, rawMp3);
-  const words = JSON.parse(fs.readFileSync(`${rawMp3}.json`, 'utf8'));
+  fs.renameSync(audioFilePath, rawMp3);
+
+  const meta = JSON.parse(fs.readFileSync(metadataFilePath, 'utf8'));
+  const words = (meta.Metadata || [])
+    .filter((m) => m.Type === 'WordBoundary' && m.Data?.text?.Text)
+    .map((m) => ({
+      part: m.Data.text.Text,
+      start: Math.round(m.Data.Offset / 10000),
+      end: Math.round((m.Data.Offset + m.Data.Duration) / 10000),
+    }));
+
+  fs.writeFileSync(`${rawMp3}.json`, JSON.stringify(words, null, 2));
+  try { fs.unlinkSync(metadataFilePath); } catch {}
   return { rawMp3, words };
 }
 

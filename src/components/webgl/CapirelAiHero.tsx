@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AxonCanvas } from './AxonCanvas';
 import { NewsletterSection } from '../NewsletterSection';
 import { FounderNewsletterModal } from '../FounderNewsletterModal';
+import { PromptHubSection } from '../PromptHubSection';
 import { testFirestoreConnection, type InquiryKind } from '../../lib/firebase';
 
 import initialArticles from '../../data/articles.json';
@@ -183,15 +184,49 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-agenti-ai-usano-pc',
+    badge: 'JARVIS 3D ENGINE • IG SAFE + VOCE DIEGO',
+    title: "Reel 10 // Gli Agenti AI che Usano il PC al Posto Tuo",
+    subtitle: "Dal brief Jarvis (19 Nov): modelli 3D ufficiali @capirelai (monitor curvo Agent OS, cubi 3D VOLI/EXCEL/ORDINI, dashboard impiegato digitale, monoliti 1-2-3 Navigazione·Analisi·Esecuzione), voce maschile naturale Diego e safe-zone IG 9:16 + cover 3:4",
+    video: "/instagram/reels/reel-10-agenti-ai-usano-pc.mp4",
+    poster: "/instagram/reels/reel-10-poster.jpg",
+    filename: "reel-10-agenti-ai-usano-pc.mp4",
+    duration: "32.6 sec",
+    specs: "1080×1920 24fps • IG Safe 9:16 + Cover 3:4 • Voce Naturale Diego",
+    caption: `Smetti di cliccare: i nuovi agenti AI ora usano il computer al posto tuo. 💻⚡
+
+Non parliamo più di chat che rispondono a domande, ma di azioni reali:
+✈ Prenotano voli
+📊 Compilano fogli Excel
+🛒 Gestiscono ordini online
+
+Il punto non è che l'AI scrive più veloce: è diventata il tuo impiegato digitale mentre bevi un caffè.
+
+Ogni agente funziona in 3 fasi:
+1️⃣ NAVIGAZIONE (vede lo schermo e muove il cursore)
+2️⃣ ANALISI (confronta dati e documenti in tempo reale)
+3️⃣ ESECUZIONE (compila moduli e chiude il task da solo)
+
+La differenza tra chi comanda l'AI e chi la subisce passa da qui. ✅
+
+🎁 Guida completa + Hub con i 5 prompt che ti salvano 10 ore/settimana gratis su capirelai.com (link in bio).
+💬 Scrivi "AGENTI" nei commenti se vuoi il workflow pratico passo-passo!
+
+#CapirelAI #AgentiAI #OpenAI #AIItalia #AutomazioneAI #Produttivita #TechItalia #IntelligenzaArtificiale`,
+    pinnedComment: `📌 VUOI I 5 PROMPT PRONTI + LA GUIDA AGENTI AI?
+
+Li trovi subito copiabili con un click nell'Hub su https://www.capirelai.com/#hub-prompt (link in bio @capirelai) + il Kit completo scaricabile nella newsletter gratuita!`,
+  },
+  {
     id: 'reel-spot-3d-chatgpt-rof',
-    badge: '3D CINEMA ENGINE • THREE.JS + SFX',
+    badge: '3D CINEMA ENGINE • IG SAFE + VOCE DIEGO',
     title: "Reel 09 // Lo Spot 3D che ChatGPT Non Farà Mai (Token 3× + R.O.F.)",
-    subtitle: "Nuovo motore video 100% via codice (Three.js 3D + animazioni spring + musica dark-tech + SFX sincronizzati): monitor curvo 3D con dolly-in, cubi Token 3D apple vs fragola, glitch Google Trap, monoliti 3D R.O.F. e finale capirelai.com",
+    subtitle: "Modelli 3D ufficiali @capirelai (monitor curvo 3D, cubi Token BPE, monoliti R.O.F., orb neurale) con voce maschile italiana naturale (Diego, 0% accelerazione), safe-zone Instagram Reels 9:16 + copertina griglia 3:4, musica dark-tech e SFX sincronizzati",
     video: "/instagram/reels/reel-09-spot-3d-chatgpt-rof.mp4",
     poster: "/instagram/reels/reel-09-poster.jpg",
     filename: "reel-09-spot-3d-chatgpt-rof.mp4",
-    duration: "29.8 sec",
-    specs: "1080×1920 24fps Cinema • 3D WebGL + Musica + SFX",
+    duration: "39.4 sec",
+    specs: "1080×1920 24fps • IG Safe 9:16 + Cover 3:4 • Voce Naturale Diego",
     caption: `Lo spot che ChatGPT non avrà mai il coraggio di fare. 🎬⚡
 
 Scrivi una parola in inglese ("apple"): 1 solo token.
@@ -570,13 +605,28 @@ Cosa troverai su capirelai.com:
   },
 ];
 
-function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function InstagramKitModal({
+  isOpen,
+  onClose,
+  initialReelId,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  initialReelId?: string;
+}) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>('reel-spot-3d-chatgpt-rof');
+  const [selectedReelId, setSelectedReelId] = useState<string>(initialReelId || 'reel-agenti-ai-usano-pc');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
   const [copiedComment, setCopiedComment] = useState(false);
+
+  useEffect(() => {
+    if (initialReelId) {
+      setSection('reels');
+      setSelectedReelId(initialReelId);
+    }
+  }, [initialReelId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1759,6 +1809,7 @@ function InteractiveForum() {
 export default function CapirelAiHero() {
   const [isChiSonoOpen, setIsChiSonoOpen] = useState(false);
   const [isInstagramOpen, setIsInstagramOpen] = useState(false);
+  const [initialInstagramReelId, setInitialInstagramReelId] = useState<string>('reel-agenti-ai-usano-pc');
   const [isFounderOpen, setIsFounderOpen] = useState(false);
   const [isForumModalOpen, setIsForumModalOpen] = useState(false);
   const [activeArticle, setActiveArticle] = useState<FullArticleData | null>(null);
@@ -1794,7 +1845,7 @@ export default function CapirelAiHero() {
   };
 
   useEffect(() => {
-    const KNOWN_SECTIONS = new Set(['hero', 'concetti', 'guide', 'prove', 'aggiornamenti', 'newsletter']);
+    const KNOWN_SECTIONS = new Set(['hero', 'concetti', 'guide', 'prove', 'aggiornamenti', 'hub-prompt', 'newsletter']);
 
     const resolveTargetFromUrl = (): string | null => {
       const hashTarget = window.location.hash.replace(/^#/, '').toLowerCase();
@@ -1807,7 +1858,13 @@ export default function CapirelAiHero() {
 
     const syncFromUrl = () => {
       const rawHash = window.location.hash.replace(/^#/, '').toLowerCase();
-      if (rawHash === 'reel-09' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+      if (rawHash === 'reel-10' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+        setInitialInstagramReelId('reel-agenti-ai-usano-pc');
+        setIsInstagramOpen(true);
+        return;
+      }
+      if (rawHash === 'reel-09') {
+        setInitialInstagramReelId('reel-spot-3d-chatgpt-rof');
         setIsInstagramOpen(true);
         return;
       }
@@ -2276,6 +2333,15 @@ export default function CapirelAiHero() {
           </div>
         </section>
 
+        {/* SEZIONE 4B: HUB AI PER LAVORARE — I 5 MIGLIORI PROMPT */}
+        <PromptHubSection
+          onOpenPillarArticle={() => {
+            const pillar = (initialArticles as Record<string, FullArticleData>)['come-usare-ai-lavorare-meno-5-prompt-salvano-10-ore'];
+            if (pillar) setActiveArticle(pillar);
+          }}
+          onScrollToNewsletter={() => handleGoNewsletter('hub_5_prompt')}
+        />
+
         {/* SEZIONE 5: NEWSLETTER & MONETIZZAZIONE REALE (Ex Forum) */}
         <NewsletterSection
           leadSource={newsletterSource}
@@ -2364,7 +2430,11 @@ export default function CapirelAiHero() {
         onClose={() => setActiveArticle(null)}
         onGoNewsletter={handleGoNewsletter}
       />
-      <InstagramKitModal isOpen={isInstagramOpen} onClose={() => setIsInstagramOpen(false)} />
+      <InstagramKitModal
+        isOpen={isInstagramOpen}
+        onClose={() => setIsInstagramOpen(false)}
+        initialReelId={initialInstagramReelId}
+      />
       <FounderNewsletterModal isOpen={isFounderOpen} onClose={() => setIsFounderOpen(false)} />
 
       {/* Forum secondario su richiesta dal footer */}

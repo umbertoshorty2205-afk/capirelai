@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "/three/build/three.module.js",
+    "three/addons/": "/three/examples/jsm/"
+  }
+}
+</script>
+<style>
+  @font-face { font-family: 'JBMono'; src: url('/fonts/JetBrainsMono-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'JBMonoReg'; src: url('/fonts/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'DisplaySans'; src: url('/fonts/LiberationSans-Bold.ttf') format('truetype'); font-weight: 800; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #03060c;
+    color: #ffffff;
+    font-family: 'DisplaySans', 'DejaVu Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #webgl-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    display: block;
+    z-index: 1;
+  }
+
+  #vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 46%, rgba(0,0,0,0) 40%, rgba(2,5,12,0.74) 100%);
+  }
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    perspective: 1400px;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+
+  .scene-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* IG TOP SAFE HEADER (y >= 215px) */
+  #top-brand {
+    position: absolute;
+    top: 215px;
+    left: 64px;
+    right: 64px;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    font-family: 'JBMono', monospace;
+    font-size: 21px;
+    letter-spacing: 0.22em;
+    color: rgba(186, 230, 253, 0.88);
+    text-transform: uppercase;
+  }
+  #top-brand .bar {
+    width: 30px;
+    height: 2px;
+    background: #38bdf8;
+    box-shadow: 0 0 12px #38bdf8;
+  }
+
+  /* SCENE 1: 3:4 Profile Grid Safe Cover Opener */
+  #s1-headline {
+    margin-top: 295px;
+    width: 860px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 66px;
+    line-height: 1.07;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 12px 45px rgba(56, 189, 248, 0.6), 0 4px 14px rgba(0, 0, 0, 0.9);
+  }
+  #s1-headline .accent {
+    color: #38bdf8;
+    text-shadow: 0 0 36px rgba(56, 189, 248, 0.85);
+  }
+  #s1-sub {
+    margin-top: 22px;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    letter-spacing: 0.16em;
+    color: #4ade80;
+    background: rgba(6, 26, 22, 0.78);
+    border: 1px solid rgba(74, 222, 128, 0.48);
+    padding: 9px 22px;
+    border-radius: 6px;
+  }
+
+  /* SCENE 2: Autonomous Actions (3D Cubes) */
+  #s2-bar {
+    margin-top: 280px;
+    width: 830px;
+    margin-right: 32px;
+    background: rgba(8, 13, 24, 0.9);
+    border: 2px solid rgba(56, 189, 248, 0.6);
+    border-radius: 20px;
+    padding: 22px 32px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.78), 0 0 45px rgba(56, 189, 248, 0.22);
+  }
+  .bar-meta {
+    font-family: 'JBMono', monospace;
+    font-size: 18px;
+    letter-spacing: 0.16em;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  #s2-cmd {
+    font-family: 'JBMono', monospace;
+    font-size: 40px;
+    color: #ffffff;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+  }
+  .cursor-blink {
+    display: inline-block;
+    width: 6px;
+    height: 40px;
+    background: #38bdf8;
+    margin-left: 8px;
+    box-shadow: 0 0 14px #38bdf8;
+  }
+  #s2-chips {
+    margin-top: 24px;
+    margin-right: 32px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    min-height: 76px;
+  }
+  .act-chip {
+    font-family: 'JBMono', monospace;
+    font-size: 30px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 2px solid;
+    letter-spacing: 0.04em;
+    box-shadow: 0 14px 36px rgba(0,0,0,0.65);
+  }
+  .act-cyan { background: rgba(6, 36, 56, 0.9); border-color: #38bdf8; color: #bae6fd; }
+  .act-emerald { background: rgba(6, 48, 34, 0.9); border-color: #4ade80; color: #bbf7d0; }
+  .act-amber { background: rgba(56, 32, 8, 0.9); border-color: #fbbf24; color: #fde68a; }
+
+  #s2-metric {
+    margin-top: 605px;
+    margin-right: 32px;
+    text-align: center;
+    max-width: 820px;
+  }
+  #s2-big-num {
+    font-size: 82px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: #38bdf8;
+    text-shadow: 0 0 46px rgba(56, 189, 248, 0.72);
+  }
+  #s2-big-sub {
+    margin-top: 12px;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    letter-spacing: 0.12em;
+    padding: 9px 22px;
+    border-radius: 8px;
+    display: inline-block;
+    background: rgba(6, 34, 52, 0.88);
+    border: 1.5px solid #38bdf8;
+    color: #bae6fd;
+  }
+
+  /* SCENE 3: Autonomous Digital Employee Window */
+  #s3-wrap {
+    margin-top: 295px;
+    width: 830px;
+    margin-right: 40px;
+    transform-style: preserve-3d;
+  }
+  #s3-win {
+    background: rgba(8, 14, 24, 0.94);
+    border: 2px solid rgba(56, 189, 248, 0.45);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.86), 0 0 60px rgba(56, 189, 248, 0.22);
+  }
+  .win-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 26px;
+    background: rgba(15, 23, 42, 0.96);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    font-family: 'JBMono', monospace;
+    font-size: 18px;
+    color: #94a3b8;
+  }
+  .win-dots { display: flex; gap: 10px; }
+  .win-dot { width: 13px; height: 13px; border-radius: 50%; }
+  .win-body {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .task-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1.5px solid rgba(56, 189, 248, 0.28);
+    font-family: 'JBMonoReg', monospace;
+    font-size: 25px;
+    color: #e2e8f0;
+  }
+  .task-row.done {
+    border-color: rgba(74, 222, 128, 0.65);
+    background: rgba(6, 42, 30, 0.72);
+  }
+  .task-status {
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    color: #4ade80;
+  }
+  #s3-badge {
+    margin-top: 34px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.94), rgba(16, 185, 129, 0.92));
+    border: 2.5px solid #bae6fd;
+    padding: 20px 30px;
+    border-radius: 16px;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #020617;
+    box-shadow: 0 20px 60px rgba(56, 189, 248, 0.45);
+  }
+
+  /* SCENE 4: 3-Step Agent Loop + 3D Monoliths */
+  #s4-title {
+    margin-top: 255px;
+    text-align: center;
+  }
+  #s4-eyebrow {
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.22em;
+    color: #38bdf8;
+    margin-bottom: 6px;
+  }
+  #s4-heading {
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.45);
+  }
+  #s4-cards {
+    margin-top: 22px;
+    width: 825px;
+    margin-right: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .step-card {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 16px 24px;
+    border-radius: 18px;
+    background: rgba(8, 14, 26, 0.88);
+    border: 2px solid rgba(56, 189, 248, 0.25);
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.72);
+  }
+  .step-num {
+    width: 78px;
+    height: 78px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 46px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .st-1 .step-num { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #020617; box-shadow: 0 0 32px rgba(56, 189, 248, 0.65); }
+  .st-2 .step-num { background: linear-gradient(135deg, #0d9488, #2dd4bf); color: #020617; box-shadow: 0 0 32px rgba(45, 212, 191, 0.65); }
+  .st-3 .step-num { background: linear-gradient(135deg, #16a34a, #4ade80); color: #020617; box-shadow: 0 0 32px rgba(74, 222, 128, 0.65); }
+  .step-info h3 { font-size: 32px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+  .step-info p { font-family: 'JBMonoReg', monospace; font-size: 20px; color: #cbd5e1; }
+
+  #s4-banner {
+    margin-top: 18px;
+    width: 825px;
+    margin-right: 40px;
+    padding: 18px 24px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(6, 40, 62, 0.92), rgba(6, 56, 40, 0.92));
+    border: 2px solid #38bdf8;
+    text-align: center;
+    box-shadow: 0 24px 70px rgba(56, 189, 248, 0.35);
+  }
+  #s4-banner .big { font-size: 46px; font-weight: 800; color: #ffffff; }
+  #s4-banner .big span { color: #4ade80; }
+  #s4-banner .sub {
+    margin-top: 4px;
+    font-family: 'JBMono', monospace;
+    font-size: 19px;
+    color: #7dd3fc;
+    letter-spacing: 0.1em;
+  }
+
+  /* SCENE 5: Outro Glass Card */
+  #s5-card {
+    margin-top: 560px;
+    width: 830px;
+    margin-right: 32px;
+    padding: 46px 40px;
+    border-radius: 28px;
+    background: rgba(6, 11, 22, 0.9);
+    border: 2px solid rgba(56, 189, 248, 0.65);
+    text-align: center;
+    box-shadow: 0 35px 100px rgba(0, 0, 0, 0.85), 0 0 80px rgba(56, 189, 248, 0.32);
+  }
+  #s5-pill {
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    letter-spacing: 0.16em;
+    color: #020617;
+    background: #38bdf8;
+    padding: 10px 24px;
+    border-radius: 8px;
+    margin-bottom: 22px;
+  }
+  #s5-url {
+    font-size: 80px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.6);
+  }
+  #s5-desc {
+    margin-top: 18px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 25px;
+    color: #cbd5e1;
+    line-height: 1.45;
+  }
+  #s5-handle {
+    margin-top: 26px;
+    font-family: 'JBMono', monospace;
+    font-size: 24px;
+    color: #4ade80;
+    letter-spacing: 0.14em;
+  }
+
+  /* IG BOTTOM SAFE ZONE SUBTITLES (bottom: 385px) */
+  #sub-wrap {
+    position: absolute;
+    bottom: 385px;
+    left: 64px;
+    right: 136px;
+    z-index: 25;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 86px;
+  }
+  #sub-pill {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 16px 32px;
+    border-radius: 16px;
+    background: rgba(4, 8, 16, 0.86);
+    border: 1.5px solid rgba(56, 189, 248, 0.38);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.78);
+  }
+  .sub-word {
+    font-family: 'DisplaySans', sans-serif;
+    font-size: 44px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: rgba(241, 245, 249, 0.88);
+    transform-origin: center;
+  }
+  .sub-word.active-cyan { color: #38bdf8; text-shadow: 0 0 24px rgba(56, 189, 248, 0.85); transform: scale(1.05); margin: 0 4px; }
+  .sub-word.active-green { color: #4ade80; text-shadow: 0 0 24px rgba(74, 222, 128, 0.85); transform: scale(1.05); margin: 0 4px; }
+  .sub-word.active-amber { color: #fbbf24; text-shadow: 0 0 24px rgba(251, 191, 36, 0.85); transform: scale(1.05); margin: 0 4px; }
+
+  #progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 7px;
+    background: rgba(255,255,255,0.08);
+    z-index: 30;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #0284c7, #38bdf8, #4ade80);
+  }
+</style>
+</head>
+<body>
+  <canvas id="webgl-canvas"></canvas>
+  <div id="vignette"></div>
+
+  <div id="top-brand">
+    <span class="bar"></span>
+    <span>@CAPIRELAI • AGENTI AI 3D</span>
+    <span class="bar"></span>
+  </div>
+
+  <div id="stage">
+    <div id="scene1" class="scene-layer">
+      <div id="s1-headline">
+        SMETTI DI CLICCARE:<br />
+        <span class="accent">L'AI ORA USA IL PC</span><br />
+        AL POSTO TUO
+      </div>
+      <div id="s1-sub">▸ AGENTI AUTONOMI • ZERO CHAT</div>
+    </div>
+
+    <div id="scene2" class="scene-layer">
+      <div id="s2-bar">
+        <div class="bar-meta">
+          <span>AGENT OS • CONTROLLO BROWSER</span>
+          <span style="color:#4ade80;">AUTONOMO</span>
+        </div>
+        <div id="s2-cmd"><span id="s2-cmd-text"></span><span class="cursor-blink" id="s2-cursor"></span></div>
+      </div>
+      <div id="s2-chips"></div>
+      <div id="s2-metric">
+        <div id="s2-big-num">AZIONI REALI</div>
+        <div id="s2-big-sub">PRENOTA • COMPILA • ESEGUE DA SOLO</div>
+      </div>
+    </div>
+
+    <div id="scene3" class="scene-layer">
+      <div id="s3-wrap">
+        <div id="s3-win">
+          <div class="win-top">
+            <div class="win-dots">
+              <div class="win-dot" style="background:#ef4444"></div>
+              <div class="win-dot" style="background:#f59e0b"></div>
+              <div class="win-dot" style="background:#22c55e"></div>
+            </div>
+            <span>AGENT_WORKER.SESSION</span>
+            <span style="color:#4ade80">IN ESECUZIONE</span>
+          </div>
+          <div class="win-body">
+            <div class="task-row" id="t-row-1"><span>1. Prenotazione volo Milano → Roma</span><span class="task-status" id="t-st-1">...</span></div>
+            <div class="task-row" id="t-row-2"><span>2. Aggiornamento foglio Excel Q4</span><span class="task-status" id="t-st-2">...</span></div>
+            <div class="task-row" id="t-row-3"><span>3. Invio ordini e conferme fornitori</span><span class="task-status" id="t-st-3">...</span></div>
+          </div>
+        </div>
+        <div id="s3-badge">IL TUO IMPIEGATO DIGITALE 24/7</div>
+      </div>
+    </div>
+
+    <div id="scene4" class="scene-layer">
+      <div id="s4-title">
+        <div id="s4-eyebrow">COME FUNZIONA UN AGENTE</div>
+        <div id="s4-heading">IL CICLO IN <span style="color:#38bdf8">3 FASI</span></div>
+      </div>
+      <div id="s4-cards">
+        <div class="step-card st-1" id="st-card-1">
+          <div class="step-num">1</div>
+          <div class="step-info">
+            <h3>NAVIGAZIONE</h3>
+            <p>Apre il browser, legge lo schermo e muove il cursore</p>
+          </div>
+        </div>
+        <div class="step-card st-2" id="st-card-2">
+          <div class="step-num">2</div>
+          <div class="step-info">
+            <h3>ANALISI</h3>
+            <p>Confronta dati, prezzi e documenti in tempo reale</p>
+          </div>
+        </div>
+        <div class="step-card st-3" id="st-card-3">
+          <div class="step-num">3</div>
+          <div class="step-info">
+            <h3>ESECUZIONE</h3>
+            <p>Compila moduli, salva file e chiude il task da solo</p>
+          </div>
+        </div>
+      </div>
+      <div id="s4-banner">
+        <div class="big">COMANDA L'AI • <span>NON SUBIRLA</span></div>
+        <div class="sub">WORKFLOW PRATICI • ZERO CODICE</div>
+      </div>
+    </div>
+
+    <div id="scene5" class="scene-layer">
+      <div id="s5-card">
+        <div id="s5-pill">GUIDA AGENTI + 5 PROMPT GRATIS</div>
+        <div id="s5-url">capirelai.com</div>
+        <div id="s5-desc">
+          Workflow pronti per risparmiare 10 ore/settimana<br />
+          Sbloccabili subito dalla newsletter gratuita
+        </div>
+        <div id="s5-handle">▸ LINK IN BIO • @CAPIRELAI</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub-wrap"><div id="sub-pill"></div></div>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import {
+  createStudioLightingRig,
+  createFloatingDustField,
+  createCurvedStudioMonitor,
+  createBeveledTokenCube,
+  createMonolithPillar,
+  createNeuralTorusOrb,
+  createCyberGridFloor,
+} from '/models/capirelai-3d-models.js';
+
+const [SUB_CHUNKS, CUES] = await Promise.all([
+  fetch('/subtitles.json').then((r) => r.json()),
+  fetch('/cues.json').then((r) => r.json()),
+]);
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (e0, e1, x) => {
+  const t = clamp01((x - e0) / (e1 - e0));
+  return t * t * (3 - 2 * t);
+};
+const easeOutCubic = (x) => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = (x) => {
+  const t = clamp01(x);
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+};
+function springPop(tLocal, freq = 14, damp = 7.5) {
+  if (tLocal <= 0) return 0;
+  if (tLocal > 1.2) return 1;
+  return 1 - Math.exp(-damp * tLocal) * Math.cos(freq * tLocal);
+}
+
+const canvas = document.getElementById('webgl-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: true,
+});
+renderer.setSize(480, 854, false);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.18;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x030812);
+scene.fog = new THREE.FogExp2(0x030812, 0.048);
+
+const { rimLight, accentLight } = createStudioLightingRig(scene, renderer);
+const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 120);
+
+const { points: dustField, material: dustMat } = createFloatingDustField();
+scene.add(dustField);
+
+// Saved 3D Model 1: Curved Studio Monitor (Autonomous Browser View)
+const monitor = createCurvedStudioMonitor(renderer);
+scene.add(monitor.group);
+
+function drawAgentMonitorScreen(t) {
+  const ctx = monitor.screenCtx;
+  ctx.fillStyle = '#06121e';
+  ctx.fillRect(0, 0, 1024, 512);
+
+  const grad = ctx.createRadialGradient(512, 240, 30, 512, 240, 440);
+  grad.addColorStop(0, 'rgba(56, 189, 248, 0.30)');
+  grad.addColorStop(1, 'rgba(3, 8, 18, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  ctx.fillStyle = '#0b1d30';
+  ctx.fillRect(0, 0, 1024, 62);
+  ctx.fillStyle = '#4ade80';
+  ctx.font = 'bold 24px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('●  AGENT OS  •  CONTROLLO AUTONOMO BROWSER', 512, 39);
+
+  // Simulated form rows being auto-filled
+  const p = clamp01(t / Math.max(1.2, CUES.s2Start - 0.6));
+  const rows = [
+    ['TASK:', 'Prenota volo + aggiorna Excel'],
+    ['STATO:', p > 0.65 ? 'COMPILAZIONE COMPLETATA ✓' : 'NAVIGAZIONE AUTONOMA...'],
+  ];
+  ctx.textAlign = 'left';
+  rows.forEach(([k, v], i) => {
+    const y = 148 + i * 96;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+    ctx.fillRect(110, y - 42, 804, 68);
+    ctx.strokeStyle = i === 1 && p > 0.65 ? '#4ade80' : '#38bdf8';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(110, y - 42, 804, 68);
+    ctx.fillStyle = '#7dd3fc';
+    ctx.font = 'bold 26px monospace';
+    ctx.fillText(k, 136, y);
+    ctx.fillStyle = i === 1 && p > 0.65 ? '#4ade80' : '#f8fafc';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillText(v, 270, y);
+  });
+
+  // Animated autonomous cursor arrow gliding across monitor
+  const cx = lerp(240, 790, easeInOutCubic(p));
+  const cy = lerp(170, 355, easeInOutCubic(p));
+  ctx.fillStyle = '#38bdf8';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + 28, cy + 16);
+  ctx.lineTo(cx + 12, cy + 20);
+  ctx.lineTo(cx + 6, cy + 36);
+  ctx.closePath();
+  ctx.fill();
+
+  // Progress bar
+  ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+  ctx.fillRect(162, 412, 700, 18);
+  ctx.fillStyle = '#4ade80';
+  ctx.fillRect(162, 412, 700 * p, 18);
+
+  monitor.screenTexture.needsUpdate = true;
+}
+
+// Saved 3D Model 2: Action Cubes (VOLI, EXCEL, ORDINI)
+const actionGroup = new THREE.Group();
+actionGroup.visible = false;
+scene.add(actionGroup);
+actionGroup.add(createCyberGridFloor(-2.8));
+
+const cubeVoli   = createBeveledTokenCube(renderer, { label: 'VOLI',   idStr: 'ACTION #01', footerStr: 'AGENT ACTION', accentHex: 0x38bdf8, coreHex: 0x082f49, size: 0.94 });
+const cubeExcel  = createBeveledTokenCube(renderer, { label: 'EXCEL',  idStr: 'ACTION #02', footerStr: 'AGENT ACTION', accentHex: 0x4ade80, coreHex: 0x064e3b, size: 0.94 });
+const cubeOrdini = createBeveledTokenCube(renderer, { label: 'ORDINI', idStr: 'ACTION #03', footerStr: 'AGENT ACTION', accentHex: 0xfbbf24, coreHex: 0x451a03, size: 0.94 });
+actionGroup.add(cubeVoli, cubeExcel, cubeOrdini);
+
+// Saved 3D Model 3: 3-Phase Agent Monoliths (1 · 2 · 3)
+const phaseGroup = new THREE.Group();
+phaseGroup.visible = false;
+scene.add(phaseGroup);
+const mono1 = createMonolithPillar(renderer, { letter: '1', accentHex: 0x38bdf8, coreHex: 0x082f49 });
+const mono2 = createMonolithPillar(renderer, { letter: '2', accentHex: 0x2dd4bf, coreHex: 0x115e59 });
+const mono3 = createMonolithPillar(renderer, { letter: '3', accentHex: 0x4ade80, coreHex: 0x14532d });
+phaseGroup.add(mono1, mono2, mono3);
+
+// Saved 3D Model 4: Signature Neural Torus Orb
+const orb = createNeuralTorusOrb();
+orb.group.visible = false;
+scene.add(orb.group);
+
+const elS1 = document.getElementById('scene1');
+const elS1Head = document.getElementById('s1-headline');
+const elS1Sub = document.getElementById('s1-sub');
+const elS2 = document.getElementById('scene2');
+const elS2Cmd = document.getElementById('s2-cmd-text');
+const elS2Cursor = document.getElementById('s2-cursor');
+const elS2Chips = document.getElementById('s2-chips');
+const elS2Metric = document.getElementById('s2-metric');
+const elS3 = document.getElementById('scene3');
+const elS3Wrap = document.getElementById('s3-wrap');
+const elS3Badge = document.getElementById('s3-badge');
+const elRow1 = document.getElementById('t-row-1');
+const elRow2 = document.getElementById('t-row-2');
+const elRow3 = document.getElementById('t-row-3');
+const elSt1 = document.getElementById('t-st-1');
+const elSt2 = document.getElementById('t-st-2');
+const elSt3 = document.getElementById('t-st-3');
+const elS4 = document.getElementById('scene4');
+const elS4Title = document.getElementById('s4-title');
+const elCard1 = document.getElementById('st-card-1');
+const elCard2 = document.getElementById('st-card-2');
+const elCard3 = document.getElementById('st-card-3');
+const elS4Banner = document.getElementById('s4-banner');
+const elS5 = document.getElementById('scene5');
+const elS5Card = document.getElementById('s5-card');
+const elSubWrap = document.getElementById('sub-wrap');
+const elSubPill = document.getElementById('sub-pill');
+const elProgress = document.getElementById('progress-fill');
+
+window.setReelTime = function (t) {
+  elProgress.style.width = `${clamp01(t / CUES.duration) * 100}%`;
+  dustField.rotation.y = t * 0.08;
+  dustField.rotation.x = Math.sin(t * 0.25) * 0.06;
+
+  elS1.style.opacity = '0';
+  elS2.style.opacity = '0';
+  elS3.style.opacity = '0';
+  elS4.style.opacity = '0';
+  elS5.style.opacity = '0';
+  monitor.group.visible = false;
+  actionGroup.visible = false;
+  phaseGroup.visible = false;
+  orb.group.visible = false;
+
+  let activeColorClass = 'active-cyan';
+
+  // SCENE 1: Curved 3D Monitor Hook
+  if (t < CUES.s2Start) {
+    monitor.group.visible = true;
+    drawAgentMonitorScreen(t);
+    scene.background.setHex(0x03111c);
+    scene.fog.color.setHex(0x03111c);
+    rimLight.color.setHex(0x38bdf8);
+    rimLight.intensity = 24;
+    accentLight.color.setHex(0x4ade80);
+
+    const zoomStart = CUES.s2Start - 0.9;
+    const zoomP = easeInOutCubic((t - zoomStart) / 0.9);
+    camera.position.set(Math.sin(t * 1.1) * 0.14 * (1 - zoomP), lerp(0.45, 0.12, zoomP), lerp(7.45, 1.25, zoomP));
+    camera.lookAt(0, 0.08, 0);
+    monitor.group.rotation.y = Math.sin(t * 0.9) * 0.045 * (1 - zoomP);
+    monitor.group.position.y = -0.32;
+
+    const headPop = springPop(t - 0.06, 12, 7);
+    elS1.style.opacity = String(1 - smoothstep(zoomStart + 0.1, CUES.s2Start - 0.1, t));
+    elS1Head.style.transform = `translateY(${lerp(42, 0, headPop)}px) scale(${lerp(0.88, 1.0, headPop) + zoomP * 0.22})`;
+    elS1Sub.style.opacity = String(smoothstep(0.3, 0.75, t));
+  }
+
+  // SCENE 2: 3D Action Cubes (VOLI · EXCEL · ORDINI)
+  else if (t < CUES.s3Start) {
+    const lt = t - CUES.s2Start;
+    const dur = CUES.s3Start - CUES.s2Start;
+    actionGroup.visible = true;
+    activeColorClass = 'active-green';
+
+    scene.background.setHex(0x030d16);
+    scene.fog.color.setHex(0x030d16);
+    rimLight.color.setHex(0x38bdf8);
+    rimLight.intensity = 26;
+    accentLight.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x38bdf8);
+
+    camera.position.set(Math.sin(lt * 0.8) * 0.34, 0.18, 8.65);
+    camera.lookAt(0, -0.02, 0);
+
+    const p1 = springPop(lt - Math.max(0.2, CUES.voliWord - CUES.s2Start), 16, 6.2);
+    const p2 = springPop(lt - Math.max(0.6, CUES.excelWord - CUES.s2Start), 16, 6.2);
+    const p3 = springPop(lt - Math.max(1.0, CUES.acquistaWord - CUES.s2Start), 16, 6.2);
+
+    const placeCube = (cube, pop, tx, ty, phase) => {
+      const s = Math.max(0.001, pop) * 0.85;
+      cube.scale.set(s, s, s);
+      cube.position.set(tx * pop, ty + Math.sin(lt * 2.5 + phase) * 0.10, Math.cos(lt * 1.6 + phase) * 0.20);
+      cube.rotation.y = Math.sin(lt * 1.5 + phase) * 0.24;
+      cube.rotation.x = Math.sin(lt * 1.7 + phase) * 0.12;
+    };
+    placeCube(cubeVoli,   p1, -1.08, 0.42, 0.0);
+    placeCube(cubeExcel,  p2, -0.04, 0.10, 1.5);
+    placeCube(cubeOrdini, p3,  1.00, 0.42, 3.0);
+
+    elS2.style.opacity = String(clamp01(lt / 0.22) * (1 - smoothstep(dur - 0.24, dur, lt)));
+    const cmd = 'agent.run("azioni_autonome")';
+    const typed = Math.floor(clamp01(lt / 1.1) * cmd.length);
+    elS2Cmd.textContent = cmd.slice(0, typed);
+    elS2Cursor.style.opacity = Math.floor(t * 5) % 2 === 0 ? '1' : '0.2';
+
+    let chips = '';
+    if (p1 > 0.05) chips += `<div class="act-chip act-cyan" style="transform:scale(${p1})">✈ VOLI</div>`;
+    if (p2 > 0.05) chips += `<div class="act-chip act-emerald" style="transform:scale(${p2})">📊 EXCEL</div>`;
+    if (p3 > 0.05) chips += `<div class="act-chip act-amber" style="transform:scale(${p3})">🛒 ORDINI</div>`;
+    elS2Chips.innerHTML = chips;
+
+    const mPop = springPop(lt - Math.max(0.4, CUES.azioniWord - CUES.s2Start), 14, 6.5);
+    elS2Metric.style.opacity = String(clamp01(mPop * 2));
+    elS2Metric.style.transform = `scale(${Math.max(0.01, mPop)})`;
+  }
+
+  // SCENE 3: Autonomous Digital Employee Dashboard
+  else if (t < CUES.s4Start) {
+    const lt = t - CUES.s3Start;
+    const dur = CUES.s4Start - CUES.s3Start;
+    orb.group.visible = true;
+    activeColorClass = 'active-amber';
+
+    scene.background.setHex(0x040b16);
+    scene.fog.color.setHex(0x040b16);
+    rimLight.color.setHex(0x38bdf8);
+    rimLight.intensity = 24;
+    orb.pointsMat.color.setHex(0x38bdf8);
+    orb.ringMat.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x4ade80);
+
+    camera.position.set(0, 0, 7.2);
+    camera.lookAt(0, 0, 0);
+    orb.group.position.set(0, -1.1, -2.6);
+    orb.group.rotation.y = lt * 0.55;
+    orb.group.rotation.x = lt * 0.22;
+
+    const enterP = springPop(lt, 12, 7.2);
+    elS3.style.opacity = String(clamp01(lt / 0.22) * (1 - smoothstep(dur - 0.24, dur, lt)));
+    elS3Wrap.style.transform = `translateY(${lerp(70, 0, enterP)}px) rotateY(${lerp(-12, 6, smoothstep(0, dur, lt))}deg) rotateX(${lerp(8, -2, smoothstep(0, dur, lt))}deg) scale(${lerp(0.9, 1, enterP)})`;
+
+    const setRow = (row, st, doneAt) => {
+      if (lt >= doneAt) {
+        row.classList.add('done');
+        st.textContent = 'FATTO ✓';
+      } else {
+        row.classList.remove('done');
+        st.textContent = 'IN CORSO...';
+      }
+    };
+    setRow(elRow1, elSt1, 0.7);
+    setRow(elRow2, elSt2, 1.5);
+    setRow(elRow3, elSt3, 2.3);
+
+    const bLocal = Math.max(1.2, CUES.impiegatoWord - CUES.s3Start);
+    const bPop = springPop(lt - bLocal, 15, 6.4);
+    elS3Badge.style.opacity = String(clamp01((lt - bLocal + 0.05) / 0.16));
+    elS3Badge.style.transform = `scale(${Math.max(0.01, bPop)})`;
+  }
+
+  // SCENE 4: 3-Phase Agent Monoliths (1 · 2 · 3)
+  else if (t < CUES.s5Start) {
+    const lt = t - CUES.s4Start;
+    const dur = CUES.s5Start - CUES.s4Start;
+    phaseGroup.visible = true;
+    activeColorClass = 'active-cyan';
+
+    scene.background.setHex(0x030a16);
+    scene.fog.color.setHex(0x030a16);
+    rimLight.color.setHex(0x38bdf8);
+    rimLight.intensity = 26;
+    accentLight.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x38bdf8);
+
+    camera.position.set(Math.sin(lt * 0.45) * 0.35, 0.15, 8.95 - smoothstep(0, dur, lt) * 0.45);
+    camera.lookAt(0, -0.18, 0);
+
+    const p1 = springPop(lt - Math.max(0.05, CUES.navWord - CUES.s4Start), 14, 6.5);
+    const p2 = springPop(lt - Math.max(0.45, CUES.analisiWord - CUES.s4Start), 14, 6.5);
+    const p3 = springPop(lt - Math.max(0.85, CUES.esecWord - CUES.s4Start), 14, 6.5);
+
+    const setMono = (m, pop, xPos, phase) => {
+      m.visible = pop > 0.01;
+      m.position.set(xPos, lerp(4.2, -1.16, pop) + Math.sin(lt * 2.1 + phase) * 0.06, -0.8);
+      m.rotation.y = Math.sin(lt * 1.1 + phase) * 0.22;
+      m.rotation.x = 0.08;
+      m.scale.setScalar(Math.max(0.01, pop) * 0.62);
+    };
+    setMono(mono1, p1, -1.24, 0);
+    setMono(mono2, p2, -0.10, 1.6);
+    setMono(mono3, p3,  1.04, 3.2);
+
+    elS4.style.opacity = String(clamp01(lt / 0.22) * (1 - smoothstep(dur - 0.24, dur, lt)));
+    const tPop = springPop(lt, 12, 7.2);
+    elS4Title.style.transform = `translateY(${lerp(-30, 0, tPop)}px) scale(${lerp(0.92, 1, tPop)})`;
+
+    const cardAnim = (el, pop, color) => {
+      el.style.opacity = String(clamp01(pop * 2));
+      el.style.transform = `translateX(${lerp(-110, 0, pop)}px)`;
+      el.style.borderColor = pop > 0.5 ? color : 'rgba(56, 189, 248, 0.25)';
+    };
+    cardAnim(elCard1, p1, '#38bdf8');
+    cardAnim(elCard2, p2, '#2dd4bf');
+    cardAnim(elCard3, p3, '#4ade80');
+
+    const comLocal = Math.max(1.4, CUES.comandaWord - CUES.s4Start);
+    const bPop = springPop(lt - comLocal, 14, 6.5);
+    elS4Banner.style.opacity = String(clamp01((lt - comLocal + 0.05) / 0.18));
+    elS4Banner.style.transform = `translateY(${lerp(40, 0, bPop)}px) scale(${Math.max(0.01, bPop)})`;
+    if (lt >= comLocal) activeColorClass = 'active-green';
+  }
+
+  // SCENE 5: Outro CapirelAI 3D Neural Orb
+  else {
+    const lt = t - CUES.s5Start;
+    orb.group.visible = true;
+    activeColorClass = 'active-cyan';
+
+    scene.background.setHex(0x030914);
+    scene.fog.color.setHex(0x030914);
+    rimLight.color.setHex(0x38bdf8);
+    rimLight.intensity = 28;
+    accentLight.color.setHex(0x4ade80);
+    orb.pointsMat.color.setHex(0x38bdf8);
+    orb.ringMat.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x38bdf8);
+
+    const orbPop = springPop(lt, 11, 6.5);
+    camera.position.set(0, 0.35, lerp(8.5, 6.7, easeOutCubic(lt / 1.4)));
+    camera.lookAt(0, 0.28, 0);
+
+    orb.group.position.set(0, 1.5, -0.5);
+    orb.group.scale.setScalar(Math.max(0.01, orbPop) * 0.82);
+    orb.group.rotation.y = lt * 0.75;
+    orb.group.rotation.z = Math.sin(lt * 0.8) * 0.2;
+    orb.outerRing.rotation.z = -lt * 1.1;
+
+    const cardPop = springPop(lt - 0.1, 13, 6.8);
+    elS5.style.opacity = String(clamp01(lt / 0.22));
+    elS5Card.style.transform = `translateY(${lerp(70, 0, cardPop)}px) scale(${Math.max(0.01, cardPop)}) rotateX(${lerp(10, 0, cardPop)}deg)`;
+  }
+
+  // Kinetic Word-Synced Captions (IG Safe Zone bottom: 385px)
+  const tMs = t * 1000;
+  let curChunk = null;
+  for (const ch of SUB_CHUNKS) {
+    if (tMs >= ch.start - 40 && tMs <= ch.end + 180) {
+      curChunk = ch;
+      break;
+    }
+  }
+  if (curChunk) {
+    elSubWrap.style.opacity = '1';
+    const chunkPop = springPop((tMs - curChunk.start) / 1000, 18, 8.5);
+    elSubPill.style.transform = `scale(${lerp(0.92, 1.0, chunkPop)})`;
+    elSubPill.innerHTML = curChunk.words
+      .map((w) => {
+        const isActive = tMs >= w.start - 30 && tMs <= w.end + 70;
+        return `<span class="sub-word ${isActive ? activeColorClass : ''}">${w.text}</span>`;
+      })
+      .join('');
+  } else {
+    elSubWrap.style.opacity = '0';
+  }
+
+  renderer.render(scene, camera);
+};
+
+window.__REEL_READY__ = true;
+</script>
+</body>
+</html>

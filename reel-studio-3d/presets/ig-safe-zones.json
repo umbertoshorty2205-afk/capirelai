@@ -1,0 +1,37 @@
+{
+  "profile": "@capirelai",
+  "format": "Instagram Reels 9:16 Vertical + 3:4 Profile Grid Cover Safe",
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 24,
+    "codec": "libx264",
+    "pixelFormat": "yuv420p",
+    "audioCodec": "aac",
+    "audioSampleRate": 48000,
+    "audioBitrate": "192k",
+    "loudnessLUFS": -14
+  },
+  "igUiSafeZones": {
+    "topMarginPx": 215,
+    "bottomCaptionSafePx": 385,
+    "rightActionRailClearancePx": 136,
+    "leftEdgePaddingPx": 64
+  },
+  "profileGridCoverCrop": {
+    "aspectRatio": "3:4",
+    "widthPx": 1080,
+    "heightPx": 1440,
+    "topY": 240,
+    "bottomY": 1680,
+    "notes": "Il frame copertina (t=1.25s) e tutti i titoli principali rientrano nella finestra centrale 1080x1440 per non essere mai tagliati sulla griglia del profilo @capirelai."
+  },
+  "voicePreset": {
+    "engine": "edge-tts-native",
+    "voice": "it-IT-DiegoNeural",
+    "rate": "+2%",
+    "pitch": "-3Hz",
+    "tempoStretch": 1.0,
+    "eqProfile": "warm-male-podcast-studio"
+  }
+}

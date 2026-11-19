@@ -1,4 +1,40 @@
 {
+  "come-usare-ai-lavorare-meno-5-prompt-salvano-10-ore": {
+    "title": "Come Usare l'IA per Lavorare Meno: I 5 Prompt che ti Salvano 10 Ore a Settimana",
+    "section": "Guide",
+    "tag": "HUB PROMPT • PILLAR",
+    "readTime": "9 min",
+    "author": "Capire l'AI",
+    "date": "19 Nov 2026",
+    "summary": "Smetti di usare ChatGPT o Claude per domande generiche. Ecco i 5 prompt operativi ad alto ritorno (email commerciali, audit PDF/contratti, preventivi, verbali riunioni e pulizia Excel) costruiti sul metodo R.O.F. per liberare fino a 10 ore reali a settimana.",
+    "content": [
+      {
+        "heading": "1. Perché 5 prompt fissi battono 100 prompt casuali",
+        "text": "Chi usa ChatGPT, Claude o Gemini a caso ottiene bozze prolisse piene di frasi fatte e impiega quindici minuti a riscriverle. Per recuperare 5–10 ore reali a settimana non servono dieci abbonamenti: bastano cinque prompt riutilizzabili legati ai cinque colli di bottiglia ripetitivi del lavoro quotidiano, scritti con struttura R.O.F. (Ruolo · Obiettivo + Contesto · Formato) e clausola anti-invenzione.",
+        "highlight": "Risparmio cumulativo misurato nei workflow PMI: ~2,5h email commerciali · ~2,5h audit PDF/contratti · ~2,0h preventivi · ~1,5h verbali riunioni · ~1,5h pulizia Excel."
+      },
+      {
+        "heading": "2. Prompt 1 & 2 — Email Commerciali Anti-Robot + Audit Contratti PDF",
+        "text": "I primi due prompt eliminano la scrittura da zero sulle email B2B e tagliano il tempo di lettura di capitolati e contratti da 50 pagine:",
+        "codeSnippet": "[01] FOLLOW-UP COMMERCIALE ANTI-ROBOT (~2,5 h/sett)\nRuolo: Consulente B2B italiano con stile asciutto, diretto e credibile.\nObiettivo: Scrivi un'email di follow-up al cliente [NOME] sul preventivo del [DATA] per [SERVIZIO]. Riprendi il bisogno ([BISOGNO]) senza offrire sconti non richiesti e proponi call di 10 min o due opzioni chiare.\nVincoli: Vietato usare 'spero che questa email ti trovi bene', 'inoltre', 'rivoluzionario', 'sinergia', 'non esitare'. Se manca un dato scrivi [DATO MANCANTE].\nFormato: Oggetto max 7 parole + max 110 parole in 3 paragrafi + chiusura binaria.\n\n[02] AUDIT RAPIDO CONTRATTI & PDF 50 PAGINE (~2,5 h/sett)\nRuolo: Analista documentale rigoroso (supporto operativo, non parere legale).\nObiettivo: Analizza solo il PDF allegato isolando rischi, vincoli nascosti e scadenze critiche citando sempre pagina e articolo.\nVincoli: Se una cifra scansionata è ambigua scrivi [DA VERIFICARE SU ORIGINALE].\nFormato: 5 sezioni — (1) Obblighi, (2) Penali/clausole sbilanciate, (3) Costi nascosti, (4) Recesso e tacito rinnovo, (5) 4 domande pre-firma."
+      },
+      {
+        "heading": "3. Prompt 3, 4 & 5 — Preventivi, Verbali Riunioni e Pulizia Excel",
+        "text": "Gli ultimi tre template trasformano appunti sparsi, call registrate e fogli CSV disordinati in output operativi verificabili:",
+        "codeSnippet": "[03] PREVENTIVO ORDINATO DA APPUNTI GREZZI (~2,0 h/sett)\nRuolo: Responsabile tecnico-commerciale per PMI e freelance.\nObiettivo: Trasforma questi appunti ([APPUNTI]) in proposta chiara con perimetro, consegne ed esclusioni esplicite.\nFormato: 4 blocchi — Situazione, Cosa consegniamo + tempi, Esclusioni chiare, Investimento + prossimo passo.\n\n[04] VERBALE OPERATIVO RIUNIONE (~1,5 h/sett)\nRuolo: Project manager operativo.\nObiettivo: Estrai dalla trascrizione solo decisioni confermate, azioni e blocchi aperti. Non inventare responsabili ([DA ASSEGNARE]).\nFormato: Decisioni (max 5) + Tabella [Azione | Responsabile | Scadenza] + Punti aperti.\n\n[05] PULIZIA EXCEL/CSV + QUADRATURA (~1,5 h/sett)\nRuolo: Data analyst specializzato in Excel ITA e Google Sheets.\nObiettivo: Standardizza date YYYY-MM-DD, numeri e nomi azienda dai dati allegati e genera la formula Excel pronta per [CALCOLO]. Segnala scarti anche di 0,01€.\nFormato: Tabella pulita + righe anomale + formula copiabile."
+      },
+      {
+        "heading": "4. Come trasformare questi 5 prompt in un sistema stabile",
+        "text": "Usa la sezione interattiva Hub AI per Lavorare qui in homepage per copiare ogni prompt con un click, salvalo in un documento fisso (Notion o Notes) e applica la regola dei 14 giorni su un processo alla volta prima di automatizzarlo con agenti o Make/n8n.",
+        "highlight": "Vuoi il Kit AI 2026 scaricabile (15 prompt + 5 tool testati in italiano)? Iscriviti gratis nella sezione Newsletter in fondo alla pagina."
+      }
+    ],
+    "keyTakeaways": [
+      "Concentrati su 5 prompt fissi ad alto ROI (email, PDF, preventivi, riunioni, Excel) invece di improvvisare ogni volta da zero.",
+      "Inserisci sempre vincoli negativi (parole vietate) e segnaposto [DATO MANCANTE] per azzerare tono robotico e allucinazioni.",
+      "Copia i 5 template direttamente dall'Hub interattivo #hub-prompt e sblocca il Kit AI completo gratuito dalla newsletter."
+    ]
+  },
   "basta-testi-ai-robotici-protocollo-esempio-divieto": {
     "title": "Basta testi che sembrano scritti da un robot: il metodo Esempio + Divieto in 3 passi",
     "section": "Guide",

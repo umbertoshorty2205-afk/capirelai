@@ -325,8 +325,10 @@ async function startServer() {
           'src/data/newsletterData.ts',
           'src/components/NewsletterSection.tsx',
           'src/components/FounderNewsletterModal.tsx',
+          'src/components/PromptHubSection.tsx',
           'src/components/webgl/CapirelAiHero.tsx',
           'src/data/articles.json',
+          'src/content/guide/come-usare-ai-lavorare-meno-5-prompt-salvano-10-ore.md',
           'src/content/guide/metodo-r-o-f-10-prompt-chatgpt-da-copiare-subito.md',
           'src/content/guide/migliori-tool-ai-lavorare-meglio-pmi.md',
           'src/content/guide/alternative-chatgpt-privacy-aziende-gdpr.md',
@@ -351,6 +353,16 @@ async function startServer() {
           'public/instagram/reels/reel-08-regola-rof-risposte-banali-jarvis.mp4',
           'public/instagram/reels/reel-09-spot-3d-chatgpt-rof.mp4',
           'public/instagram/reels/reel-09-poster.jpg',
+          'public/instagram/reels/reel-10-agenti-ai-usano-pc.mp4',
+          'public/instagram/reels/reel-10-poster.jpg',
+          'reel-studio-3d/README.md',
+          'reel-studio-3d/presets/ig-safe-zones.json',
+          'reel-studio-3d/models/capirelai-3d-models.js',
+          'reel-studio-3d/audio/sound-engine.mjs',
+          'reel-studio-3d/templates/spot-3d-template.html',
+          'reel-studio-3d/templates/agenti-3d-template.html',
+          'reel-studio-3d/render-reel.mjs',
+          'reel-studio-3d/render-reel-10.mjs',
         ];
 
     try {

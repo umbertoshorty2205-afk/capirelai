@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "/three/build/three.module.js",
+    "three/addons/": "/three/examples/jsm/"
+  }
+}
+</script>
+<style>
+  @font-face { font-family: 'JBMono'; src: url('/fonts/JetBrainsMono-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'JBMonoReg'; src: url('/fonts/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'DisplaySans'; src: url('/fonts/LiberationSans-Bold.ttf') format('truetype'); font-weight: 800; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #03060c;
+    color: #ffffff;
+    font-family: 'DisplaySans', 'DejaVu Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #webgl-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    display: block;
+    z-index: 1;
+  }
+
+  #vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 46%, rgba(0,0,0,0) 40%, rgba(2,5,12,0.74) 100%);
+  }
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    perspective: 1400px;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+
+  .scene-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* IG TOP SAFE HEADER (y >= 215px so IG "Reels" & Camera icons never collide!) */
+  #top-brand {
+    position: absolute;
+    top: 215px;
+    left: 64px;
+    right: 64px;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    font-family: 'JBMono', monospace;
+    font-size: 21px;
+    letter-spacing: 0.22em;
+    color: rgba(186, 230, 253, 0.88);
+    text-transform: uppercase;
+  }
+  #top-brand .bar {
+    width: 30px;
+    height: 2px;
+    background: #38bdf8;
+    box-shadow: 0 0 12px #38bdf8;
+  }
+
+  /* SCENE 1: Framed inside IG 3:4 Profile Grid Cover Window (y: 280..1580) */
+  #s1-headline {
+    margin-top: 295px;
+    width: 860px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 68px;
+    line-height: 1.06;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 12px 45px rgba(6, 182, 212, 0.62), 0 4px 14px rgba(0, 0, 0, 0.9);
+  }
+  #s1-headline .accent {
+    color: #38bdf8;
+    text-shadow: 0 0 36px rgba(56, 189, 248, 0.85);
+  }
+  #s1-sub {
+    margin-top: 22px;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    letter-spacing: 0.16em;
+    color: #7dd3fc;
+    background: rgba(6, 18, 32, 0.76);
+    border: 1px solid rgba(56, 189, 248, 0.45);
+    padding: 9px 22px;
+    border-radius: 6px;
+  }
+
+  /* SCENE 2: Token Lab UI (IG Right-Rail Safe width 820px, shifted slightly left-centered) */
+  #s2-prompt-bar {
+    margin-top: 285px;
+    width: 830px;
+    background: rgba(8, 13, 24, 0.88);
+    border: 2px solid rgba(56, 189, 248, 0.55);
+    border-radius: 20px;
+    padding: 24px 34px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.75), 0 0 45px rgba(56, 189, 248, 0.2);
+  }
+  .prompt-label {
+    font-family: 'JBMono', monospace;
+    font-size: 19px;
+    letter-spacing: 0.16em;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  #s2-typed {
+    font-family: 'JBMono', monospace;
+    font-size: 56px;
+    color: #ffffff;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+  }
+  .cursor-blink {
+    display: inline-block;
+    width: 6px;
+    height: 52px;
+    background: #38bdf8;
+    margin-left: 8px;
+    box-shadow: 0 0 16px #38bdf8;
+  }
+
+  #s2-chips {
+    margin-top: 26px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    min-height: 82px;
+  }
+  .tok-chip {
+    font-family: 'JBMono', monospace;
+    font-size: 36px;
+    padding: 14px 28px;
+    border-radius: 14px;
+    border: 2px solid;
+    letter-spacing: 0.04em;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.65);
+  }
+  .tok-emerald {
+    background: rgba(6, 48, 36, 0.88);
+    border-color: #34d399;
+    color: #6ee7b7;
+    box-shadow: 0 0 36px rgba(52, 211, 153, 0.45);
+  }
+  .tok-crimson {
+    background: rgba(58, 10, 22, 0.90);
+    border-color: #fb7185;
+    color: #fda4af;
+    box-shadow: 0 0 36px rgba(244, 63, 94, 0.5);
+  }
+
+  /* Cleanly below 3D cubes AND above IG bottom safe zone */
+  #s2-metric {
+    margin-top: 515px;
+    text-align: center;
+    max-width: 820px;
+  }
+  #s2-big-num {
+    font-size: 98px;
+    font-weight: 800;
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+  #s2-big-sub {
+    margin-top: 12px;
+    font-family: 'JBMono', monospace;
+    font-size: 24px;
+    letter-spacing: 0.12em;
+    padding: 9px 22px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+
+  /* SCENE 3: 3D Perspective Chat Window (IG right-rail cleared) */
+  #s3-window-wrap {
+    margin-top: 300px;
+    width: 830px;
+    margin-right: 36px;
+    transform-style: preserve-3d;
+  }
+  #s3-window {
+    background: rgba(9, 13, 22, 0.92);
+    border: 2px solid rgba(148, 163, 184, 0.35);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.85), 0 0 60px rgba(244, 63, 94, 0.25);
+  }
+  .win-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 26px;
+    background: rgba(15, 23, 42, 0.95);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    font-family: 'JBMono', monospace;
+    font-size: 18px;
+    color: #94a3b8;
+  }
+  .win-dots { display: flex; gap: 10px; }
+  .win-dot { width: 13px; height: 13px; border-radius: 50%; }
+  .win-body {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .msg-user {
+    align-self: flex-end;
+    background: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    padding: 20px 26px;
+    border-radius: 18px 18px 4px 18px;
+    font-size: 30px;
+    line-height: 1.35;
+    color: #f8fafc;
+    max-width: 88%;
+  }
+  .msg-ai {
+    align-self: flex-start;
+    background: rgba(24, 12, 18, 0.92);
+    border: 1px solid rgba(244, 63, 94, 0.45);
+    padding: 24px 28px;
+    border-radius: 18px 18px 18px 4px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 25px;
+    line-height: 1.48;
+    color: #cbd5e1;
+  }
+  .cliche-strike {
+    color: #fb7185;
+    text-decoration: line-through;
+    text-decoration-thickness: 4px;
+    font-family: 'JBMono', monospace;
+  }
+  #s3-stamp {
+    margin-top: 40px;
+    text-align: center;
+    background: rgba(225, 29, 72, 0.92);
+    border: 3px solid #fda4af;
+    padding: 20px 36px;
+    border-radius: 14px;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: #ffffff;
+    box-shadow: 0 20px 60px rgba(225, 29, 72, 0.65);
+  }
+
+  /* SCENE 4: R.O.F. Monolithic Showcase (IG Safe Zone calibrated) */
+  #s4-title {
+    margin-top: 255px;
+    text-align: center;
+  }
+  #s4-eyebrow {
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.22em;
+    color: #38bdf8;
+    margin-bottom: 6px;
+  }
+  #s4-heading {
+    font-size: 68px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.45);
+  }
+
+  #s4-cards {
+    margin-top: 22px;
+    width: 825px;
+    margin-right: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .rof-card {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 16px 24px;
+    border-radius: 18px;
+    background: rgba(8, 14, 26, 0.88);
+    border: 2px solid rgba(56, 189, 248, 0.25);
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.72);
+  }
+  .rof-letter {
+    width: 78px;
+    height: 78px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .rof-r .rof-letter { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #020617; box-shadow: 0 0 34px rgba(56, 189, 248, 0.65); }
+  .rof-o .rof-letter { background: linear-gradient(135deg, #0d9488, #2dd4bf); color: #020617; box-shadow: 0 0 34px rgba(45, 212, 191, 0.65); }
+  .rof-f .rof-letter { background: linear-gradient(135deg, #16a34a, #4ade80); color: #020617; box-shadow: 0 0 34px rgba(74, 222, 128, 0.65); }
+  .rof-info h3 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 4px;
+  }
+  .rof-info p {
+    font-family: 'JBMonoReg', monospace;
+    font-size: 20px;
+    color: #cbd5e1;
+  }
+
+  #s4-result-banner {
+    margin-top: 18px;
+    width: 825px;
+    margin-right: 40px;
+    padding: 18px 24px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(6, 40, 62, 0.92), rgba(6, 56, 40, 0.92));
+    border: 2px solid #38bdf8;
+    text-align: center;
+    box-shadow: 0 24px 70px rgba(56, 189, 248, 0.35);
+  }
+  #s4-result-banner .big {
+    font-size: 48px;
+    font-weight: 800;
+    color: #ffffff;
+  }
+  #s4-result-banner .big span { color: #4ade80; }
+  #s4-result-banner .sub {
+    margin-top: 4px;
+    font-family: 'JBMono', monospace;
+    font-size: 19px;
+    color: #7dd3fc;
+    letter-spacing: 0.1em;
+  }
+
+  /* SCENE 5: Outro Glass Card (IG Profile & Right-Rail Safe) */
+  #s5-card {
+    margin-top: 560px;
+    width: 830px;
+    margin-right: 32px;
+    padding: 48px 42px;
+    border-radius: 28px;
+    background: rgba(6, 11, 22, 0.88);
+    border: 2px solid rgba(56, 189, 248, 0.65);
+    text-align: center;
+    box-shadow: 0 35px 100px rgba(0, 0, 0, 0.85), 0 0 80px rgba(56, 189, 248, 0.32);
+  }
+  #s5-pill {
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    letter-spacing: 0.16em;
+    color: #020617;
+    background: #38bdf8;
+    padding: 10px 24px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+  }
+  #s5-url {
+    font-size: 80px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.6);
+  }
+  #s5-desc {
+    margin-top: 20px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 26px;
+    color: #cbd5e1;
+    line-height: 1.45;
+  }
+  #s5-handle {
+    margin-top: 28px;
+    font-family: 'JBMono', monospace;
+    font-size: 24px;
+    color: #4ade80;
+    letter-spacing: 0.14em;
+  }
+
+  /* IG BOTTOM SAFE ZONE SUBTITLES (bottom: 385px -> strictly above IG handle/caption/audio bar!) */
+  #sub-wrap {
+    position: absolute;
+    bottom: 385px;
+    left: 64px;
+    right: 136px;
+    z-index: 25;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 86px;
+  }
+  #sub-pill {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 16px 32px;
+    border-radius: 16px;
+    background: rgba(4, 8, 16, 0.86);
+    border: 1.5px solid rgba(56, 189, 248, 0.38);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.78);
+  }
+  .sub-word {
+    font-family: 'DisplaySans', sans-serif;
+    font-size: 44px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: rgba(241, 245, 249, 0.88);
+    transform-origin: center;
+  }
+  .sub-word.active-cyan { color: #38bdf8; text-shadow: 0 0 24px rgba(56, 189, 248, 0.85); transform: scale(1.05); margin: 0 4px; }
+  .sub-word.active-red { color: #fb7185; text-shadow: 0 0 24px rgba(244, 63, 94, 0.85); transform: scale(1.05); margin: 0 4px; }
+  .sub-word.active-green { color: #4ade80; text-shadow: 0 0 24px rgba(74, 222, 128, 0.85); transform: scale(1.05); margin: 0 4px; }
+
+  #progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 7px;
+    background: rgba(255,255,255,0.08);
+    z-index: 30;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #0284c7, #38bdf8, #4ade80);
+  }
+
+  #glitch-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(244, 63, 94, 0.14) 0px,
+      rgba(244, 63, 94, 0.14) 3px,
+      transparent 3px,
+      transparent 9px
+    );
+  }
+</style>
+</head>
+<body>
+  <canvas id="webgl-canvas"></canvas>
+  <div id="vignette"></div>
+  <div id="glitch-flash"></div>
+
+  <div id="top-brand">
+    <span class="bar"></span>
+    <span>@CAPIRELAI • TEST REALE 3D</span>
+    <span class="bar"></span>
+  </div>
+
+  <div id="stage">
+    <div id="scene1" class="scene-layer">
+      <div id="s1-headline">
+        LO SPOT CHE <span class="accent">CHATGPT</span><br />
+        NON AVRÀ MAI IL<br />
+        CORAGGIO DI FARE
+      </div>
+      <div id="s1-sub">▸ 100% CODICE 3D • ZERO FUFFA</div>
+    </div>
+
+    <div id="scene2" class="scene-layer">
+      <div id="s2-prompt-bar">
+        <div class="prompt-label">
+          <span id="s2-lang-label">TOKENIZER LIVE • INGLESE</span>
+          <span id="s2-cost-badge" style="color:#34d399;">BPE ENGINE</span>
+        </div>
+        <div id="s2-typed"><span id="s2-typed-text"></span><span class="cursor-blink" id="s2-cursor"></span></div>
+      </div>
+
+      <div id="s2-chips"></div>
+
+      <div id="s2-metric">
+        <div id="s2-big-num">1 TOKEN</div>
+        <div id="s2-big-sub">COSTO BASE 1×</div>
+      </div>
+    </div>
+
+    <div id="scene3" class="scene-layer">
+      <div id="s3-window-wrap">
+        <div id="s3-window">
+          <div class="win-top">
+            <div class="win-dots">
+              <div class="win-dot" style="background:#ef4444"></div>
+              <div class="win-dot" style="background:#f59e0b"></div>
+              <div class="win-dot" style="background:#22c55e"></div>
+            </div>
+            <span>CHAT_AI_GENERIC.PROMPT</span>
+            <span style="color:#fb7185">MODALITÀ GOOGLE</span>
+          </div>
+          <div class="win-body">
+            <div class="msg-user" id="s3-user-text"></div>
+            <div class="msg-ai" id="s3-ai-text"></div>
+          </div>
+        </div>
+        <div id="s3-stamp">✕ DOMANDA SECCA = RISPOSTA DA ROBOT</div>
+      </div>
+    </div>
+
+    <div id="scene4" class="scene-layer">
+      <div id="s4-title">
+        <div id="s4-eyebrow">LA SVOLTA IN 3 LETTERE</div>
+        <div id="s4-heading">REGOLA <span style="color:#38bdf8">R.O.F.</span></div>
+      </div>
+
+      <div id="s4-cards">
+        <div class="rof-card rof-r" id="rof-card-r">
+          <div class="rof-letter">R</div>
+          <div class="rof-info">
+            <h3>RUOLO</h3>
+            <p>Chi deve essere il modello (es. Consulente Senior B2B)</p>
+          </div>
+        </div>
+        <div class="rof-card rof-o" id="rof-card-o">
+          <div class="rof-letter">O</div>
+          <div class="rof-info">
+            <h3>OBIETTIVO + CONTESTO</h3>
+            <p>Situazione reale e risultato concreto da ottenere</p>
+          </div>
+        </div>
+        <div class="rof-card rof-f" id="rof-card-f">
+          <div class="rof-letter">F</div>
+          <div class="rof-info">
+            <h3>FORMATO ESATTO</h3>
+            <p>3 righe dirette, tono umano, zero frasi fatte</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="s4-result-banner">
+        <div class="big">RISULTATI <span>10× PIÙ UMANI</span></div>
+        <div class="sub">MENO TOKEN BRUCIATI • ZERO RISCRITTURE</div>
+      </div>
+    </div>
+
+    <div id="scene5" class="scene-layer">
+      <div id="s5-card">
+        <div id="s5-pill">KIT OPERATIVO R.O.F. (.MD) GRATIS</div>
+        <div id="s5-url">capirelai.com</div>
+        <div id="s5-desc">
+          10 prompt pronti copia-incolla + guida pratica<br />
+          Sbloccabile subito dalla newsletter
+        </div>
+        <div id="s5-handle">▸ LINK IN BIO • @CAPIRELAI</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub-wrap"><div id="sub-pill"></div></div>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import {
+  createStudioLightingRig,
+  createFloatingDustField,
+  createCurvedStudioMonitor,
+  createBeveledTokenCube,
+  createMonolithPillar,
+  createNeuralTorusOrb,
+  createCyberGridFloor,
+} from '/models/capirelai-3d-models.js';
+
+const [SUB_CHUNKS, CUES] = await Promise.all([
+  fetch('/subtitles.json').then((r) => r.json()),
+  fetch('/cues.json').then((r) => r.json()),
+]);
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (e0, e1, x) => {
+  const t = clamp01((x - e0) / (e1 - e0));
+  return t * t * (3 - 2 * t);
+};
+const easeOutCubic = (x) => 1 - Math.pow(1 - clamp01(x), 3);
+const easeInOutCubic = (x) => {
+  const t = clamp01(x);
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+};
+function springPop(tLocal, freq = 14, damp = 7.5) {
+  if (tLocal <= 0) return 0;
+  if (tLocal > 1.2) return 1;
+  return 1 - Math.exp(-damp * tLocal) * Math.cos(freq * tLocal);
+}
+
+// Renderer (540x960 anti-aliased WebGL buffer cleanly scaled behind native 1080x1920 crisp typography)
+const canvas = document.getElementById('webgl-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: true,
+});
+renderer.setSize(540, 960, false);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.18;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x030812);
+scene.fog = new THREE.FogExp2(0x030812, 0.048);
+
+const { rimLight, accentLight } = createStudioLightingRig(scene, renderer);
+const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 120);
+
+const { points: dustField, material: dustMat } = createFloatingDustField();
+scene.add(dustField);
+
+// Saved 3D Model 1: Curved Studio Monitor
+const monitor = createCurvedStudioMonitor(renderer);
+scene.add(monitor.group);
+
+function drawMonitorScreen(t) {
+  const ctx = monitor.screenCtx;
+  ctx.fillStyle = '#07131f';
+  ctx.fillRect(0, 0, 1024, 512);
+
+  const grad = ctx.createRadialGradient(512, 230, 30, 512, 230, 440);
+  grad.addColorStop(0, 'rgba(14, 165, 233, 0.34)');
+  grad.addColorStop(1, 'rgba(3, 8, 18, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  ctx.fillStyle = '#0c1c2e';
+  ctx.fillRect(0, 0, 1024, 58);
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 24px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('●  ChatGPT  •  TOKEN BILLING MONITOR', 512, 37);
+
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = 'bold 64px sans-serif';
+  ctx.fillText('APPLE = 1 TOKEN', 512, 200);
+
+  ctx.fillStyle = '#fb7185';
+  ctx.font = 'bold 74px sans-serif';
+  ctx.fillText('FRAGOLA = 3×', 512, 295);
+
+  const p = clamp01((t - 0.3) / Math.max(1.5, CUES.s2aStart - 0.8));
+  ctx.fillStyle = 'rgba(56, 189, 248, 0.2)';
+  ctx.fillRect(212, 360, 600, 18);
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(212, 360, 600 * p, 18);
+
+  ctx.fillStyle = '#7dd3fc';
+  ctx.font = 'bold 22px monospace';
+  ctx.fillText('ANALISI MOTORE BPE IN CORSO...', 512, 425);
+  ctx.textAlign = 'left';
+
+  monitor.screenTexture.needsUpdate = true;
+}
+
+// Saved 3D Model 2: Beveled Token Cubes + Cyber Grid
+const tokenGroup = new THREE.Group();
+tokenGroup.visible = false;
+scene.add(tokenGroup);
+tokenGroup.add(createCyberGridFloor(-2.8));
+
+const appleCube = createBeveledTokenCube(renderer, { label: 'apple', idStr: 'ID #4218', accentHex: 0x34d399, coreHex: 0x064e3b, size: 1.44 });
+const fraCube = createBeveledTokenCube(renderer, { label: 'fra', idStr: 'ID #9104', accentHex: 0xfb7185, coreHex: 0x4c0519, size: 0.92 });
+const goCube  = createBeveledTokenCube(renderer, { label: 'go',  idStr: 'ID #2841', accentHex: 0xfb7185, coreHex: 0x4c0519, size: 0.92 });
+const laCube  = createBeveledTokenCube(renderer, { label: 'la',  idStr: 'ID #1109', accentHex: 0xfb7185, coreHex: 0x4c0519, size: 0.92 });
+tokenGroup.add(appleCube, fraCube, goCube, laCube);
+
+// Saved 3D Model 3: Sculptural R · O · F Monoliths
+const rofGroup = new THREE.Group();
+rofGroup.visible = false;
+scene.add(rofGroup);
+const monoR = createMonolithPillar(renderer, { letter: 'R', accentHex: 0x38bdf8, coreHex: 0x082f49 });
+const monoO = createMonolithPillar(renderer, { letter: 'O', accentHex: 0x2dd4bf, coreHex: 0x115e59 });
+const monoF = createMonolithPillar(renderer, { letter: 'F', accentHex: 0x4ade80, coreHex: 0x14532d });
+rofGroup.add(monoR, monoO, monoF);
+
+// Saved 3D Model 4: Signature CapirelAI Neural Torus Orb
+const orb = createNeuralTorusOrb();
+orb.group.visible = false;
+scene.add(orb.group);
+
+// DOM refs
+const elS1 = document.getElementById('scene1');
+const elS1Head = document.getElementById('s1-headline');
+const elS1Sub = document.getElementById('s1-sub');
+const elS2 = document.getElementById('scene2');
+const elS2Bar = document.getElementById('s2-prompt-bar');
+const elS2Lang = document.getElementById('s2-lang-label');
+const elS2CostBadge = document.getElementById('s2-cost-badge');
+const elS2Typed = document.getElementById('s2-typed-text');
+const elS2Cursor = document.getElementById('s2-cursor');
+const elS2Chips = document.getElementById('s2-chips');
+const elS2Metric = document.getElementById('s2-metric');
+const elS2BigNum = document.getElementById('s2-big-num');
+const elS2BigSub = document.getElementById('s2-big-sub');
+const elS3 = document.getElementById('scene3');
+const elS3Wrap = document.getElementById('s3-window-wrap');
+const elS3User = document.getElementById('s3-user-text');
+const elS3Ai = document.getElementById('s3-ai-text');
+const elS3Stamp = document.getElementById('s3-stamp');
+const elGlitch = document.getElementById('glitch-flash');
+const elS4 = document.getElementById('scene4');
+const elS4Title = document.getElementById('s4-title');
+const elRofR = document.getElementById('rof-card-r');
+const elRofO = document.getElementById('rof-card-o');
+const elRofF = document.getElementById('rof-card-f');
+const elS4Banner = document.getElementById('s4-result-banner');
+const elS5 = document.getElementById('scene5');
+const elS5Card = document.getElementById('s5-card');
+const elSubWrap = document.getElementById('sub-wrap');
+const elSubPill = document.getElementById('sub-pill');
+const elProgress = document.getElementById('progress-fill');
+
+window.setReelTime = function (t) {
+  elProgress.style.width = `${clamp01(t / CUES.duration) * 100}%`;
+  dustField.rotation.y = t * 0.08;
+  dustField.rotation.x = Math.sin(t * 0.25) * 0.06;
+
+  elS1.style.opacity = '0';
+  elS2.style.opacity = '0';
+  elS3.style.opacity = '0';
+  elS4.style.opacity = '0';
+  elS5.style.opacity = '0';
+  elGlitch.style.opacity = '0';
+  monitor.group.visible = false;
+  tokenGroup.visible = false;
+  rofGroup.visible = false;
+  orb.group.visible = false;
+
+  let activeColorClass = 'active-cyan';
+
+  // SCENE 1: Curved 3D Monitor Opener
+  if (t < CUES.s2aStart) {
+    monitor.group.visible = true;
+    drawMonitorScreen(t);
+
+    scene.background.setHex(0x03111c);
+    scene.fog.color.setHex(0x03111c);
+    rimLight.color.setHex(0x06b6d4);
+    rimLight.intensity = 24;
+    accentLight.color.setHex(0x38bdf8);
+
+    const zoomStart = CUES.s2aStart - 1.0;
+    const zoomP = easeInOutCubic((t - zoomStart) / 1.0);
+    const camZ = lerp(7.45, 1.15, zoomP);
+    const camY = lerp(0.45, 0.12, zoomP) + Math.sin(t * 1.6) * 0.05 * (1 - zoomP);
+    const camX = Math.sin(t * 1.1) * 0.16 * (1 - zoomP);
+    camera.position.set(camX, camY, camZ);
+    camera.lookAt(0, 0.08, 0);
+
+    monitor.group.rotation.y = Math.sin(t * 0.9) * 0.045 * (1 - zoomP);
+    monitor.group.position.y = -0.32;
+
+    const headPop = springPop(t - 0.06, 12, 7);
+    const fadeOut = 1 - smoothstep(zoomStart + 0.15, CUES.s2aStart - 0.12, t);
+    elS1.style.opacity = String(fadeOut);
+    elS1Head.style.transform = `translateY(${lerp(45, 0, headPop)}px) scale(${lerp(0.88, 1.0, headPop) + zoomP * 0.24})`;
+    elS1Sub.style.opacity = String(smoothstep(0.35, 0.85, t));
+  }
+
+  // SCENE 2A: Apple = 1 Token
+  else if (t < CUES.s2bStart) {
+    const lt = t - CUES.s2aStart;
+    const dur = CUES.s2bStart - CUES.s2aStart;
+    tokenGroup.visible = true;
+    appleCube.visible = true;
+    fraCube.visible = goCube.visible = laCube.visible = false;
+    activeColorClass = 'active-green';
+
+    scene.background.setHex(0x020c12);
+    scene.fog.color.setHex(0x020c12);
+    rimLight.color.setHex(0x34d399);
+    rimLight.intensity = 22;
+    accentLight.color.setHex(0x38bdf8);
+    dustMat.color.setHex(0x34d399);
+
+    camera.position.set(Math.sin(lt * 0.7) * 0.75, 0.35, 6.4);
+    camera.lookAt(0, -0.05, 0);
+
+    const appleLocal = CUES.appleWord - CUES.s2aStart;
+    const cubePop = springPop(lt - appleLocal + 0.15, 13, 6.8);
+    const s = Math.max(0.001, cubePop);
+    appleCube.scale.set(s, s, s);
+    appleCube.position.set(0, 0.24 + Math.sin(lt * 2.4) * 0.11, 0);
+    appleCube.rotation.y = Math.sin((lt - appleLocal) * 1.45) * 0.34;
+    appleCube.rotation.x = Math.sin(lt * 1.4) * 0.14;
+
+    const uiPop = springPop(lt, 12, 7.5);
+    elS2.style.opacity = String(clamp01(lt / 0.22) * (1 - smoothstep(dur - 0.25, dur, lt)));
+    elS2Bar.style.borderColor = 'rgba(52, 211, 153, 0.65)';
+    elS2Bar.style.transform = `translateY(${lerp(-35, 0, uiPop)}px) scale(${lerp(0.93, 1, uiPop)})`;
+    elS2Lang.textContent = 'TOKENIZER BPE • INGLESE';
+    elS2CostBadge.textContent = 'EFFICIENTE';
+    elS2CostBadge.style.color = '#34d399';
+
+    const word = 'apple';
+    const typedCount = Math.floor(clamp01((lt - (appleLocal - 0.58)) / 0.56) * word.length);
+    elS2Typed.textContent = word.slice(0, typedCount);
+    elS2Cursor.style.background = '#34d399';
+    elS2Cursor.style.opacity = Math.floor(t * 4) % 2 === 0 ? '1' : '0.2';
+
+    if (lt >= appleLocal) {
+      const cp = springPop(lt - appleLocal, 15, 7);
+      elS2Chips.innerHTML = `<div class="tok-chip tok-emerald" style="transform:scale(${cp})">apple <span style="opacity:.65;font-size:24px">#4218</span></div>`;
+    } else {
+      elS2Chips.innerHTML = '';
+    }
+
+    const tokLocal = CUES.oneToken - CUES.s2aStart;
+    const mPop = springPop(lt - tokLocal, 14, 6.5);
+    elS2Metric.style.opacity = String(clamp01((lt - tokLocal + 0.05) / 0.18));
+    elS2Metric.style.transform = `scale(${Math.max(0.01, mPop)})`;
+    elS2BigNum.textContent = '1 TOKEN';
+    elS2BigNum.style.color = '#4ade80';
+    elS2BigNum.style.textShadow = '0 0 45px rgba(74, 222, 128, 0.65)';
+    elS2BigSub.textContent = 'COSTO BASE 1×  •  MASSIMA MEMORIA';
+    elS2BigSub.style.background = 'rgba(6, 48, 36, 0.86)';
+    elS2BigSub.style.border = '1.5px solid #34d399';
+    elS2BigSub.style.color = '#a7f3d0';
+  }
+
+  // SCENE 2B: Fragola = 3 Tokens Crimson Shatter
+  else if (t < CUES.s3Start) {
+    const lt = t - CUES.s2bStart;
+    const dur = CUES.s3Start - CUES.s2bStart;
+    const fragLocal = CUES.fragolaWord - CUES.s2bStart;
+    const tripLocal = CUES.triploWord - CUES.s2bStart;
+
+    tokenGroup.visible = true;
+    appleCube.visible = false;
+    fraCube.visible = goCube.visible = laCube.visible = true;
+    activeColorClass = 'active-red';
+
+    scene.background.setHex(0x13040a);
+    scene.fog.color.setHex(0x13040a);
+    rimLight.color.setHex(0xf43f5e);
+    rimLight.intensity = 28;
+    accentLight.color.setHex(0xf59e0b);
+    dustMat.color.setHex(0xfb7185);
+
+    let shakeX = 0, shakeY = 0;
+    if (lt > tripLocal && lt < tripLocal + 0.45) {
+      const mag = (1 - (lt - tripLocal) / 0.45) * 0.24;
+      shakeX = Math.sin(lt * 72) * mag;
+      shakeY = Math.cos(lt * 63) * mag;
+    }
+    camera.position.set(Math.sin(lt * 0.85) * 0.35 + shakeX, 0.18 + shakeY, 8.65);
+    camera.lookAt(0, -0.02, 0);
+
+    const p1 = springPop(lt - fragLocal, 16, 6.2);
+    const p2 = springPop(lt - (fragLocal + 0.24), 16, 6.2);
+    const p3 = springPop(lt - (fragLocal + 0.48), 16, 6.2);
+
+    const placeCube = (cube, pop, tx, ty, phase) => {
+      const s = Math.max(0.001, pop) * 0.86;
+      cube.scale.set(s, s, s);
+      cube.position.set(tx * pop, ty + Math.sin(lt * 2.6 + phase) * 0.10, Math.cos(lt * 1.6 + phase) * 0.22);
+      cube.rotation.y = Math.sin(lt * 1.55 + phase) * 0.26;
+      cube.rotation.x = Math.sin(lt * 1.8 + phase) * 0.14;
+    };
+    placeCube(fraCube, p1, -1.06, 0.42, 0.0);
+    placeCube(goCube,  p2,  0.00, 0.12, 1.4);
+    placeCube(laCube,  p3,  1.06, 0.42, 2.8);
+
+    elS2.style.opacity = String(clamp01(lt / 0.2) * (1 - smoothstep(dur - 0.25, dur, lt)));
+    elS2Bar.style.borderColor = 'rgba(244, 63, 94, 0.75)';
+    elS2Bar.style.transform = 'translateY(0) scale(1)';
+    elS2Lang.textContent = 'TOKENIZER BPE • ITALIANO';
+    elS2CostBadge.textContent = '⚠ SOVRAPPREZZO';
+    elS2CostBadge.style.color = '#fb7185';
+
+    const word = 'fragola';
+    const typedCount = Math.floor(clamp01((lt - (fragLocal - 0.65)) / 0.62) * word.length);
+    elS2Typed.textContent = word.slice(0, typedCount);
+    elS2Cursor.style.background = '#fb7185';
+    elS2Cursor.style.opacity = Math.floor(t * 5) % 2 === 0 ? '1' : '0.2';
+
+    let chipsHtml = '';
+    if (lt >= fragLocal) chipsHtml += `<div class="tok-chip tok-crimson" style="transform:scale(${p1})">fra</div>`;
+    if (lt >= fragLocal + 0.24) chipsHtml += `<div class="tok-chip tok-crimson" style="transform:scale(${p2})">go</div>`;
+    if (lt >= fragLocal + 0.48) chipsHtml += `<div class="tok-chip tok-crimson" style="transform:scale(${p3})">la</div>`;
+    elS2Chips.innerHTML = chipsHtml;
+
+    const mPop = springPop(lt - tripLocal, 17, 6.2);
+    elS2Metric.style.opacity = String(clamp01((lt - tripLocal + 0.04) / 0.14));
+    elS2Metric.style.transform = `scale(${Math.max(0.01, mPop)}) rotate(${lerp(-5, -1.2, clamp01((lt - tripLocal) / 0.3))}deg)`;
+    elS2BigNum.textContent = 'PAGHI 3×';
+    elS2BigNum.style.color = '#fb7185';
+    elS2BigNum.style.textShadow = '0 0 55px rgba(244, 63, 94, 0.85)';
+    elS2BigSub.textContent = '+200% COSTO API • MEMORIA BRUCIATA';
+    elS2BigSub.style.background = 'rgba(76, 5, 25, 0.9)';
+    elS2BigSub.style.border = '1.5px solid #fb7185';
+    elS2BigSub.style.color = '#fecdd3';
+  }
+
+  // SCENE 3: 3D Perspective Chat Window + Google Trap Glitch
+  else if (t < CUES.s4Start) {
+    const lt = t - CUES.s3Start;
+    const dur = CUES.s4Start - CUES.s3Start;
+    const robLocal = CUES.robotWord - CUES.s3Start - 0.15;
+
+    orb.group.visible = true;
+    activeColorClass = 'active-red';
+
+    scene.background.setHex(0x0b0510);
+    scene.fog.color.setHex(0x0b0510);
+    rimLight.color.setHex(0xf43f5e);
+    rimLight.intensity = 22;
+    orb.pointsMat.color.setHex(0xf43f5e);
+    orb.ringMat.color.setHex(0xf59e0b);
+    dustMat.color.setHex(0xfb7185);
+
+    camera.position.set(0, 0, 7.2);
+    camera.lookAt(0, 0, 0);
+    orb.group.position.set(0, -1.2, -2.5);
+    orb.group.rotation.y = lt * 0.55;
+    orb.group.rotation.x = lt * 0.25;
+
+    const enterP = springPop(lt, 11, 7.2);
+    elS3.style.opacity = String(clamp01(lt / 0.25) * (1 - smoothstep(dur - 0.28, dur, lt)));
+
+    const rotY = lerp(-15, 7, smoothstep(0, dur, lt));
+    const rotX = lerp(9, -3, smoothstep(0, dur, lt));
+    let jitter = 0;
+    if (lt >= robLocal && lt <= robLocal + 0.55) {
+      jitter = Math.sin(lt * 95) * 12;
+      elGlitch.style.opacity = String(0.62 * (1 - (lt - robLocal) / 0.55));
+    }
+    elS3Wrap.style.transform = `translateX(${jitter}px) translateY(${lerp(80, 0, enterP)}px) rotateY(${rotY}deg) rotateX(${rotX}deg) scale(${lerp(0.88, 1, enterP)})`;
+
+    const userPrompt = 'Scrivimi una mail a un cliente per un preventivo.';
+    const uChars = Math.floor(clamp01((lt - 0.45) / 1.25) * userPrompt.length);
+    elS3User.textContent = userPrompt.slice(0, uChars) + (uChars < userPrompt.length ? '|' : '');
+
+    if (lt < 1.85) {
+      elS3Ai.innerHTML = `<span style="color:#64748b">Generazione risposta standard...</span>`;
+    } else {
+      const cls = lt >= robLocal ? 'cliche-strike' : '';
+      elS3Ai.innerHTML = `“<span class="${cls}">Nel dinamico panorama attuale</span>, spero che questa email ti trovi bene. <span class="${cls}">Inoltre</span> desidero sottoporre alla sua cortese attenzione <span class="${cls}">una soluzione rivoluzionaria</span>...”`;
+    }
+
+    const stampPop = springPop(lt - robLocal, 16, 6.2);
+    elS3Stamp.style.opacity = String(clamp01((lt - robLocal + 0.04) / 0.12));
+    elS3Stamp.style.transform = `scale(${Math.max(0.01, stampPop)}) rotate(-1.8deg)`;
+  }
+
+  // SCENE 4: 3D Monolithic R · O · F Lock-In
+  else if (t < CUES.s5Start) {
+    const lt = t - CUES.s4Start;
+    const dur = CUES.s5Start - CUES.s4Start;
+    rofGroup.visible = true;
+    activeColorClass = 'active-cyan';
+
+    scene.background.setHex(0x030a16);
+    scene.fog.color.setHex(0x030a16);
+    rimLight.color.setHex(0x38bdf8);
+    rimLight.intensity = 26;
+    accentLight.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x38bdf8);
+
+    camera.position.set(Math.sin(lt * 0.45) * 0.35, 0.15, 8.95 - smoothstep(0, dur, lt) * 0.45);
+    camera.lookAt(0, -0.18, 0);
+
+    const pR = springPop(lt - (CUES.rWord - CUES.s4Start), 14, 6.5);
+    const pO = springPop(lt - (CUES.oWord - CUES.s4Start), 14, 6.5);
+    const pF = springPop(lt - (CUES.fWord - CUES.s4Start), 14, 6.5);
+
+    const setMono = (m, pop, xPos, phase) => {
+      m.visible = pop > 0.01;
+      m.position.set(xPos, lerp(4.2, -1.16, pop) + Math.sin(lt * 2.1 + phase) * 0.06, -0.8);
+      m.rotation.y = Math.sin(lt * 1.1 + phase) * 0.22;
+      m.rotation.x = 0.08;
+      m.scale.setScalar(Math.max(0.01, pop) * 0.62);
+    };
+    setMono(monoR, pR, -1.24, 0);
+    setMono(monoO, pO, -0.10, 1.6);
+    setMono(monoF, pF,  1.04, 3.2);
+
+    elS4.style.opacity = String(clamp01(lt / 0.24) * (1 - smoothstep(dur - 0.28, dur, lt)));
+    const titlePop = springPop(lt, 12, 7.2);
+    elS4Title.style.transform = `translateY(${lerp(-35, 0, titlePop)}px) scale(${lerp(0.9, 1, titlePop)})`;
+
+    const rAct = CUES.ruoloWord - CUES.s4Start;
+    const oAct = CUES.obiettivoWord - CUES.s4Start;
+    const fAct = CUES.formatoWord - CUES.s4Start;
+    const resAct = CUES.risultatiWord - CUES.s4Start;
+
+    const cardAnim = (el, pop, aStart, aEnd, color) => {
+      el.style.opacity = String(clamp01(pop * 2));
+      const isActive = lt >= aStart && lt < aEnd;
+      el.style.transform = `translateX(${lerp(-120, 0, pop)}px) scale(${isActive ? 1.035 : 1.0})`;
+      el.style.borderColor = isActive ? color : 'rgba(56, 189, 248, 0.25)';
+      el.style.boxShadow = isActive
+        ? `0 20px 65px rgba(0,0,0,0.8), 0 0 42px ${color}`
+        : '0 22px 55px rgba(0, 0, 0, 0.72)';
+    };
+    cardAnim(elRofR, pR, rAct, oAct, '#38bdf8');
+    cardAnim(elRofO, pO, oAct, fAct, '#2dd4bf');
+    cardAnim(elRofF, pF, fAct, resAct, '#4ade80');
+
+    const bPop = springPop(lt - resAct, 14, 6.5);
+    elS4Banner.style.opacity = String(clamp01((lt - resAct + 0.05) / 0.2));
+    elS4Banner.style.transform = `translateY(${lerp(45, 0, bPop)}px) scale(${Math.max(0.01, bPop)})`;
+    if (lt >= resAct) activeColorClass = 'active-green';
+  }
+
+  // SCENE 5: Outro CapirelAI 3D Neural Orb
+  else {
+    const lt = t - CUES.s5Start;
+    orb.group.visible = true;
+    activeColorClass = 'active-cyan';
+
+    scene.background.setHex(0x030914);
+    scene.fog.color.setHex(0x030914);
+    rimLight.color.setHex(0x38bdf8);
+    rimLight.intensity = 28;
+    accentLight.color.setHex(0x4ade80);
+    orb.pointsMat.color.setHex(0x38bdf8);
+    orb.ringMat.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x38bdf8);
+
+    const orbPop = springPop(lt, 11, 6.5);
+    camera.position.set(0, 0.35, lerp(8.5, 6.7, easeOutCubic(lt / 1.4)));
+    camera.lookAt(0, 0.28, 0);
+
+    orb.group.position.set(0, 1.5, -0.5);
+    orb.group.scale.setScalar(Math.max(0.01, orbPop) * 0.82);
+    orb.group.rotation.y = lt * 0.75;
+    orb.group.rotation.z = Math.sin(lt * 0.8) * 0.2;
+    orb.outerRing.rotation.z = -lt * 1.1;
+
+    const cardPop = springPop(lt - 0.1, 13, 6.8);
+    elS5.style.opacity = String(clamp01(lt / 0.24));
+    elS5Card.style.transform = `translateY(${lerp(75, 0, cardPop)}px) scale(${Math.max(0.01, cardPop)}) rotateX(${lerp(12, 0, cardPop)}deg)`;
+  }
+
+  // Kinetic Word-Synced Captions (Strictly in IG Safe Zone bottom: 385px)
+  const tMs = t * 1000;
+  let curChunk = null;
+  for (const ch of SUB_CHUNKS) {
+    if (tMs >= ch.start - 40 && tMs <= ch.end + 180) {
+      curChunk = ch;
+      break;
+    }
+  }
+  if (curChunk) {
+    elSubWrap.style.opacity = '1';
+    const chunkPop = springPop((tMs - curChunk.start) / 1000, 18, 8.5);
+    elSubPill.style.transform = `scale(${lerp(0.92, 1.0, chunkPop)})`;
+    elSubPill.innerHTML = curChunk.words
+      .map((w) => {
+        const isActive = tMs >= w.start - 30 && tMs <= w.end + 70;
+        return `<span class="sub-word ${isActive ? activeColorClass : ''}">${w.text}</span>`;
+      })
+      .join('');
+  } else {
+    elSubWrap.style.opacity = '0';
+  }
+
+  renderer.render(scene, camera);
+};
+
+window.__REEL_READY__ = true;
+</script>
+</body>
+</html>

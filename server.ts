@@ -350,6 +350,7 @@ async function startServer() {
           'public/instagram/reels/reel-07-testi-anti-robot-jarvis.mp4',
           'public/instagram/reels/reel-08-regola-rof-risposte-banali-jarvis.mp4',
           'public/instagram/reels/reel-09-spot-3d-chatgpt-rof.mp4',
+          'public/instagram/reels/reel-09-poster.jpg',
         ];
 
     try {

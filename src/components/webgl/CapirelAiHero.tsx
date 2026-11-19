@@ -173,6 +173,7 @@ interface InstagramReelItem {
   title: string;
   subtitle: string;
   video: string;
+  poster?: string;
   filename: string;
   duration: string;
   specs: string;
@@ -187,6 +188,7 @@ const INSTAGRAM_REELS: InstagramReelItem[] = [
     title: "Reel 09 // Lo Spot 3D che ChatGPT Non Farà Mai (Token 3× + R.O.F.)",
     subtitle: "Nuovo motore video 100% via codice (Three.js 3D + animazioni spring + musica dark-tech + SFX sincronizzati): monitor curvo 3D con dolly-in, cubi Token 3D apple vs fragola, glitch Google Trap, monoliti 3D R.O.F. e finale capirelai.com",
     video: "/instagram/reels/reel-09-spot-3d-chatgpt-rof.mp4",
+    poster: "/instagram/reels/reel-09-poster.jpg",
     filename: "reel-09-spot-3d-chatgpt-rof.mp4",
     duration: "29.8 sec",
     specs: "1080×1920 24fps Cinema • 3D WebGL + Musica + SFX",
@@ -770,9 +772,10 @@ function InstagramKitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                   <video
                     key={currentReel.video}
                     src={currentReel.video}
+                    poster={currentReel.poster}
                     controls
                     playsInline
-                    preload="metadata"
+                    preload="auto"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                 </div>
@@ -1803,6 +1806,11 @@ export default function CapirelAiHero() {
     };
 
     const syncFromUrl = () => {
+      const rawHash = window.location.hash.replace(/^#/, '').toLowerCase();
+      if (rawHash === 'reel-09' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+        setIsInstagramOpen(true);
+        return;
+      }
       const target = resolveTargetFromUrl();
       if (!target) return;
       if (window.location.pathname !== '/' && target !== 'hero') {

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "/three/build/three.module.js",
+    "three/addons/": "/three/examples/jsm/"
+  }
+}
+</script>
+<style>
+  @font-face { font-family: 'JBMono'; src: url('/fonts/JetBrainsMono-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'JBMonoReg'; src: url('/fonts/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'DisplaySans'; src: url('/fonts/LiberationSans-Bold.ttf') format('truetype'); font-weight: 800; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #030712;
+    color: #ffffff;
+    font-family: 'DisplaySans', 'DejaVu Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #webgl-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    display: block;
+    z-index: 1;
+  }
+
+  #vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 48%, rgba(0,0,0,0) 42%, rgba(2,6,16,0.72) 100%);
+  }
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    perspective: 1400px;
+    transform-style: preserve-3d;
+    pointer-events: none;
+  }
+
+  .scene-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* IG Safe Header (y >= 215px) */
+  #top-brand {
+    position: absolute;
+    top: 215px;
+    left: 64px;
+    right: 64px;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    font-family: 'JBMono', monospace;
+    font-size: 21px;
+    letter-spacing: 0.22em;
+    color: rgba(250, 204, 21, 0.92);
+    text-transform: uppercase;
+  }
+  #top-brand .bar {
+    width: 30px;
+    height: 2px;
+    background: #facc15;
+    box-shadow: 0 0 12px #facc15;
+  }
+
+  /* ACT 1: Scrivania AI 3D + Hook FREGATO (strictly ABOVE Smartphone & inside 3:4 Cover y: 240..1680) */
+  #a1-kicker {
+    margin-top: 268px;
+    font-family: 'JBMono', monospace;
+    font-size: 21px;
+    letter-spacing: 0.16em;
+    color: #fde047;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1.5px solid rgba(250, 204, 21, 0.55);
+    padding: 7px 20px;
+    border-radius: 8px;
+  }
+  #a1-title {
+    margin-top: 16px;
+    width: 860px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 86px;
+    line-height: 0.96;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-shadow: 0 10px 40px rgba(0,0,0,0.92);
+  }
+  #a1-title .gold {
+    color: #facc15;
+    text-shadow: 0 0 42px rgba(250, 204, 21, 0.72);
+  }
+  #a1-title .small {
+    display: block;
+    font-size: 46px;
+    margin-top: 6px;
+    color: #f8fafc;
+  }
+  #a1-robot-badge {
+    margin-top: 16px;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    color: #fda4af;
+    background: rgba(68, 10, 24, 0.90);
+    border: 1.5px solid #fb7185;
+    padding: 8px 20px;
+    border-radius: 10px;
+  }
+
+  /* ACT 2: Google Trap + 22 EUR / Mese (absolute vertical bands: Card y=275..520, Cube y=540..1070, Price y=1110..1360) */
+  #a2-card {
+    position: absolute;
+    top: 275px;
+    left: 108px;
+    width: 825px;
+    background: rgba(8, 13, 25, 0.92);
+    border: 2px solid rgba(56, 189, 248, 0.55);
+    border-radius: 22px;
+    padding: 24px 30px;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.82);
+  }
+  #a2-eyebrow {
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.16em;
+    color: #38bdf8;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  #a2-stat {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    color: #ffffff;
+  }
+  #a2-stat span { color: #fb7185; }
+  #a2-price-box {
+    position: absolute;
+    top: 1125px;
+    left: 108px;
+    width: 825px;
+    text-align: center;
+  }
+  #a2-price-big {
+    font-size: 96px;
+    font-weight: 800;
+    line-height: 0.95;
+    color: #fb7185;
+    text-shadow: 0 0 55px rgba(244, 63, 94, 0.85);
+  }
+  #a2-price-sub {
+    margin-top: 10px;
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 23px;
+    letter-spacing: 0.08em;
+    color: #fecdd3;
+    background: rgba(76, 5, 25, 0.92);
+    border: 1.5px solid #fb7185;
+    padding: 9px 22px;
+    border-radius: 10px;
+  }
+
+  /* ACT 3: Prompt Magico -> SCHERZO! */
+  #a3-box {
+    margin-top: 320px;
+    width: 825px;
+    margin-right: 36px;
+    background: rgba(12, 16, 28, 0.92);
+    border: 2px solid #facc15;
+    border-radius: 26px;
+    padding: 40px 36px;
+    text-align: center;
+    box-shadow: 0 32px 95px rgba(0,0,0,0.85), 0 0 60px rgba(250, 204, 21, 0.25);
+  }
+  #a3-tag {
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    letter-spacing: 0.16em;
+    padding: 9px 22px;
+    border-radius: 8px;
+    background: rgba(250, 204, 21, 0.18);
+    border: 1.5px solid #facc15;
+    color: #fde047;
+    margin-bottom: 22px;
+  }
+  #a3-headline {
+    font-size: 62px;
+    font-weight: 800;
+    line-height: 1.08;
+    color: #ffffff;
+  }
+  #a3-stamp {
+    margin-top: 30px;
+    display: inline-block;
+    padding: 18px 32px;
+    border-radius: 14px;
+    background: rgba(225, 29, 72, 0.94);
+    border: 3px solid #fda4af;
+    font-size: 46px;
+    font-weight: 800;
+    color: #ffffff;
+    box-shadow: 0 20px 60px rgba(225, 29, 72, 0.65);
+  }
+
+  /* ACT 4: Regola R · O · F */
+  #a4-head {
+    margin-top: 265px;
+    text-align: center;
+  }
+  #a4-eye {
+    font-family: 'JBMono', monospace;
+    font-size: 21px;
+    letter-spacing: 0.2em;
+    color: #38bdf8;
+    margin-bottom: 8px;
+  }
+  #a4-title {
+    font-size: 68px;
+    font-weight: 800;
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.45);
+  }
+  #a4-cards {
+    margin-top: 24px;
+    width: 825px;
+    margin-right: 38px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .rof-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 18px 26px;
+    border-radius: 18px;
+    background: rgba(8, 14, 26, 0.88);
+    border: 2px solid rgba(56, 189, 248, 0.28);
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.72);
+  }
+  .rof-letter {
+    width: 82px;
+    height: 82px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .rof-r .rof-letter { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #020617; }
+  .rof-o .rof-letter { background: linear-gradient(135deg, #0d9488, #2dd4bf); color: #020617; }
+  .rof-f .rof-letter { background: linear-gradient(135deg, #16a34a, #4ade80); color: #020617; }
+  .rof-info h3 { font-size: 34px; font-weight: 800; margin-bottom: 4px; }
+  .rof-info p { font-family: 'JBMonoReg', monospace; font-size: 21px; color: #cbd5e1; }
+
+  /* ACT 5: 10 Ore / Settimana + capirelai.com */
+  #a5-card {
+    margin-top: 470px;
+    width: 830px;
+    margin-right: 32px;
+    padding: 44px 40px;
+    border-radius: 28px;
+    background: rgba(6, 11, 22, 0.88);
+    border: 2px solid rgba(56, 189, 248, 0.65);
+    text-align: center;
+    box-shadow: 0 35px 100px rgba(0, 0, 0, 0.85), 0 0 80px rgba(56, 189, 248, 0.32);
+  }
+  #a5-hours {
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 24px;
+    letter-spacing: 0.14em;
+    color: #020617;
+    background: #4ade80;
+    padding: 10px 24px;
+    border-radius: 10px;
+    margin-bottom: 22px;
+  }
+  #a5-url {
+    font-size: 80px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 0 40px rgba(56, 189, 248, 0.6);
+  }
+  #a5-desc {
+    margin-top: 18px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 26px;
+    color: #e2e8f0;
+    line-height: 1.45;
+  }
+  #a5-handle {
+    margin-top: 26px;
+    font-family: 'JBMono', monospace;
+    font-size: 24px;
+    color: #facc15;
+    letter-spacing: 0.14em;
+  }
+
+  /* IG Bottom Safe Zone Subtitles (bottom: 385px) */
+  #sub-wrap {
+    position: absolute;
+    bottom: 385px;
+    left: 64px;
+    right: 136px;
+    z-index: 25;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 84px;
+  }
+  #sub-pill {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    padding: 14px 28px;
+    border-radius: 16px;
+    background: rgba(4, 8, 16, 0.88);
+    border: 1.5px solid rgba(56, 189, 248, 0.42);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.8);
+  }
+  .sub-word {
+    font-family: 'DisplaySans', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: rgba(241, 245, 249, 0.90);
+  }
+  .sub-word.active-gold { color: #facc15; text-shadow: 0 0 22px rgba(250, 204, 21, 0.8); transform: scale(1.04); margin: 0 3px; }
+  .sub-word.active-red { color: #fb7185; text-shadow: 0 0 22px rgba(244, 63, 94, 0.8); transform: scale(1.04); margin: 0 3px; }
+  .sub-word.active-cyan { color: #38bdf8; text-shadow: 0 0 22px rgba(56, 189, 248, 0.8); transform: scale(1.04); margin: 0 3px; }
+  .sub-word.active-green { color: #4ade80; text-shadow: 0 0 22px rgba(74, 222, 128, 0.8); transform: scale(1.04); margin: 0 3px; }
+
+  #progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 7px;
+    background: rgba(255,255,255,0.08);
+    z-index: 30;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #facc15, #38bdf8, #4ade80);
+  }
+
+  #glitch-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(244, 63, 94, 0.16) 0px,
+      rgba(244, 63, 94, 0.16) 3px,
+      transparent 3px,
+      transparent 9px
+    );
+  }
+</style>
+</head>
+<body>
+  <canvas id="webgl-canvas"></canvas>
+  <div id="vignette"></div>
+  <div id="glitch-flash"></div>
+
+  <div id="top-brand">
+    <span class="bar"></span>
+    <span>@CAPIRELAI • 3D STUDIO REEL</span>
+    <span class="bar"></span>
+  </div>
+
+  <div id="stage">
+    <!-- ACT 1: Desk Setup + FREGATO Centered -->
+    <div id="act1" class="scene-layer">
+      <div id="a1-kicker">▸ BASTA RISPOSTE DA ROBOT</div>
+      <div id="a1-title">
+        <span class="gold">FREGATO</span>
+        <span class="small">DA CHATGPT?</span>
+      </div>
+      <div id="a1-robot-badge">4 PERSONE SU 5 FANNO LO STESSO ERRORE</div>
+    </div>
+
+    <!-- ACT 2: Google Trap + 22€/Mese Cubes -->
+    <div id="act2" class="scene-layer">
+      <div id="a2-card">
+        <div id="a2-eyebrow">
+          <span>ERRORE #1 • MODALITÀ GOOGLE</span>
+          <span style="color:#fb7185;">SPRECO TEMPO</span>
+        </div>
+        <div id="a2-stat">LO USI ANCORA<br />COME <span>GOOGLE</span></div>
+      </div>
+      <div id="a2-price-box">
+        <div id="a2-price-big">22€ / MESE</div>
+        <div id="a2-price-sub">PAGATI PER RISCRIVERE TUTTO A MANO</div>
+      </div>
+    </div>
+
+    <!-- ACT 3: Prompt Magico -> Scherzo! -->
+    <div id="act3" class="scene-layer">
+      <div id="a3-box">
+        <div id="a3-tag">🎁 IL PROMPT MAGICO SEGRETO</div>
+        <div id="a3-headline">QUELLO CHE FA<br />TUTTO DA SOLO?</div>
+        <div id="a3-stamp">✕ SCHERZO! NON ESISTE.</div>
+      </div>
+    </div>
+
+    <!-- ACT 4: Regola R.O.F. -->
+    <div id="act4" class="scene-layer">
+      <div id="a4-head">
+        <div id="a4-eye">CONTA UNA SOLA REGOLA</div>
+        <div id="a4-title">METODO <span style="color:#38bdf8">R.O.F.</span></div>
+      </div>
+      <div id="a4-cards">
+        <div class="rof-card rof-r" id="rof-r">
+          <div class="rof-letter">R</div>
+          <div class="rof-info">
+            <h3>RUOLO</h3>
+            <p>Chi deve essere l'AI (es. Consulente Senior)</p>
+          </div>
+        </div>
+        <div class="rof-card rof-o" id="rof-o">
+          <div class="rof-letter">O</div>
+          <div class="rof-info">
+            <h3>OBIETTIVO</h3>
+            <p>Contesto reale e risultato concreto atteso</p>
+          </div>
+        </div>
+        <div class="rof-card rof-f" id="rof-f">
+          <div class="rof-letter">F</div>
+          <div class="rof-info">
+            <h3>FORMATO</h3>
+            <p>Lunghezza esatta, tono umano, zero cliché</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACT 5: 10 Ore / Settimana + CTA -->
+    <div id="act5" class="scene-layer">
+      <div id="a5-card">
+        <div id="a5-hours">⚡ RISPARMIA 10 ORE / SETTIMANA</div>
+        <div id="a5-url">capirelai.com</div>
+        <div id="a5-desc">
+          5 PROMPT PRONTI GRATIS<br />
+          DA COPIARE IN 10 SECONDI
+        </div>
+        <div id="a5-handle">▸ LINK IN BIO • @CAPIRELAI</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub-wrap"><div id="sub-pill"></div></div>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import {
+  createStudioLightingRig,
+  createFloatingDustField,
+  createCyberGridFloor,
+  createSmartphone3D,
+  createCoffeeCup3D,
+  createMechanicalKeyboard3D,
+  createOrbitalHaloRig,
+  createBeveledTokenCube,
+  createMonolithPillar,
+  createNeuralTorusOrb,
+} from '/models/capirelai-3d-models.js';
+
+const DURATION = 30.47;
+
+// Phrase-synced timeline matched directly to the real original audio cues & pauses
+const PHRASES = [
+  { start: 0.05,  end: 3.45, color: 'active-gold', words: ['QUANTE', 'VOLTE', 'TI', 'HA', 'FREGATO', 'CHATGPT?'] },
+  { start: 3.80,  end: 5.75, color: 'active-gold', words: ['TRANQUILLO,', 'SEI', 'IN', 'BUONA', 'COMPAGNIA.'] },
+  { start: 6.00,  end: 8.65, color: 'active-cyan', words: ['4', 'SU', '5', 'LO', 'USANO', 'COME', 'GOOGLE.'] },
+  { start: 8.95,  end: 11.75, color: 'active-red', words: ['PAGHI', '22€', 'AL', 'MESE', 'PER', 'RISCRIVERE', 'TUTTO.'] },
+  { start: 11.90, end: 15.65, color: 'active-gold', words: ['OGGI', 'TI', 'REGALO', 'IL', 'PROMPT', 'MAGICO...'] },
+  { start: 15.70, end: 19.05, color: 'active-red', words: ['SCHERZO!', 'NON', 'ESISTONO.'] },
+  { start: 19.25, end: 21.35, color: 'active-cyan', words: ['CONTA', 'UNA', 'SOLA', 'REGOLA', 'DA', '3', 'LETTERE:'] },
+  { start: 21.40, end: 23.45, color: 'active-green', words: ['RUOLO,', 'OBIETTIVO,', 'FORMATO.'] },
+  { start: 23.70, end: 25.60, color: 'active-green', words: ['VUOI', 'RISPARMIARE', '10', 'ORE', 'A', 'SETTIMANA?'] },
+  { start: 25.75, end: 30.10, color: 'active-cyan', words: ['5', 'PROMPT', 'GRATIS', 'SU', 'CAPIRELAI.COM'] },
+];
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (e0, e1, x) => {
+  const t = clamp01((x - e0) / (e1 - e0));
+  return t * t * (3 - 2 * t);
+};
+function springPop(tLocal, freq = 14, damp = 7.2) {
+  if (tLocal <= 0) return 0;
+  if (tLocal > 1.2) return 1;
+  return 1 - Math.exp(-damp * tLocal) * Math.cos(freq * tLocal);
+}
+
+// Renderer: fast 540x960 WebGL buffer under razor-sharp native 1080x1920 HUD
+const canvas = document.getElementById('webgl-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: false,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: true,
+});
+renderer.setSize(540, 960, false);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x040916);
+scene.fog = new THREE.FogExp2(0x040916, 0.042);
+
+const { rimLight, accentLight } = createStudioLightingRig(scene, renderer);
+const camera = new THREE.PerspectiveCamera(42, 1080 / 1920, 0.1, 100);
+
+const { points: dustField, material: dustMat } = createFloatingDustField(420, 0xfacc15);
+scene.add(dustField);
+
+// --- ACT 1 PROPS: Grounded 3D Studio Desk + Phone + Coffee + Keyboard + Clean Rear Halo ---
+const deskGroup = new THREE.Group();
+scene.add(deskGroup);
+
+const deskTop = new THREE.Mesh(
+  new THREE.BoxGeometry(8.5, 0.16, 4.4),
+  new THREE.MeshStandardMaterial({ color: 0x0b1220, roughness: 0.42, metalness: 0.55 })
+);
+deskTop.position.set(0, -1.62, 0.1);
+deskGroup.add(deskTop);
+
+// Subtle cyan desk rim trim (polygonOffset avoids Z-fighting)
+const deskGrid = createCyberGridFloor(-1.53);
+deskGrid.material.polygonOffset = true;
+deskGrid.material.polygonOffsetFactor = -1;
+deskGroup.add(deskGrid);
+
+const phone = createSmartphone3D(renderer, {
+  accentHex: 0xfacc15,
+  title: 'ChatGPT',
+  badge: 'RISPOSTA DA ROBOT ✕',
+  bodyLine1: 'Nel dinamico',
+  bodyLine2: 'panorama attuale...',
+});
+phone.group.position.set(0, -1.54, -0.35);
+phone.group.scale.setScalar(0.90);
+deskGroup.add(phone.group);
+
+const coffee = createCoffeeCup3D({ sleeveHex: 0xd97706 });
+coffee.position.set(-1.35, -1.54, 0.28);
+coffee.scale.setScalar(1.08);
+deskGroup.add(coffee);
+
+const keyboard = createMechanicalKeyboard3D({ accentHex: 0xfacc15 });
+keyboard.position.set(0.12, -1.54, 0.88);
+keyboard.scale.setScalar(0.96);
+deskGroup.add(keyboard);
+
+const haloRig = createOrbitalHaloRig({ goldHex: 0xfacc15, cyanHex: 0x38bdf8 });
+haloRig.group.position.set(0, -0.55, -1.5);
+deskGroup.add(haloRig.group);
+deskGroup.position.y = -0.35;
+
+// --- ACT 2 PROPS: Floating Trap Cubes (Google & 22 EUR) ---
+const act2Group = new THREE.Group();
+act2Group.visible = false;
+scene.add(act2Group);
+act2Group.add(createCyberGridFloor(-2.7));
+
+const cubeGoogle = createBeveledTokenCube(renderer, {
+  label: 'Google',
+  idStr: '4 SU 5',
+  footerStr: 'PROMPT GENERICO',
+  accentHex: 0x38bdf8,
+  coreHex: 0x0c4a6e,
+  size: 1.32,
+});
+const cubePrice = createBeveledTokenCube(renderer, {
+  label: '22€',
+  idStr: 'OGNI MESE',
+  footerStr: 'TEMPO SPRECATO',
+  accentHex: 0xfb7185,
+  coreHex: 0x4c0519,
+  size: 1.36,
+});
+act2Group.add(cubeGoogle, cubePrice);
+
+// --- ACT 3 & 5 PROP: Neural Torus Orb ---
+const orb = createNeuralTorusOrb({ pointsHex: 0xfacc15, wireHex: 0x0284c7, ringHex: 0x4ade80 });
+orb.group.visible = false;
+scene.add(orb.group);
+
+// --- ACT 4 PROPS: Sculptural R · O · F Monoliths ---
+const rofGroup = new THREE.Group();
+rofGroup.visible = false;
+scene.add(rofGroup);
+const monoR = createMonolithPillar(renderer, { letter: 'R', accentHex: 0x38bdf8, coreHex: 0x082f49 });
+const monoO = createMonolithPillar(renderer, { letter: 'O', accentHex: 0x2dd4bf, coreHex: 0x115e59 });
+const monoF = createMonolithPillar(renderer, { letter: 'F', accentHex: 0x4ade80, coreHex: 0x14532d });
+rofGroup.add(monoR, monoO, monoF);
+
+// DOM refs
+const elA1 = document.getElementById('act1');
+const elA1Title = document.getElementById('a1-title');
+const elA2 = document.getElementById('act2');
+const elA2Card = document.getElementById('a2-card');
+const elA2Price = document.getElementById('a2-price-box');
+const elA3 = document.getElementById('act3');
+const elA3Box = document.getElementById('a3-box');
+const elA3Stamp = document.getElementById('a3-stamp');
+const elA4 = document.getElementById('act4');
+const elRofR = document.getElementById('rof-r');
+const elRofO = document.getElementById('rof-o');
+const elRofF = document.getElementById('rof-f');
+const elA5 = document.getElementById('act5');
+const elA5Card = document.getElementById('a5-card');
+const elGlitch = document.getElementById('glitch-flash');
+const elSubWrap = document.getElementById('sub-wrap');
+const elSubPill = document.getElementById('sub-pill');
+const elProgress = document.getElementById('progress-fill');
+
+window.setReelTime = function (t) {
+  elProgress.style.width = `${clamp01(t / DURATION) * 100}%`;
+  dustField.rotation.y = t * 0.08;
+
+  elA1.style.opacity = '0';
+  elA2.style.opacity = '0';
+  elA3.style.opacity = '0';
+  elA4.style.opacity = '0';
+  elA5.style.opacity = '0';
+  elGlitch.style.opacity = '0';
+
+  deskGroup.visible = false;
+  act2Group.visible = false;
+  orb.group.visible = false;
+  rofGroup.visible = false;
+
+  // ACT 1 (0.00 -> 5.85s): Desk + iPhone + Coffee + Keyboard + Clean Overhead Halo
+  if (t < 5.85) {
+    deskGroup.visible = true;
+    scene.background.setHex(0x040916);
+    scene.fog.color.setHex(0x040916);
+    rimLight.color.setHex(0xfacc15);
+    rimLight.intensity = 22;
+    accentLight.color.setHex(0x38bdf8);
+    dustMat.color.setHex(0xfacc15);
+
+    const outFade = 1 - smoothstep(5.35, 5.85, t);
+    elA1.style.opacity = String(outFade);
+
+    const pTitle = springPop(t - 0.1, 13, 6.8);
+    elA1Title.style.transform = `translateY(${lerp(35, 0, pTitle)}px) scale(${lerp(0.86, 1.0, pTitle)})`;
+
+    // Safe elevated orbit camera framing whole Smartphone + Desk cleanly below hook headline
+    const orbit = Math.sin(t * 0.65) * 0.68;
+    camera.position.set(orbit, 0.35 + Math.sin(t * 0.9) * 0.10, lerp(7.35, 6.45, smoothstep(0, 5.8, t)));
+    camera.lookAt(0, -0.48, 0);
+
+    phone.group.rotation.y = Math.sin(t * 0.8) * 0.24;
+    haloRig.rings[0].rotation.z = t * 0.45;
+    haloRig.rings[1].rotation.z = -t * 0.65;
+    haloRig.rings[2].rotation.z = t * 0.30;
+  }
+
+  // ACT 2 (5.85 -> 11.80s): Google Trap & 22 EUR / month
+  else if (t < 11.80) {
+    const lt = t - 5.85;
+    const dur = 5.95;
+    act2Group.visible = true;
+
+    const isPricePhase = t >= 8.85;
+    scene.background.setHex(isPricePhase ? 0x13040a : 0x030c18);
+    scene.fog.color.setHex(isPricePhase ? 0x13040a : 0x030c18);
+    rimLight.color.setHex(isPricePhase ? 0xf43f5e : 0x38bdf8);
+    dustMat.color.setHex(isPricePhase ? 0xfb7185 : 0x38bdf8);
+
+    let sx = 0, sy = 0;
+    if (t >= 8.95 && t <= 9.55) {
+      const m = (1 - (t - 8.95) / 0.6) * 0.22;
+      sx = Math.sin(t * 78) * m;
+      sy = Math.cos(t * 68) * m;
+      elGlitch.style.opacity = String(0.55 * (1 - (t - 8.95) / 0.6));
+    }
+    camera.position.set(Math.sin(lt * 0.75) * 0.42 + sx, 0.20 + sy, 7.85);
+    camera.lookAt(0, -0.18, 0);
+
+    const gPop = springPop(lt, 14, 6.8);
+    const pPop = springPop(t - 8.95, 16, 6.2);
+
+    cubeGoogle.visible = !isPricePhase;
+    cubePrice.visible = isPricePhase;
+
+    cubeGoogle.scale.setScalar(Math.max(0.01, gPop) * 0.88);
+    cubeGoogle.position.set(0, 0.42 + Math.sin(lt * 2.3) * 0.08, 0);
+    cubeGoogle.rotation.y = Math.sin(lt * 1.4) * 0.32;
+
+    cubePrice.scale.setScalar(Math.max(0.01, pPop) * 0.88);
+    cubePrice.position.set(0, 0.44 + Math.sin(lt * 2.6) * 0.08, 0);
+    cubePrice.rotation.y = Math.sin((t - 8.95) * 1.8) * 0.34;
+
+    elA2.style.opacity = String(clamp01(lt / 0.22) * (1 - smoothstep(dur - 0.28, dur, lt)));
+    elA2Card.style.opacity = isPricePhase ? '0.35' : '1';
+    elA2Price.style.opacity = String(clamp01((t - 8.92) / 0.18));
+    elA2Price.style.transform = `scale(${Math.max(0.01, pPop)})`;
+  }
+
+  // ACT 3 (11.80 -> 19.10s): Prompt Magico -> SCHERZO!
+  else if (t < 19.10) {
+    const lt = t - 11.80;
+    const dur = 7.30;
+    const isJoke = t >= 15.60;
+
+    orb.group.visible = true;
+    scene.background.setHex(isJoke ? 0x120409 : 0x090818);
+    scene.fog.color.setHex(isJoke ? 0x120409 : 0x090818);
+    rimLight.color.setHex(isJoke ? 0xf43f5e : 0xfacc15);
+    orb.pointsMat.color.setHex(isJoke ? 0xfb7185 : 0xfacc15);
+    orb.ringMat.color.setHex(isJoke ? 0xf43f5e : 0x38bdf8);
+    dustMat.color.setHex(isJoke ? 0xfb7185 : 0xfacc15);
+
+    camera.position.set(0, 0.2, 7.6);
+    camera.lookAt(0, 0, 0);
+    orb.group.position.set(0, -1.05, -0.8);
+    orb.group.scale.setScalar(0.84);
+    orb.group.rotation.y = lt * 0.72;
+    orb.outerRing.rotation.z = -lt * 1.1;
+
+    elA3.style.opacity = String(clamp01(lt / 0.22) * (1 - smoothstep(dur - 0.28, dur, lt)));
+    const bp = springPop(lt, 12, 7.0);
+    elA3Box.style.transform = `scale(${Math.max(0.01, bp)})`;
+    elA3Box.style.borderColor = isJoke ? '#fb7185' : '#facc15';
+
+    const sp = springPop(t - 15.60, 17, 6.2);
+    elA3Stamp.style.opacity = String(clamp01((t - 15.58) / 0.14));
+    elA3Stamp.style.transform = `scale(${Math.max(0.01, sp)}) rotate(-2deg)`;
+    if (t >= 15.60 && t <= 16.05) {
+      elGlitch.style.opacity = String(0.5 * (1 - (t - 15.60) / 0.45));
+    }
+  }
+
+  // ACT 4 (19.10 -> 23.60s): Regola 3 Lettere R · O · F Monoliti
+  else if (t < 23.60) {
+    const lt = t - 19.10;
+    const dur = 4.50;
+    rofGroup.visible = true;
+
+    scene.background.setHex(0x030a16);
+    scene.fog.color.setHex(0x030a16);
+    rimLight.color.setHex(0x38bdf8);
+    accentLight.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x38bdf8);
+
+    camera.position.set(Math.sin(lt * 0.5) * 0.35, 0.15, 8.8 - smoothstep(0, dur, lt) * 0.4);
+    camera.lookAt(0, -0.2, 0);
+
+    const pR = springPop(t - 21.38, 15, 6.5);
+    const pO = springPop(t - 22.00, 15, 6.5);
+    const pF = springPop(t - 22.78, 15, 6.5);
+
+    const setMono = (m, pop, xPos, phase) => {
+      m.visible = pop > 0.01;
+      m.position.set(xPos, lerp(3.6, -1.05, pop) + Math.sin(lt * 2.2 + phase) * 0.06, -0.7);
+      m.rotation.y = Math.sin(lt * 1.2 + phase) * 0.22;
+      m.scale.setScalar(Math.max(0.01, pop) * 0.64);
+    };
+    setMono(monoR, pR, -1.24, 0);
+    setMono(monoO, pO, -0.08, 1.6);
+    setMono(monoF, pF,  1.08, 3.2);
+
+    elA4.style.opacity = String(clamp01(lt / 0.22) * (1 - smoothstep(dur - 0.26, dur, lt)));
+    const cardAnim = (el, pop, color) => {
+      el.style.opacity = String(clamp01(0.28 + pop * 0.72));
+      el.style.borderColor = pop > 0.05 ? color : 'rgba(56,189,248,0.22)';
+      el.style.transform = `scale(${pop > 0.05 ? 1.03 : 0.98})`;
+    };
+    cardAnim(elRofR, pR, '#38bdf8');
+    cardAnim(elRofO, pO, '#2dd4bf');
+    cardAnim(elRofF, pF, '#4ade80');
+  }
+
+  // ACT 5 (23.60 -> 30.47s): 10 Ore + capirelai.com Outro
+  else {
+    const lt = t - 23.60;
+    orb.group.visible = true;
+
+    scene.background.setHex(0x030914);
+    scene.fog.color.setHex(0x030914);
+    rimLight.color.setHex(0x38bdf8);
+    orb.pointsMat.color.setHex(0x38bdf8);
+    orb.ringMat.color.setHex(0x4ade80);
+    dustMat.color.setHex(0x4ade80);
+
+    camera.position.set(0, 0.3, lerp(8.2, 6.6, clamp01(lt / 1.5)));
+    camera.lookAt(0, 0.22, 0);
+
+    orb.group.position.set(0, 1.35, -0.6);
+    orb.group.scale.setScalar(0.84);
+    orb.group.rotation.y = lt * 0.8;
+    orb.outerRing.rotation.z = -lt * 1.15;
+
+    const cp = springPop(lt - 0.08, 13, 6.8);
+    elA5.style.opacity = String(clamp01(lt / 0.22));
+    elA5Card.style.transform = `translateY(${lerp(65, 0, cp)}px) scale(${Math.max(0.01, cp)})`;
+  }
+
+  // Kinetic IG Safe-Zone Captions (bottom: 385px)
+  let cur = null;
+  for (const ph of PHRASES) {
+    if (t >= ph.start && t <= ph.end) { cur = ph; break; }
+  }
+  if (cur) {
+    elSubWrap.style.opacity = '1';
+    const progressInPhrase = clamp01((t - cur.start) / (cur.end - cur.start));
+    const activeIdx = Math.min(cur.words.length - 1, Math.floor(progressInPhrase * cur.words.length));
+    elSubPill.innerHTML = cur.words
+      .map((w, idx) => `<span class="sub-word ${idx === activeIdx ? cur.color : ''}">${w}</span>`)
+      .join('');
+  } else {
+    elSubWrap.style.opacity = '0';
+  }
+
+  renderer.render(scene, camera);
+};
+
+window.__REEL_READY__ = true;
+</script>
+</body>
+</html>

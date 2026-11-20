@@ -389,3 +389,305 @@ export function createCyberGridFloor(y = -2.8) {
   grid.position.set(0, y, 0);
   return grid;
 }
+
+function makeRoundedRectShape(w, h, r) {
+  const s = new THREE.Shape();
+  const hw = w / 2;
+  const hh = h / 2;
+  s.moveTo(-hw + r, -hh);
+  s.lineTo(hw - r, -hh);
+  s.quadraticCurveTo(hw, -hh, hw, -hh + r);
+  s.lineTo(hw, hh - r);
+  s.quadraticCurveTo(hw, hh, hw - r, hh);
+  s.lineTo(-hw + r, hh);
+  s.quadraticCurveTo(-hw, hh, -hw, hh - r);
+  s.lineTo(-hw, -hh + r);
+  s.quadraticCurveTo(-hw, -hh, -hw + r, -hh);
+  return s;
+}
+
+/**
+ * 8. Composite 3D Smartphone PBR (Extruded Titanium Body + Dual Optical Cameras + Live OLED Canvas + Dock)
+ * Grounded at bottom-center (y = 0) so it rests cleanly on any desk surface.
+ */
+export function createSmartphone3D(renderer, {
+  accentHex = 0x38bdf8,
+  title = 'ChatGPT',
+  badge = 'PROMPT GENERICO ✕',
+  bodyLine1 = 'Nel dinamico panorama',
+  bodyLine2 = 'attuale desidero...',
+} = {}) {
+  const group = new THREE.Group();
+
+  // Weighted Charging Stand Dock (grounded at y = 0)
+  const dockBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.56, 0.62, 0.12, 36),
+    new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9, roughness: 0.25 })
+  );
+  dockBase.position.set(0, 0.06, 0);
+  group.add(dockBase);
+
+  const dockNeck = new THREE.Mesh(
+    new THREE.BoxGeometry(0.46, 0.26, 0.22),
+    new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.85, roughness: 0.3 })
+  );
+  dockNeck.position.set(0, 0.22, -0.05);
+  group.add(dockNeck);
+
+  // Titanium Unibody Frame
+  const bodyShape = makeRoundedRectShape(1.18, 2.34, 0.18);
+  const bodyGeo = new THREE.ExtrudeGeometry(bodyShape, {
+    depth: 0.12,
+    bevelEnabled: true,
+    bevelThickness: 0.025,
+    bevelSize: 0.022,
+    bevelSegments: 4,
+  });
+  bodyGeo.center();
+
+  const phoneAssembly = new THREE.Group();
+  phoneAssembly.position.set(0, 1.46, 0.04);
+  phoneAssembly.rotation.x = -0.06;
+  group.add(phoneAssembly);
+
+  const chassis = new THREE.Mesh(
+    bodyGeo,
+    new THREE.MeshStandardMaterial({
+      color: 0xdbe4ee,
+      metalness: 0.88,
+      roughness: 0.2,
+    })
+  );
+  phoneAssembly.add(chassis);
+
+  // Rim highlight
+  phoneAssembly.add(
+    new THREE.LineSegments(
+      new THREE.EdgesGeometry(bodyGeo, 28),
+      new THREE.LineBasicMaterial({ color: accentHex })
+    )
+  );
+
+  // Front Self-Lit OLED Display (CanvasTexture SRGB)
+  const sc = document.createElement('canvas');
+  sc.width = 512;
+  sc.height = 1024;
+  const ctx = sc.getContext('2d');
+  ctx.fillStyle = '#050b16';
+  ctx.fillRect(0, 0, 512, 1024);
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+  grad.addColorStop(0, '#0a192f');
+  grad.addColorStop(1, '#030712');
+  ctx.fillStyle = grad;
+  ctx.fillRect(20, 20, 472, 984);
+
+  // Dynamic Island
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(186, 44, 140, 32);
+
+  // Header
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 28px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`● ${title}`, 256, 140);
+
+  // Badge
+  ctx.fillStyle = 'rgba(244, 63, 94, 0.25)';
+  ctx.fillRect(54, 185, 404, 64);
+  ctx.strokeStyle = '#fb7185';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(54, 185, 404, 64);
+  ctx.fillStyle = '#fda4af';
+  ctx.font = 'bold 26px monospace';
+  ctx.fillText(badge, 256, 226);
+
+  // Card text
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  ctx.fillRect(46, 295, 420, 380);
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(46, 295, 420, 380);
+
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 34px sans-serif';
+  ctx.fillText(bodyLine1, 256, 430);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.fillText(bodyLine2, 256, 490);
+
+  ctx.fillStyle = '#4ade80';
+  ctx.font = 'bold 26px monospace';
+  ctx.fillText('@CAPIRELAI  •  3D', 256, 920);
+
+  const screenTex = new THREE.CanvasTexture(sc);
+  screenTex.colorSpace = THREE.SRGBColorSpace;
+  screenTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+  const screenPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.06, 2.16),
+    new THREE.MeshBasicMaterial({ map: screenTex })
+  );
+  screenPlane.position.z = 0.088;
+  phoneAssembly.add(screenPlane);
+
+  // Rear Camera Island & Dual Optical Lenses (visible when camera orbits!)
+  const camIsland = new THREE.Mesh(
+    new THREE.BoxGeometry(0.48, 0.56, 0.045),
+    new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 })
+  );
+  camIsland.position.set(-0.24, 0.72, -0.095);
+  phoneAssembly.add(camIsland);
+
+  const lensRingMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.95, roughness: 0.15 });
+  const lensGlassMat = new THREE.MeshStandardMaterial({ color: 0x0ea5e9, metalness: 0.2, roughness: 0.05 });
+  for (const ly of [0.85, 0.60]) {
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.04, 24), lensRingMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(-0.32, ly, -0.125);
+    phoneAssembly.add(ring);
+    const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.045, 24), lensGlassMat);
+    glass.rotation.x = Math.PI / 2;
+    glass.position.set(-0.32, ly, -0.13);
+    phoneAssembly.add(glass);
+  }
+
+  return { group, screenCanvas: sc, screenCtx: ctx, screenTex };
+}
+
+/**
+ * 9. Composite 3D Studio Coffee Cup (Lathe Cup + Textured Sleeve + Molded Lid)
+ * Pivot grounded at bottom-center (y = 0).
+ */
+export function createCoffeeCup3D({ sleeveHex = 0xd97706 } = {}) {
+  const grp = new THREE.Group();
+
+  const pts = [
+    new THREE.Vector2(0.0, 0.0),
+    new THREE.Vector2(0.24, 0.0),
+    new THREE.Vector2(0.32, 0.82),
+    new THREE.Vector2(0.30, 0.83),
+  ];
+  const cupBody = new THREE.Mesh(
+    new THREE.LatheGeometry(pts, 32),
+    new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.68, metalness: 0.06 })
+  );
+  grp.add(cupBody);
+
+  const sleeve = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.295, 0.265, 0.36, 32, 1, true),
+    new THREE.MeshStandardMaterial({ color: sleeveHex, roughness: 0.86, metalness: 0.04, side: THREE.DoubleSide })
+  );
+  sleeve.position.y = 0.44;
+  grp.add(sleeve);
+
+  const lidMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.35, metalness: 0.25 });
+  const lidBase = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.33, 0.07, 32), lidMat);
+  lidBase.position.y = 0.84;
+  grp.add(lidBase);
+
+  const lidTop = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.06, 32), lidMat);
+  lidTop.position.y = 0.90;
+  grp.add(lidTop);
+
+  return grp;
+}
+
+/**
+ * 10. Composite 3D Mechanical Keyboard (Anodized Aluminum Unibody + InstancedMesh Keycaps)
+ * Pivot grounded at bottom-center (y = 0). Single draw call for 60 keycaps!
+ */
+export function createMechanicalKeyboard3D({ accentHex = 0x38bdf8 } = {}) {
+  const grp = new THREE.Group();
+
+  const base = new THREE.Mesh(
+    new THREE.BoxGeometry(2.38, 0.12, 0.86),
+    new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.88, roughness: 0.24 })
+  );
+  base.position.y = 0.06;
+  base.rotation.x = 0.06;
+  grp.add(base);
+
+  const underGlow = new THREE.Mesh(
+    new THREE.PlaneGeometry(2.30, 0.78),
+    new THREE.MeshBasicMaterial({ color: accentHex, transparent: true, opacity: 0.35 })
+  );
+  underGlow.rotation.x = -Math.PI / 2;
+  underGlow.position.y = 0.005;
+  grp.add(underGlow);
+
+  const cols = 14;
+  const rows = 4;
+  const total = cols * rows;
+  const keyGeo = new THREE.BoxGeometry(0.132, 0.055, 0.132);
+  const keyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.58, metalness: 0.12 });
+  const inst = new THREE.InstancedMesh(keyGeo, keyMat, total);
+
+  const dummy = new THREE.Object3D();
+  const cDark = new THREE.Color(0x0f172a);
+  const cMid = new THREE.Color(0x334155);
+  const cAccent = new THREE.Color(accentHex);
+  const cWarn = new THREE.Color(0xf59e0b);
+
+  let idx = 0;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = -0.97 + c * 0.15;
+      const z = -0.24 + r * 0.16;
+      const y = 0.135 - z * 0.06;
+      dummy.position.set(x, y, z);
+      dummy.rotation.set(0.06, 0, 0);
+      dummy.scale.set(1, 1, 1);
+      dummy.updateMatrix();
+      inst.setMatrixAt(idx, dummy.matrix);
+
+      if (r === 0 && c === 0) inst.setColorAt(idx, cWarn);
+      else if (r === 3 && c >= 4 && c <= 9) inst.setColorAt(idx, cAccent);
+      else if (c === 0 || c === cols - 1) inst.setColorAt(idx, cMid);
+      else inst.setColorAt(idx, cDark);
+      idx++;
+    }
+  }
+  inst.instanceMatrix.needsUpdate = true;
+  if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+  inst.computeBoundingSphere();
+  grp.add(inst);
+
+  return grp;
+}
+
+/**
+ * 11. Orbital Halo Ring Backdrop (replaces blocking vertical bars with clean overhead & rear halo rings!)
+ */
+export function createOrbitalHaloRig({ goldHex = 0xfacc15, cyanHex = 0x38bdf8 } = {}) {
+  const grp = new THREE.Group();
+
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: goldHex,
+    emissive: goldHex,
+    emissiveIntensity: 0.25,
+    metalness: 0.85,
+    roughness: 0.2,
+  });
+  const cyanMat = new THREE.MeshBasicMaterial({ color: cyanHex, transparent: true, opacity: 0.72 });
+
+  const r1 = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.045, 16, 96), goldMat);
+  r1.rotation.x = Math.PI * 0.44;
+  r1.position.set(0, 1.45, -2.2);
+  grp.add(r1);
+
+  const r2 = new THREE.Mesh(new THREE.TorusGeometry(2.65, 0.032, 14, 84), cyanMat);
+  r2.rotation.x = Math.PI * 0.56;
+  r2.rotation.y = 0.35;
+  r2.position.set(0, 1.55, -2.2);
+  grp.add(r2);
+
+  const r3 = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.025, 12, 96), goldMat);
+  r3.rotation.x = Math.PI * 0.38;
+  r3.rotation.y = -0.25;
+  r3.position.set(0, 1.65, -2.6);
+  grp.add(r3);
+
+  return { group: grp, rings: [r1, r2, r3] };
+}
+

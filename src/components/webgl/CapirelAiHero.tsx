@@ -184,6 +184,36 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-12-fregato-desk-3d',
+    badge: '3D DESK STUDIO • VOCE ORIGINALE + IG SAFE',
+    title: "Reel 12 // Fregato da ChatGPT? (Scrivania AI 3D + R.O.F. Clean)",
+    subtitle: "Ricostruito con la tua voce maschile naturale + SFX originali sopra una nuova scena 3D pulita (Smartphone 3D OLED, tastiera meccanica InstancedMesh, tazza caffè, halo orbitale senza barre davanti, cubo 22€/mese, monoliti R·O·F, sottotitoli cinetici e safe-zone IG)",
+    video: "/instagram/reels/reel-12-fregato-desk-3d.mp4",
+    poster: "/instagram/reels/reel-12-poster.jpg",
+    filename: "reel-12-fregato-desk-3d.mp4",
+    duration: "30.5 sec",
+    specs: "1080×1920 24fps • Audio Originale + 3D Desk PBR • IG Safe 9:16 + Cover 3:4",
+    caption: `Quante volte ti ha fregato ChatGPT con una risposta da robot? 🤖✂️
+
+Tranquillo, sei in buona compagnia: 4 persone su 5 lo usano ancora come Google.
+Paghi 22€ al mese… per riscrivere tutto a mano.
+
+I prompt magici non esistono. Conta una sola regola da 3 lettere: R · O · F.
+1️⃣ R — RUOLO
+2️⃣ O — OBIETTIVO
+3️⃣ F — FORMATO
+
+Vuoi risparmiare 10 ore a settimana?
+🎁 I 5 prompt pronti sono gratis su capirelai.com (link in bio).
+
+💬 Preferisci questa versione 3D Desk rispetto al montaggio precedente? Scrivilo nei commenti!
+
+#CapirelAI #ChatGPTItalia #RegolaROF #PromptEngineering #3DMotion #AIItalia`,
+    pinnedComment: `📌 VUOI I 5 PROMPT PRONTI CITATI NEL VIDEO?
+
+Li copi gratis in un click su https://www.capirelai.com/#hub-prompt (link in bio @capirelai)!`,
+  },
+  {
     id: 'reel-onetake-3d-spot-chatgpt',
     badge: 'ONE-TAKE 3D SPOT • ZERO TAGLI + VOCE DIEGO',
     title: "Reel 11 // Quante Volte ti Ha Fregato ChatGPT? (Spot One-Take 3D)",
@@ -1893,7 +1923,12 @@ export default function CapirelAiHero() {
 
     const syncFromUrl = () => {
       const rawHash = window.location.hash.replace(/^#/, '').toLowerCase();
-      if (rawHash === 'reel-11' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+      if (rawHash === 'reel-12' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+        setInitialInstagramReelId('reel-12-fregato-desk-3d');
+        setIsInstagramOpen(true);
+        return;
+      }
+      if (rawHash === 'reel-11') {
         setInitialInstagramReelId('reel-onetake-3d-spot-chatgpt');
         setIsInstagramOpen(true);
         return;

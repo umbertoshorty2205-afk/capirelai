@@ -357,6 +357,8 @@ async function startServer() {
           'public/instagram/reels/reel-10-poster.jpg',
           'public/instagram/reels/reel-11-onetake-3d-spot-chatgpt.mp4',
           'public/instagram/reels/reel-11-poster.jpg',
+          'public/instagram/reels/reel-12-fregato-desk-3d.mp4',
+          'public/instagram/reels/reel-12-poster.jpg',
           'reel-studio-3d/README.md',
           'reel-studio-3d/skills/CAPIRELAI_VIDEO_SKILLS.md',
           'reel-studio-3d/presets/ig-safe-zones.json',
@@ -366,9 +368,11 @@ async function startServer() {
           'reel-studio-3d/templates/spot-3d-template.html',
           'reel-studio-3d/templates/agenti-3d-template.html',
           'reel-studio-3d/templates/onetake-spot-template.html',
+          'reel-studio-3d/templates/fregato-3d-template.html',
           'reel-studio-3d/render-reel.mjs',
           'reel-studio-3d/render-reel-10.mjs',
           'reel-studio-3d/render-reel-11.mjs',
+          'reel-studio-3d/render-fregato.mjs',
         ];
 
     try {

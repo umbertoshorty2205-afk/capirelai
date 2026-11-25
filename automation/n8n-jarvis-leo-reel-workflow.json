@@ -1,0 +1,568 @@
+{
+  "name": "Capire l'AI — Jarvis → Leo-Style 3D Macro Reel Pipeline (n8n)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-manual",
+      "name": "Avvio Manuale (o Cron)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [120, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-gh",
+              "name": "github_token",
+              "value": "INCOLLA_QUI_IL_TUO_GITHUB_TOKEN",
+              "type": "string"
+            },
+            {
+              "id": "cfg-gem",
+              "name": "gemini_api_key",
+              "value": "INCOLLA_QUI_LA_TUA_GEMINI_API_KEY",
+              "type": "string"
+            },
+            {
+              "id": "cfg-fal",
+              "name": "fal_key",
+              "value": "INCOLLA_QUI_LA_TUA_FAL_KEY",
+              "type": "string"
+            },
+            {
+              "id": "cfg-crea-key",
+              "name": "creatomate_api_key",
+              "value": "INCOLLA_QUI_LA_TUA_CREATOMATE_API_KEY",
+              "type": "string"
+            },
+            {
+              "id": "cfg-crea-tpl",
+              "name": "creatomate_template_id",
+              "value": "INCOLLA_QUI_IL_TUO_TEMPLATE_ID",
+              "type": "string"
+            },
+            {
+              "id": "cfg-voice",
+              "name": "elevenlabs_voice_name",
+              "value": "Liam",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "config-keys",
+      "name": "0. Inserisci Chiavi API",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [340, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/umbertoshorty2205-afk/capirelai/contents/content/jarvis",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('0. Inserisci Chiavi API').first().json.github_token}}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "github-list-jarvis",
+      "name": "1. Leggi Inbox Jarvis (GitHub)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [560, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Seleziona il file .md più recente in content/jarvis\nconst files = $input.all().map(i => i.json).filter(f => f.type === 'file' && f.name && f.name.endsWith('.md'));\nfiles.sort((a, b) => b.name.localeCompare(a.name));\nif (!files.length) throw new Error('Nessun file .md trovato in content/jarvis');\nconst target = files[0];\nreturn [{ json: { path: target.path, name: target.name, url: target.url } }];"
+      },
+      "id": "pick-latest-brief",
+      "name": "2. Prendi Ultimo Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [780, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.url}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('0. Inserisci Chiavi API').first().json.github_token}}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.raw+json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "github-read-brief",
+      "name": "3. Scarica Testo Markdown",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.data || '';\nconst fmMatch = raw.match(/^---\\s*\\n([\\s\\S]*?)\\n---\\s*\\n([\\s\\S]*)$/);\nconst frontmatter = {};\nlet body = raw;\nif (fmMatch) {\n  body = fmMatch[2];\n  for (const line of fmMatch[1].split('\\n')) {\n    const m = line.match(/^([A-Za-z0-9_]+):\\s*(.*)$/);\n    if (m) frontmatter[m[1]] = m[2].trim().replace(/^[\"']|[\"']$/g, '');\n  }\n}\nconst audioLines = [...body.matchAll(/Audio:\\s*\"([\\s\\S]*?)\"/g)].map(m => m[1].trim());\nconst spokenText = audioLines.length ? audioLines.join(' ') : body.replace(/[#>*_`]/g, '').slice(0, 1200);\nreturn [{ json: { title: frontmatter.title || 'Capire AI Reel', slug: frontmatter.slug || 'reel-jarvis', hook: frontmatter.hook || '', cta: frontmatter.cta || '', spokenText } }];"
+      },
+      "id": "parse-jarvis-md",
+      "name": "4. Estrai Script & Caption",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1220, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{$('0. Inserisci Chiavi API').first().json.gemini_api_key}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"Sei un 3D Motion Director stile @leomarighetti.mov. Trasforma questo script parlato di Capire l'AI in un JSON rigoroso con 5 scene da 5 secondi ciascuna sincronizzate allo script.\\n\\nREGOLA VISIVA OBBLIGATORIA (Style Lock su tutte le scene):\\n- Fotografia macro cinematografica reale su scrivania in legno di noce caldo, tastiera meccanica nero opaco con keycap minimal, monitor ultra-pulito sfocato sullo sfondo, lente 85mm macro f/1.8 con bokeh cremoso e profondità di campo stretta, luce calda laterale da lampada da studio + lieve rim-light azzurro freddo, grana pellicola 35mm naturale, ombre di contatto morbide.\\n- VIETATO: colori neon acidi, cyber-griglie, robot cartoon, testo dentro i prompt immagine/video.\\n- Composizione verticale 9:16 con spazio negativo pulito in alto e in basso per le safe-zone Instagram.\\n\\nScript da adattare:\\nTITOLO: \" + JSON.stringify($json.title) + \"\\nTESTO PARLATO: \" + JSON.stringify($json.spokenText) + \"\\n\\nRispondi SOLO con JSON valido nel formato: { \\\"voiceover_clean\\\": \\\"testo italiano fluido senza parentesi o simboli\\\", \\\"caption_ig\\\": \\\"caption pronta\\\", \\\"scenes\\\": [ { \\\"index\\\": 1, \\\"duration\\\": 5, \\\"on_screen_title\\\": \\\"MAX 4 PAROLE MAIUSCOLE\\\", \\\"on_screen_sub\\\": \\\"breve etichetta\\\", \\\"keyframe_prompt\\\": \\\"prompt dettagliato in inglese con lo Style Lock\\\", \\\"motion_prompt\\\": \\\"movimento camera lento continuo in inglese per Kling image-to-video\\\" } ] }\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"responseMimeType\": \"application/json\",\n    \"temperature\": 0.4\n  }\n}",
+        "options": {}
+      },
+      "id": "gemini-director",
+      "name": "5. Regista AI (Storyboard + Style Lock)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.candidates?.[0]?.content?.parts?.[0]?.text || '{}';\nconst plan = JSON.parse(rawText);\nreturn [{ json: plan }];"
+      },
+      "id": "parse-director-json",
+      "name": "6. Parse Storyboard JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1660, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/elevenlabs/tts/eleven-v3",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": {{ JSON.stringify($json.voiceover_clean) }},\n  \"voice\": {{ JSON.stringify($('0. Inserisci Chiavi API').first().json.elevenlabs_voice_name || 'Liam') }},\n  \"language_code\": \"it\",\n  \"stability\": 0.55,\n  \"similarity_boost\": 0.8,\n  \"timestamps\": true\n}",
+        "options": {}
+      },
+      "id": "fal-tts-submit",
+      "name": "7a. Avvia Voce (ElevenLabs su fal.ai)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1880, 300]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "wait-tts",
+      "name": "Attendi Voce (10s)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2100, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.response_url}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fal-tts-result",
+      "name": "7b. Scarica Audio URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2320, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const plan = $('6. Parse Storyboard JSON').first().json;\nreturn (plan.scenes || []).map(sc => ({ json: sc }));"
+      },
+      "id": "split-scenes",
+      "name": "8. Prepara 5 Scene",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2540, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/flux-pro/v1.1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": {{ JSON.stringify($json.keyframe_prompt) }},\n  \"image_size\": \"portrait_16_9\",\n  \"safety_tolerance\": \"2\",\n  \"output_format\": \"jpeg\"\n}",
+        "options": {}
+      },
+      "id": "flux-submit",
+      "name": "9a. Genera Keyframe FLUX Pro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2760, 300]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "wait-flux",
+      "name": "Attendi FLUX (10s)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2980, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.status_url}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "flux-status",
+      "name": "9b. Controlla Stato FLUX",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-flux-done",
+              "leftValue": "={{$json.status}}",
+              "rightValue": "COMPLETED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-flux-done",
+      "name": "FLUX Pronto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [3420, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.response_url}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "flux-result",
+      "name": "9c. Ottieni Immagine FLUX",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3640, 220]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/kling-video/v3/pro/image-to-video",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"start_image_url\": {{ JSON.stringify($json.images[0].url) }},\n  \"prompt\": {{ JSON.stringify($('8. Prepara 5 Scene').item.json.motion_prompt) }},\n  \"duration\": \"5\",\n  \"aspect_ratio\": \"9:16\",\n  \"generate_audio\": false\n}",
+        "options": {}
+      },
+      "id": "kling-submit",
+      "name": "10a. Anima con Kling Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3860, 220]
+    },
+    {
+      "parameters": {
+        "amount": 35,
+        "unit": "seconds"
+      },
+      "id": "wait-kling",
+      "name": "Attendi Kling (35s)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [4080, 220]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.status_url}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "kling-status",
+      "name": "10b. Controlla Stato Kling",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4300, 220]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-kling-done",
+              "leftValue": "={{$json.status}}",
+              "rightValue": "COMPLETED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-kling-done",
+      "name": "Kling Pronto?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [4520, 220]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.response_url}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Key {{$('0. Inserisci Chiavi API').first().json.fal_key}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "kling-result",
+      "name": "10c. Scarica Clip MP4 Kling",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [4740, 140]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "clips",
+        "options": {}
+      },
+      "id": "aggregate-clips",
+      "name": "11. Raccogli le 5 Clip",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [4960, 140]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('0. Inserisci Chiavi API').first().json;\nconst clips = ($input.first().json.clips || []).map(c => c.video?.url).filter(Boolean);\nconst tts = $('7b. Scarica Audio URL').first().json;\nconst plan = $('6. Parse Storyboard JSON').first().json;\nconst scenes = plan.scenes || [];\n\nconst modifications = {\n  'Voiceover.source': tts.audio?.url || '',\n  'CTA-Text.text': 'capirelai.com — Kit 10 Prompt R.O.F. Gratis'\n};\n\nscenes.forEach((sc, idx) => {\n  const n = idx + 1;\n  if (clips[idx]) modifications[`Clip-${n}.source`] = clips[idx];\n  modifications[`Title-${n}.text`] = sc.on_screen_title || '';\n  modifications[`Sub-${n}.text`] = sc.on_screen_sub || '';\n});\n\nreturn [{\n  json: {\n    template_id: cfg.creatomate_template_id,\n    modifications,\n    caption_ig: plan.caption_ig || ''\n  }\n}];"
+      },
+      "id": "build-creatomate-payload",
+      "name": "12. Prepara Payload Creatomate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [5180, 140]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.creatomate.com/v2/renders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$('0. Inserisci Chiavi API').first().json.creatomate_api_key}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template_id\": {{ JSON.stringify($json.template_id) }},\n  \"modifications\": {{ JSON.stringify($json.modifications) }}\n}",
+        "options": {}
+      },
+      "id": "creatomate-render",
+      "name": "13. Render Finale (Creatomate)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [5400, 140]
+    }
+  ],
+  "connections": {
+    "Avvio Manuale (o Cron)": {
+      "main": [[{ "node": "0. Inserisci Chiavi API", "type": "main", "index": 0 }]]
+    },
+    "0. Inserisci Chiavi API": {
+      "main": [[{ "node": "1. Leggi Inbox Jarvis (GitHub)", "type": "main", "index": 0 }]]
+    },
+    "1. Leggi Inbox Jarvis (GitHub)": {
+      "main": [[{ "node": "2. Prendi Ultimo Brief", "type": "main", "index": 0 }]]
+    },
+    "2. Prendi Ultimo Brief": {
+      "main": [[{ "node": "3. Scarica Testo Markdown", "type": "main", "index": 0 }]]
+    },
+    "3. Scarica Testo Markdown": {
+      "main": [[{ "node": "4. Estrai Script & Caption", "type": "main", "index": 0 }]]
+    },
+    "4. Estrai Script & Caption": {
+      "main": [[{ "node": "5. Regista AI (Storyboard + Style Lock)", "type": "main", "index": 0 }]]
+    },
+    "5. Regista AI (Storyboard + Style Lock)": {
+      "main": [[{ "node": "6. Parse Storyboard JSON", "type": "main", "index": 0 }]]
+    },
+    "6. Parse Storyboard JSON": {
+      "main": [[{ "node": "7a. Avvia Voce (ElevenLabs su fal.ai)", "type": "main", "index": 0 }]]
+    },
+    "7a. Avvia Voce (ElevenLabs su fal.ai)": {
+      "main": [[{ "node": "Attendi Voce (10s)", "type": "main", "index": 0 }]]
+    },
+    "Attendi Voce (10s)": {
+      "main": [[{ "node": "7b. Scarica Audio URL", "type": "main", "index": 0 }]]
+    },
+    "7b. Scarica Audio URL": {
+      "main": [[{ "node": "8. Prepara 5 Scene", "type": "main", "index": 0 }]]
+    },
+    "8. Prepara 5 Scene": {
+      "main": [[{ "node": "9a. Genera Keyframe FLUX Pro", "type": "main", "index": 0 }]]
+    },
+    "9a. Genera Keyframe FLUX Pro": {
+      "main": [[{ "node": "Attendi FLUX (10s)", "type": "main", "index": 0 }]]
+    },
+    "Attendi FLUX (10s)": {
+      "main": [[{ "node": "9b. Controlla Stato FLUX", "type": "main", "index": 0 }]]
+    },
+    "9b. Controlla Stato FLUX": {
+      "main": [[{ "node": "FLUX Pronto?", "type": "main", "index": 0 }]]
+    },
+    "FLUX Pronto?": {
+      "main": [
+        [{ "node": "9c. Ottieni Immagine FLUX", "type": "main", "index": 0 }],
+        [{ "node": "Attendi FLUX (10s)", "type": "main", "index": 0 }]
+      ]
+    },
+    "9c. Ottieni Immagine FLUX": {
+      "main": [[{ "node": "10a. Anima con Kling Video", "type": "main", "index": 0 }]]
+    },
+    "10a. Anima con Kling Video": {
+      "main": [[{ "node": "Attendi Kling (35s)", "type": "main", "index": 0 }]]
+    },
+    "Attendi Kling (35s)": {
+      "main": [[{ "node": "10b. Controlla Stato Kling", "type": "main", "index": 0 }]]
+    },
+    "10b. Controlla Stato Kling": {
+      "main": [[{ "node": "Kling Pronto?", "type": "main", "index": 0 }]]
+    },
+    "Kling Pronto?": {
+      "main": [
+        [{ "node": "10c. Scarica Clip MP4 Kling", "type": "main", "index": 0 }],
+        [{ "node": "Attendi Kling (35s)", "type": "main", "index": 0 }]
+      ]
+    },
+    "10c. Scarica Clip MP4 Kling": {
+      "main": [[{ "node": "11. Raccogli le 5 Clip", "type": "main", "index": 0 }]]
+    },
+    "11. Raccogli le 5 Clip": {
+      "main": [[{ "node": "12. Prepara Payload Creatomate", "type": "main", "index": 0 }]]
+    },
+    "12. Prepara Payload Creatomate": {
+      "main": [[{ "node": "13. Render Finale (Creatomate)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

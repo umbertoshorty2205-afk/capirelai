@@ -184,6 +184,36 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-13-ferrari-chatgpt-rof-jarvis',
+    badge: 'WARM MACRO STUDIO • VOCE ELEVENLABS ALESSANDRO + IG SAFE',
+    title: "Reel 13 // Smetti di Usare ChatGPT Come Google (Ferrari & Metodo R.O.F.)",
+    subtitle: "Dal brief Jarvis (25 Nov): ripresa continua Warm Studio Macro (scrivania in noce, tastiera meccanica con keycap testurizzati, smartphone OLED, monoliti R·O·F e monitor curvo con risposta mail pronta), doppiato con la tua voce ElevenLabs Alessandro + SFX tattili (-14 LUFS) e safe-zone IG 9:16",
+    video: "/instagram/reels/reel-13-ferrari-chatgpt-rof-jarvis.mp4",
+    poster: "/instagram/reels/reel-13-poster.jpg",
+    filename: "reel-13-ferrari-chatgpt-rof-jarvis.mp4",
+    duration: "42.1 sec",
+    specs: "1080×1920 24fps • Macro 32° One-Take • IG Safe 9:16 + Cover 3:4 • ElevenLabs Alessandro",
+    caption: `Se scrivi ancora "scrivimi una mail" su ChatGPT, stai guidando una Ferrari in prima marcia. 🏎️💨
+
+Il 90% delle persone chiede risposte generiche e poi si lamenta dei testi da robot.
+Non ti serve pagare 22€ al mese: ti basta cambiare 3 righe con il Metodo R.O.F.
+
+1️⃣ R — RUOLO: digli esattamente chi è ("Sei un consulente diretto e pratico")
+2️⃣ O — OBIETTIVO: cosa deve ottenere ("Rispondi a un cliente che chiede sconto tenendo il prezzo")
+3️⃣ F — FORMATO: i vincoli precisi ("Massimo 4 righe, zero frasi fatte, tono fermo")
+
+Risultato? Una risposta pronta da copiare subito in 5 secondi, senza riscrivere nulla a mano.
+
+🎁 I 10 modelli R.O.F. pronti all'uso sono gratis su capirelai.com (link in bio).
+💬 Commenta "GUIDA" qui sotto se vuoi il link diretto ai prompt!
+
+#CapirelAI #ChatGPTItalia #MetodoROF #PromptEngineering #Produttivita #AIItalia`,
+    pinnedComment: `📌 VUOI I 10 MODELLI R.O.F. CITATI NEL REEL?
+
+Li copi gratis con un click nell'Hub interattivo su https://www.capirelai.com/#hub-prompt (link in bio @capirelai)!
+💬 Scrivi "GUIDA" se li provi oggi sul lavoro.`,
+  },
+  {
     id: 'reel-12-fregato-desk-3d',
     badge: '3D DESK STUDIO • VOCE ORIGINALE + IG SAFE',
     title: "Reel 12 // Fregato da ChatGPT? (Scrivania AI 3D + R.O.F. Clean)",
@@ -680,7 +710,7 @@ function InstagramKitModal({
   initialReelId?: string;
 }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>(initialReelId || 'reel-onetake-3d-spot-chatgpt');
+  const [selectedReelId, setSelectedReelId] = useState<string>(initialReelId || 'reel-13-ferrari-chatgpt-rof-jarvis');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
@@ -854,23 +884,31 @@ function InstagramKitModal({
                     color: selectedReelId === reel.id ? '#ffffff' : '#999999',
                   }}
                 >
-                  {reel.id === 'reel-spot-3d-chatgpt-rof'
-                    ? '🎬 Reel 09: Spot 3D ChatGPT (NEW)'
-                    : reel.id === 'reel-regola-rof-risposte-banali-jarvis'
-                      ? '⚡ Reel 08: Regola R.O.F.'
-                      : reel.id === 'reel-testi-anti-robot-jarvis'
-                        ? '🤖 Reel 07: Testi Anti-Robot'
-                        : reel.id === 'reel-chatbot-vs-agenti-jarvis'
-                          ? '🤖 Reel 06: Chatbot vs Agenti'
-                          : reel.id === 'reel-pdf-50-pagine-jarvis'
-                            ? '📄 Reel 05: PDF 50 Pag. 10s'
-                            : reel.id === 'reel-automazioni-jarvis'
-                              ? '⚡ Reel 04: 3 Automazioni AI'
-                              : reel.id === 'reel-cyborg-viral'
-                                ? '🤖 Reel 03: Cyborg + B-Roll'
-                                : reel.id === 'reel-token-avatar'
-                                  ? '🎙️ Reel 02: Avatar Parlato + Voce'
-                                  : '⚡ Reel 01: Slide 3D Token'}
+                  {reel.id === 'reel-13-ferrari-chatgpt-rof-jarvis'
+                    ? '🏎️ Reel 13: Ferrari & R.O.F. (NEW)'
+                    : reel.id === 'reel-12-fregato-desk-3d'
+                      ? '🖥️ Reel 12: Fregato Desk 3D'
+                      : reel.id === 'reel-onetake-3d-spot-chatgpt'
+                        ? '✈️ Reel 11: One-Take 3D'
+                        : reel.id === 'reel-agenti-ai-usano-pc'
+                          ? '🤖 Reel 10: Agenti AI PC'
+                          : reel.id === 'reel-spot-3d-chatgpt-rof'
+                            ? '🎬 Reel 09: Spot 3D ChatGPT'
+                            : reel.id === 'reel-regola-rof-risposte-banali-jarvis'
+                              ? '⚡ Reel 08: Regola R.O.F.'
+                              : reel.id === 'reel-testi-anti-robot-jarvis'
+                                ? '🤖 Reel 07: Testi Anti-Robot'
+                                : reel.id === 'reel-chatbot-vs-agenti-jarvis'
+                                  ? '🤖 Reel 06: Chatbot vs Agenti'
+                                  : reel.id === 'reel-pdf-50-pagine-jarvis'
+                                    ? '📄 Reel 05: PDF 50 Pag. 10s'
+                                    : reel.id === 'reel-automazioni-jarvis'
+                                      ? '⚡ Reel 04: 3 Automazioni AI'
+                                      : reel.id === 'reel-cyborg-viral'
+                                        ? '🤖 Reel 03: Cyborg + B-Roll'
+                                        : reel.id === 'reel-token-avatar'
+                                          ? '🎙️ Reel 02: Avatar Parlato + Voce'
+                                          : '⚡ Reel 01: Slide 3D Token'}
                 </button>
               ))}
             </div>
@@ -1874,7 +1912,7 @@ function InteractiveForum() {
 export default function CapirelAiHero() {
   const [isChiSonoOpen, setIsChiSonoOpen] = useState(false);
   const [isInstagramOpen, setIsInstagramOpen] = useState(false);
-  const [initialInstagramReelId, setInitialInstagramReelId] = useState<string>('reel-agenti-ai-usano-pc');
+  const [initialInstagramReelId, setInitialInstagramReelId] = useState<string>('reel-13-ferrari-chatgpt-rof-jarvis');
   const [isFounderOpen, setIsFounderOpen] = useState(false);
   const [isForumModalOpen, setIsForumModalOpen] = useState(false);
   const [activeArticle, setActiveArticle] = useState<FullArticleData | null>(null);
@@ -1923,7 +1961,12 @@ export default function CapirelAiHero() {
 
     const syncFromUrl = () => {
       const rawHash = window.location.hash.replace(/^#/, '').toLowerCase();
-      if (rawHash === 'reel-12' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+      if (rawHash === 'reel-13' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+        setInitialInstagramReelId('reel-13-ferrari-chatgpt-rof-jarvis');
+        setIsInstagramOpen(true);
+        return;
+      }
+      if (rawHash === 'reel-12') {
         setInitialInstagramReelId('reel-12-fregato-desk-3d');
         setIsInstagramOpen(true);
         return;

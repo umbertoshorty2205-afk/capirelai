@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "/three/build/three.module.js",
+    "three/addons/": "/three/examples/jsm/"
+  }
+}
+</script>
+<style>
+  @font-face { font-family: 'JBMono'; src: url('/fonts/JetBrainsMono-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'JBMonoReg'; src: url('/fonts/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'DisplaySans'; src: url('/fonts/LiberationSans-Bold.ttf') format('truetype'); font-weight: 800; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #0b0806;
+    color: #f8fafc;
+    font-family: 'DisplaySans', 'DejaVu Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #webgl-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    display: block;
+    z-index: 1;
+  }
+
+  #vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 56%, rgba(11,8,6,0) 36%, rgba(7,5,4,0.62) 82%, rgba(4,3,2,0.90) 100%),
+      linear-gradient(180deg, rgba(7,5,4,0.62) 0%, rgba(7,5,4,0) 24%, rgba(7,5,4,0) 74%, rgba(5,4,3,0.75) 100%);
+  }
+
+  #film-grain {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: radial-gradient(rgba(255,245,230,0.8) 1px, transparent 0);
+    background-size: 4px 4px;
+  }
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+  }
+
+  .scene-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* IG Safe Top Brand (y >= 215px) */
+  #top-brand {
+    position: absolute;
+    top: 215px;
+    left: 64px;
+    right: 64px;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.22em;
+    color: rgba(251, 191, 36, 0.92);
+    text-transform: uppercase;
+  }
+  #top-brand .bar {
+    width: 28px;
+    height: 2px;
+    background: #fbbf24;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+  }
+
+  /* BEAT 1: Ferrari in Prima Marcia (y: 268..680, macro diagonal keyboard cleanly below) */
+  #b1-pill {
+    margin-top: 268px;
+    font-family: 'JBMono', monospace;
+    font-size: 21px;
+    letter-spacing: 0.14em;
+    color: #fde68a;
+    background: rgba(20, 15, 11, 0.88);
+    border: 1.5px solid rgba(251, 191, 36, 0.55);
+    padding: 8px 22px;
+    border-radius: 10px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65);
+  }
+  #b1-title {
+    margin-top: 18px;
+    width: 860px;
+    text-align: center;
+    font-size: 84px;
+    line-height: 0.98;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-shadow: 0 12px 42px rgba(0, 0, 0, 0.95);
+  }
+  #b1-title .amber {
+    color: #fbbf24;
+    text-shadow: 0 0 38px rgba(251, 191, 36, 0.45), 0 12px 35px rgba(0,0,0,0.9);
+  }
+  #b1-sub {
+    margin-top: 18px;
+    font-family: 'JBMono', monospace;
+    font-size: 23px;
+    color: #e2e8f0;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1.5px solid rgba(148, 163, 184, 0.38);
+    padding: 9px 24px;
+    border-radius: 10px;
+  }
+
+  /* BEAT 2: 90% Robot vs 3 Righe — top card strictly ABOVE smartphone, bottom bar strictly BELOW */
+  #b2-top {
+    position: absolute;
+    top: 266px;
+    left: 88px;
+    width: 850px;
+    background: rgba(16, 12, 9, 0.92);
+    border: 2px solid rgba(251, 113, 133, 0.65);
+    border-radius: 20px;
+    padding: 20px 28px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85);
+  }
+  #b2-eye {
+    font-family: 'JBMono', monospace;
+    font-size: 19px;
+    letter-spacing: 0.16em;
+    color: #fda4af;
+    margin-bottom: 6px;
+  }
+  #b2-stat {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.04;
+    color: #ffffff;
+  }
+  #b2-stat span { color: #fb7185; }
+  #b2-bottom {
+    position: absolute;
+    top: 1255px;
+    left: 88px;
+    width: 850px;
+    text-align: center;
+    background: rgba(16, 12, 9, 0.92);
+    border: 1.5px solid rgba(251, 191, 36, 0.55);
+    border-radius: 18px;
+    padding: 16px 26px;
+    box-shadow: 0 24px 65px rgba(0,0,0,0.88);
+  }
+  #b2-bottom-big {
+    font-size: 42px;
+    font-weight: 800;
+    color: #fbbf24;
+  }
+  #b2-bottom-sub {
+    margin-top: 4px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 21px;
+    color: #e2e8f0;
+  }
+
+  /* BEAT 3: Regola R.O.F. — compact cards y=265..820, 3 Monoliths cleanly below y=860..1360 */
+  #b3-head {
+    margin-top: 262px;
+    text-align: center;
+  }
+  #b3-eye {
+    font-family: 'JBMono', monospace;
+    font-size: 19px;
+    letter-spacing: 0.2em;
+    color: #fbbf24;
+    margin-bottom: 4px;
+  }
+  #b3-title {
+    font-size: 62px;
+    font-weight: 800;
+    line-height: 1.0;
+    text-shadow: 0 8px 34px rgba(0,0,0,0.9);
+  }
+  #b3-cards {
+    margin-top: 16px;
+    width: 840px;
+    margin-right: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+  .rof-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 13px 22px;
+    border-radius: 16px;
+    background: rgba(16, 12, 9, 0.90);
+    border: 2px solid rgba(251, 191, 36, 0.22);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.78);
+  }
+  .rof-letter {
+    width: 68px;
+    height: 68px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    font-weight: 800;
+    flex-shrink: 0;
+    color: #0c0907;
+  }
+  .rof-r .rof-letter { background: linear-gradient(135deg, #f59e0b, #fde047); }
+  .rof-o .rof-letter { background: linear-gradient(135deg, #0284c7, #38bdf8); }
+  .rof-f .rof-letter { background: linear-gradient(135deg, #16a34a, #4ade80); }
+  .rof-info h3 { font-size: 29px; font-weight: 800; margin-bottom: 2px; }
+  .rof-info p { font-family: 'JBMonoReg', monospace; font-size: 20px; color: #e2e8f0; line-height: 1.25; }
+
+  /* BEAT 4: Real Email Output Example above curved studio desk/monitor */
+  #b4-card {
+    margin-top: 268px;
+    width: 840px;
+    margin-right: 34px;
+    background: rgba(14, 11, 9, 0.93);
+    border: 2px solid rgba(74, 222, 128, 0.68);
+    border-radius: 22px;
+    padding: 28px 32px;
+    box-shadow: 0 30px 90px rgba(0,0,0,0.88);
+  }
+  #b4-badge {
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 19px;
+    letter-spacing: 0.14em;
+    color: #052e16;
+    background: #4ade80;
+    padding: 7px 18px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  #b4-mail {
+    font-family: 'JBMonoReg', monospace;
+    font-size: 25px;
+    line-height: 1.48;
+    color: #f8fafc;
+    border-left: 4px solid #fbbf24;
+    padding-left: 20px;
+  }
+  #b4-foot {
+    margin-top: 16px;
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    color: #fde047;
+  }
+
+  /* BEAT 5: CTA capirelai.com strictly ABOVE the 3 monoliths (y=268..740) */
+  #b5-card {
+    margin-top: 268px;
+    width: 840px;
+    margin-right: 30px;
+    padding: 34px 36px;
+    border-radius: 24px;
+    background: rgba(14, 11, 9, 0.92);
+    border: 2px solid rgba(251, 191, 36, 0.72);
+    text-align: center;
+    box-shadow: 0 32px 95px rgba(0, 0, 0, 0.90), 0 0 65px rgba(251, 191, 36, 0.18);
+  }
+  #b5-pill {
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    letter-spacing: 0.12em;
+    color: #0c0907;
+    background: #fbbf24;
+    padding: 9px 22px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+  }
+  #b5-url {
+    font-size: 76px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    text-shadow: 0 0 36px rgba(251, 191, 36, 0.35);
+  }
+  #b5-desc {
+    margin-top: 14px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 24px;
+    color: #e2e8f0;
+    line-height: 1.4;
+  }
+  #b5-cta {
+    margin-top: 18px;
+    font-family: 'JBMono', monospace;
+    font-size: 23px;
+    color: #4ade80;
+    letter-spacing: 0.10em;
+  }
+
+  /* IG Safe Subtitles (bottom: 385px, right: 136px) */
+  #sub-wrap {
+    position: absolute;
+    bottom: 385px;
+    left: 64px;
+    right: 136px;
+    z-index: 25;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 86px;
+  }
+  #sub-pill {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 13px;
+    padding: 13px 26px;
+    border-radius: 16px;
+    background: rgba(12, 9, 7, 0.90);
+    border: 1.5px solid rgba(251, 191, 36, 0.40);
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.85);
+  }
+  .sub-word {
+    font-family: 'DisplaySans', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: rgba(241, 245, 249, 0.88);
+  }
+  .sub-word.active {
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.72);
+    transform: scale(1.05);
+    margin: 0 2px;
+  }
+  .sub-word.active-red {
+    color: #fb7185;
+    text-shadow: 0 0 20px rgba(251, 113, 133, 0.75);
+    transform: scale(1.05);
+    margin: 0 2px;
+  }
+  .sub-word.active-green {
+    color: #4ade80;
+    text-shadow: 0 0 20px rgba(74, 222, 128, 0.75);
+    transform: scale(1.05);
+    margin: 0 2px;
+  }
+
+  #progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    z-index: 30;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #fbbf24, #38bdf8, #4ade80);
+  }
+</style>
+</head>
+<body>
+  <canvas id="webgl-canvas"></canvas>
+  <div id="vignette"></div>
+  <div id="film-grain"></div>
+
+  <div id="top-brand">
+    <span class="bar"></span>
+    <span>@CAPIRELAI • METODO R.O.F.</span>
+    <span class="bar"></span>
+  </div>
+
+  <div id="stage">
+    <!-- BEAT 1: Hook Ferrari + Macro Diagonal Keyboard -->
+    <div id="beat1" class="scene-layer">
+      <div id="b1-pill">▸ BASTA USARE CHATGPT COME GOOGLE</div>
+      <div id="b1-title">
+        GUIDI UNA <span class="amber">FERRARI</span><br />IN PRIMA MARCIA
+      </div>
+      <div id="b1-sub">"SCRIVIMI UNA MAIL" = RISPOSTA DA ROBOT</div>
+    </div>
+
+    <!-- BEAT 2: 90% Risposte Generiche + 22 EUR -->
+    <div id="beat2" class="scene-layer">
+      <div id="b2-top">
+        <div id="b2-eye">ERRORE #1 • PROMPT VAGO</div>
+        <div id="b2-stat"><span>90%</span> OTTIENE TESTI<br />FINTI DA ROBOT</div>
+      </div>
+      <div id="b2-bottom">
+        <div id="b2-bottom-big">NON SERVONO 22€/MESE</div>
+        <div id="b2-bottom-sub">BASTA CAMBIARE 3 RIGHE NEL PROMPT</div>
+      </div>
+    </div>
+
+    <!-- BEAT 3: Formula R.O.F. + 3 Monoliti 3D visibili sotto -->
+    <div id="beat3" class="scene-layer">
+      <div id="b3-head">
+        <div id="b3-eye">LA SOLUZIONE IN 3 STEP</div>
+        <div id="b3-title">REGOLA <span style="color:#fbbf24">R · O · F</span></div>
+      </div>
+      <div id="b3-cards">
+        <div class="rof-card rof-r" id="card-r">
+          <div class="rof-letter">R</div>
+          <div class="rof-info">
+            <h3>1. RUOLO (Chi è l'AI)</h3>
+            <p>"Sei un consulente diretto e pratico"</p>
+          </div>
+        </div>
+        <div class="rof-card rof-o" id="card-o">
+          <div class="rof-letter">O</div>
+          <div class="rof-info">
+            <h3>2. OBIETTIVO + CONTESTO</h3>
+            <p>"Cliente chiede sconto → mantieni il prezzo"</p>
+          </div>
+        </div>
+        <div class="rof-card rof-f" id="card-f">
+          <div class="rof-letter">F</div>
+          <div class="rof-info">
+            <h3>3. FORMATO &amp; DIVIETI</h3>
+            <p>"Max 4 righe, zero frasi fatte, tono fermo"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEAT 4: Risultato Reale Copiabile + Curved Studio Monitor sotto -->
+    <div id="beat4" class="scene-layer">
+      <div id="b4-card">
+        <div id="b4-badge">✓ OUTPUT PRONTO DA INVIARE</div>
+        <div id="b4-mail">
+          "Ciao Marco, grazie della fiducia.<br />
+          La tariffa resta fissa perché include<br />
+          assistenza prioritaria e consegna certa.<br />
+          Se confermi oggi blocchiamo lo slot."
+        </div>
+        <div id="b4-foot">▸ ZERO FRASI ROBOTICHE • COPIA &amp; INVIA</div>
+      </div>
+    </div>
+
+    <!-- BEAT 5: CTA Newsletter + Kit 10 Prompt -->
+    <div id="beat5" class="scene-layer">
+      <div id="b5-card">
+        <div id="b5-pill">▸ 10 MODELLI R.O.F. GRATIS</div>
+        <div id="b5-url">capirelai.com</div>
+        <div id="b5-desc">
+          RISPARMIA 5 ORE A SETTIMANA<br />
+          SU EMAIL, STUDIO E LAVORO
+        </div>
+        <div id="b5-cta">▸ COMMENTA "GUIDA" O LINK IN BIO</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub-wrap"><div id="sub-pill"></div></div>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import {
+  createSmartphone3D,
+  createCoffeeCup3D,
+  createMonolithPillar,
+  createCurvedStudioMonitor,
+} from '/models/capirelai-3d-models.js';
+
+const CUES = await fetch('/cues.json').then((r) => r.json());
+const DURATION = CUES.duration;
+const PHRASES = CUES.phrases || [];
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (e0, e1, x) => {
+  const t = clamp01((x - e0) / Math.max(0.0001, e1 - e0));
+  return t * t * (3 - 2 * t);
+};
+function springPop(tLocal, freq = 14, damp = 7.2) {
+  if (tLocal <= 0) return 0;
+  if (tLocal > 1.2) return 1;
+  return 1 - Math.exp(-damp * tLocal) * Math.cos(freq * tLocal);
+}
+
+await document.fonts.ready;
+
+const canvas = document.getElementById('webgl-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: true,
+});
+renderer.setSize(540, 960, false);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.18;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0806);
+scene.fog = new THREE.FogExp2(0x0b0806, 0.048);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.05).texture;
+pmrem.dispose();
+
+// Warm Studio Desk Lighting (Warm Amber Key + Soft Cool Window Rim)
+const hemiLight = new THREE.HemisphereLight(0xfef3c7, 0x1c140f, 0.75);
+scene.add(hemiLight);
+
+const warmDeskLamp = new THREE.PointLight(0xffb26b, 28, 24, 1.4);
+warmDeskLamp.position.set(-2.5, 3.0, 1.8);
+scene.add(warmDeskLamp);
+
+const coolRimLight = new THREE.PointLight(0x60a5fa, 16, 24, 1.5);
+coolRimLight.position.set(3.2, 2.4, -2.5);
+scene.add(coolRimLight);
+
+const keyDir = new THREE.DirectionalLight(0xffe7c7, 1.9);
+keyDir.position.set(-3.5, 5.5, 4.5);
+scene.add(keyDir);
+
+// Telephoto Macro Lens (32° FOV)
+const camera = new THREE.PerspectiveCamera(32, 1080 / 1920, 0.1, 90);
+
+// --- PROCEDURAL RICH WALNUT WOOD DESK TEXTURE ---
+function createWalnutWoodTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 1024;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 1024, 1024);
+  g.addColorStop(0, '#361f12');
+  g.addColorStop(0.5, '#4b2a17');
+  g.addColorStop(1, '#26140a');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1024, 1024);
+
+  for (let i = 0; i < 640; i++) {
+    const y = (i / 640) * 1024;
+    const wave = Math.sin(i * 0.11) * 14 + Math.cos(i * 0.27) * 6;
+    ctx.strokeStyle = i % 3 === 0 ? 'rgba(18, 8, 3, 0.28)' : 'rgba(145, 92, 52, 0.14)';
+    ctx.lineWidth = 1 + (i % 3);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.bezierCurveTo(280, y + wave, 720, y - wave, 1024, y + wave * 0.5);
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(7, 3.2);
+  return tex;
+}
+
+function createContactShadowTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128, 128, 18, 128, 128, 124);
+  g.addColorStop(0, 'rgba(5, 3, 2, 0.80)');
+  g.addColorStop(0.55, 'rgba(5, 3, 2, 0.36)');
+  g.addColorStop(1, 'rgba(5, 3, 2, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+const woodTex = createWalnutWoodTexture();
+const shadowTex = createContactShadowTexture();
+
+// Continuous Studio Desk World (ZERO cuts across all 5 beats!)
+const world = new THREE.Group();
+scene.add(world);
+
+const deskMesh = new THREE.Mesh(
+  new THREE.BoxGeometry(34, 0.24, 15),
+  new THREE.MeshStandardMaterial({
+    map: woodTex,
+    roughness: 0.44,
+    metalness: 0.08,
+  })
+);
+deskMesh.position.set(5.5, -0.12, 0);
+world.add(deskMesh);
+
+function addShadow(x, z, w, d) {
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, d),
+    new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false })
+  );
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(x, 0.004, z);
+  world.add(m);
+}
+
+// --- PROP 1 (Beat 1, x=0): Diagonal Macro Mechanical Keyboard ---
+function createDetailedMacroKeyboard() {
+  const kb = new THREE.Group();
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, metalness: 0.78, roughness: 0.26 });
+  const caseMesh = new THREE.Mesh(new THREE.BoxGeometry(3.35, 0.16, 1.32), baseMat);
+  caseMesh.position.y = 0.08;
+  caseMesh.rotation.x = 0.05;
+  kb.add(caseMesh);
+
+  const glow = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.26, 1.24),
+    new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.20 })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = 0.006;
+  kb.add(glow);
+
+  const letters = [
+    ['Q','W','E','R','T','Y','U','I','O','P','←'],
+    ['A','S','D','F','G','H','J','K','L','R','↵'],
+    ['⇧','Z','X','C','H','A','T','G','P','T','⇧'],
+  ];
+
+  const keyBodyMatDark = new THREE.MeshStandardMaterial({ color: 0x1e1b18, roughness: 0.60, metalness: 0.12 });
+  const keyBodyMatAmber = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.45, metalness: 0.18 });
+  const animatedKeys = [];
+
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 11; c++) {
+      const ch = letters[r][c];
+      const kx = -1.35 + c * 0.27;
+      const kz = -0.34 + r * 0.26;
+      const ky = 0.19 - kz * 0.05;
+
+      const keyGrp = new THREE.Group();
+      keyGrp.position.set(kx, ky, kz);
+      keyGrp.rotation.x = 0.05;
+
+      const isAccent = (r === 1 && c === 9) || (r === 2 && c >= 4 && c <= 7);
+      const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.225, 0.095, 0.225),
+        isAccent ? keyBodyMatAmber : keyBodyMatDark
+      );
+      keyGrp.add(body);
+
+      const tc = document.createElement('canvas');
+      tc.width = 128; tc.height = 128;
+      const tctx = tc.getContext('2d');
+      tctx.fillStyle = isAccent ? '#b45309' : '#26221e';
+      tctx.fillRect(0, 0, 128, 128);
+      tctx.fillStyle = isAccent ? '#fef3c7' : '#e7e5e4';
+      tctx.font = 'bold 64px sans-serif';
+      tctx.textAlign = 'center';
+      tctx.textBaseline = 'middle';
+      tctx.fillText(ch, 64, 66);
+
+      const topTex = new THREE.CanvasTexture(tc);
+      topTex.colorSpace = THREE.SRGBColorSpace;
+      const topCap = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.195, 0.195),
+        new THREE.MeshBasicMaterial({ map: topTex })
+      );
+      topCap.rotation.x = -Math.PI / 2;
+      topCap.position.y = 0.049;
+      keyGrp.add(topCap);
+
+      kb.add(keyGrp);
+      animatedKeys.push({ group: keyGrp, baseY: ky, idx: r * 11 + c });
+    }
+  }
+
+  // Spacebar R·O·F
+  const spaceGrp = new THREE.Group();
+  spaceGrp.position.set(0, 0.165, 0.44);
+  spaceGrp.rotation.x = 0.05;
+  const spaceMesh = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.095, 0.225), keyBodyMatAmber);
+  spaceGrp.add(spaceMesh);
+  const sc = document.createElement('canvas');
+  sc.width = 512; sc.height = 128;
+  const sctx = sc.getContext('2d');
+  sctx.fillStyle = '#b45309';
+  sctx.fillRect(0, 0, 512, 128);
+  sctx.fillStyle = '#fef3c7';
+  sctx.font = 'bold 48px monospace';
+  sctx.textAlign = 'center';
+  sctx.textBaseline = 'middle';
+  sctx.fillText('METODO R·O·F', 256, 64);
+  const stex = new THREE.CanvasTexture(sc);
+  stex.colorSpace = THREE.SRGBColorSpace;
+  const sTop = new THREE.Mesh(new THREE.PlaneGeometry(1.48, 0.19), new THREE.MeshBasicMaterial({ map: stex }));
+  sTop.rotation.x = -Math.PI / 2;
+  sTop.position.y = 0.049;
+  spaceGrp.add(sTop);
+  kb.add(spaceGrp);
+  animatedKeys.push({ group: spaceGrp, baseY: 0.165, idx: 99 });
+
+  return { kb, animatedKeys };
+}
+
+const { kb: macroKeyboard, animatedKeys } = createDetailedMacroKeyboard();
+macroKeyboard.position.set(0, 0.01, 0.25);
+macroKeyboard.rotation.y = 0.22; // Diagonal Leo-style perspective angle!
+addShadow(0, 0.25, 3.8, 1.75);
+world.add(macroKeyboard);
+
+const coffee = createCoffeeCup3D({ sleeveHex: 0xb45309 });
+coffee.position.set(-2.0, 0, -0.35);
+coffee.scale.setScalar(0.92);
+addShadow(-2.0, -0.35, 1.15, 1.15);
+world.add(coffee);
+
+// --- PROP 2 (Beat 2, x=3.6): Angled Smartphone OLED cleanly framed in middle band ---
+const phone = createSmartphone3D(renderer, {
+  accentHex: 0xfb7185,
+  title: 'ChatGPT',
+  badge: 'RISPOSTA DA ROBOT ✕',
+  bodyLine1: 'Nel dinamico panorama',
+  bodyLine2: 'attuale desidero...',
+});
+phone.group.position.set(3.65, 0, -0.35);
+phone.group.rotation.y = -0.18;
+phone.group.scale.setScalar(0.62);
+addShadow(3.65, -0.35, 1.2, 1.2);
+world.add(phone.group);
+
+// --- PROP 3 (Beat 3 & 5, x=7.3): 3 Compact Sculptural R · O · F Monoliths ---
+const monoR = createMonolithPillar(renderer, { letter: 'R', accentHex: 0xfbbf24, coreHex: 0x451a03 });
+const monoO = createMonolithPillar(renderer, { letter: 'O', accentHex: 0x38bdf8, coreHex: 0x0c4a6e });
+const monoF = createMonolithPillar(renderer, { letter: 'F', accentHex: 0x4ade80, coreHex: 0x14532d });
+monoR.position.set(6.58, 0.36, -0.2);
+monoO.position.set(7.30, 0.36, -0.30);
+monoF.position.set(8.02, 0.36, -0.2);
+monoR.scale.setScalar(0.49);
+monoO.scale.setScalar(0.49);
+monoF.scale.setScalar(0.49);
+addShadow(6.58, -0.2, 0.85, 0.85);
+addShadow(7.30, -0.30, 0.85, 0.85);
+addShadow(8.02, -0.2, 0.85, 0.85);
+world.add(monoR, monoO, monoF);
+
+// --- PROP 4 (Beat 4, x=11.45): Curved Studio Monitor on Desk displaying R.O.F. live ---
+const monitor = createCurvedStudioMonitor(renderer);
+const mctx = monitor.screenCtx;
+mctx.fillStyle = '#07101d';
+mctx.fillRect(0, 0, 1024, 512);
+mctx.fillStyle = '#4ade80';
+mctx.font = 'bold 34px monospace';
+mctx.fillText('● PROMPT R.O.F. ATTIVO', 64, 96);
+mctx.fillStyle = '#f8fafc';
+mctx.font = 'bold 42px sans-serif';
+mctx.fillText('Ruolo + Obiettivo + Formato', 64, 185);
+mctx.fillStyle = '#fbbf24';
+mctx.font = 'bold 34px monospace';
+mctx.fillText('✓ Risposta pronta in 10 secondi', 64, 280);
+mctx.fillStyle = '#94a3b8';
+mctx.font = 'bold 28px monospace';
+mctx.fillText('capirelai.com', 64, 420);
+monitor.screenTexture.needsUpdate = true;
+monitor.group.position.set(11.45, 1.12, -0.45);
+monitor.group.scale.setScalar(0.62);
+addShadow(11.45, -0.45, 2.4, 1.4);
+world.add(monitor.group);
+
+// Subtle warm floating dust motes
+const dustCount = 300;
+const dustPos = new Float32Array(dustCount * 3);
+for (let i = 0; i < dustCount; i++) {
+  const s1 = ((i * 9301 + 49297) % 233280) / 233280;
+  const s2 = (((i + 53) * 9301 + 49297) % 233280) / 233280;
+  const s3 = (((i + 137) * 9301 + 49297) % 233280) / 233280;
+  dustPos[i * 3] = -2.5 + s1 * 17.0;
+  dustPos[i * 3 + 1] = 0.2 + s2 * 4.2;
+  dustPos[i * 3 + 2] = -2.5 + s3 * 5.0;
+}
+const dustGeo = new THREE.BufferGeometry();
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+const dustPoints = new THREE.Points(
+  dustGeo,
+  new THREE.PointsMaterial({ color: 0xfde68a, size: 0.030, transparent: true, opacity: 0.42 })
+);
+world.add(dustPoints);
+
+// DOM handles
+const elB1 = document.getElementById('beat1');
+const elB1Title = document.getElementById('b1-title');
+const elB2 = document.getElementById('beat2');
+const elB2Top = document.getElementById('b2-top');
+const elB2Bot = document.getElementById('b2-bottom');
+const elB3 = document.getElementById('beat3');
+const elCardR = document.getElementById('card-r');
+const elCardO = document.getElementById('card-o');
+const elCardF = document.getElementById('card-f');
+const elB4 = document.getElementById('beat4');
+const elB4Card = document.getElementById('b4-card');
+const elB5 = document.getElementById('beat5');
+const elB5Card = document.getElementById('b5-card');
+const elSubWrap = document.getElementById('sub-wrap');
+const elSubPill = document.getElementById('sub-pill');
+const elProgress = document.getElementById('progress-fill');
+
+window.setReelTime = function (t) {
+  elProgress.style.width = `${clamp01(t / DURATION) * 100}%`;
+  dustPoints.position.y = Math.sin(t * 0.45) * 0.08;
+
+  animatedKeys.forEach((k) => {
+    const wave = Math.sin(t * 9.5 - k.idx * 0.65);
+    const press = t < CUES.b2Start && wave > 0.88 ? (wave - 0.88) * 0.24 : 0;
+    k.group.position.y = k.baseY - press;
+  });
+
+  // Continuous One-Take Camera Journey across the Walnut Studio Desk (ZERO CUTS!)
+  const p12 = smoothstep(CUES.b2Start - 0.50, CUES.b2Start + 0.45, t);
+  const p23 = smoothstep(CUES.b3Start - 0.50, CUES.b3Start + 0.45, t);
+  const p34 = smoothstep(CUES.b4Start - 0.50, CUES.b4Start + 0.45, t);
+  const p45 = smoothstep(CUES.b5Start - 0.50, CUES.b5Start + 0.45, t);
+
+  // Beat 1: Low macro diagonal push-in across mechanical keyboard
+  let camX = lerp(-0.65, 0.22, smoothstep(0, CUES.b2Start, t));
+  let camY = lerp(0.86, 0.96, smoothstep(0, CUES.b2Start, t));
+  let camZ = lerp(2.55, 2.05, smoothstep(0, CUES.b2Start, t));
+  let lookX = lerp(-0.15, 0.12, smoothstep(0, CUES.b2Start, t));
+  let lookY = 0.24;
+  let lookZ = 0.15;
+
+  // Beat 2: Glide right to Smartphone OLED centered neatly between top & bottom cards
+  camX = lerp(camX, 3.45 + Math.sin(t * 0.65) * 0.16, p12);
+  camY = lerp(camY, 1.48, p12);
+  camZ = lerp(camZ, 5.45, p12);
+  lookX = lerp(lookX, 3.65, p12);
+  lookY = lerp(lookY, 0.94, p12);
+  lookZ = lerp(lookZ, -0.35, p12);
+
+  // Beat 3: Glide right to ALL 3 R·O·F Monoliths cleanly framed with generous margins
+  camX = lerp(camX, 7.25 + Math.sin(t * 0.5) * 0.14, p23);
+  camY = lerp(camY, 1.86, p23);
+  camZ = lerp(camZ, 6.45, p23);
+  lookX = lerp(lookX, 7.30, p23);
+  lookY = lerp(lookY, 1.02, p23);
+  lookZ = lerp(lookZ, -0.25, p23);
+
+  // Beat 4: Glide further right to Curved Studio Monitor cleanly below Beat 4 email card
+  camX = lerp(camX, 11.35 + Math.sin(t * 0.5) * 0.12, p34);
+  camY = lerp(camY, 1.85, p34);
+  camZ = lerp(camZ, 6.15, p34);
+  lookX = lerp(lookX, 11.45, p34);
+  lookY = lerp(lookY, 1.55, p34);
+  lookZ = lerp(lookZ, -0.45, p34);
+
+  // Beat 5: Smooth pull-back back to the 3 R·O·F Monoliths framed strictly below CTA card
+  camX = lerp(camX, 7.30, p45);
+  camY = lerp(camY, 1.92, p45);
+  camZ = lerp(camZ, 6.95, p45);
+  lookX = lerp(lookX, 7.30, p45);
+  lookY = lerp(lookY, 1.15, p45);
+  lookZ = lerp(lookZ, -0.25, p45);
+
+  camera.position.set(
+    camX + Math.sin(t * 1.1) * 0.015,
+    camY + Math.cos(t * 0.9) * 0.012,
+    camZ
+  );
+  camera.lookAt(lookX, lookY, lookZ);
+
+  const pR = springPop(t - CUES.ruoloWord, 14, 6.8);
+  const pO = springPop(t - CUES.obiettivoWord, 14, 6.8);
+  const pF = springPop(t - CUES.formatoWord, 14, 6.8);
+  monoR.position.y = lerp(0.42, 0.58, clamp01(pR)) + Math.sin(t * 2.0) * 0.025;
+  monoO.position.y = lerp(0.42, 0.58, clamp01(pO)) + Math.sin(t * 2.0 + 1.5) * 0.025;
+  monoF.position.y = lerp(0.42, 0.58, clamp01(pF)) + Math.sin(t * 2.0 + 3.0) * 0.025;
+  monoR.rotation.y = Math.sin(t * 1.1) * 0.16;
+  monoO.rotation.y = Math.sin(t * 1.1 + 1.2) * 0.16;
+  monoF.rotation.y = Math.sin(t * 1.1 + 2.4) * 0.16;
+
+  warmDeskLamp.position.x = camX - 2.2;
+  coolRimLight.position.x = camX + 2.8;
+
+  // DOM HUD Opacity & Micro-Motion Transitions
+  elB1.style.opacity = String(1 - smoothstep(CUES.b2Start - 0.35, CUES.b2Start + 0.05, t));
+  const pop1 = springPop(t - 0.08, 13, 7.0);
+  elB1Title.style.transform = `translateY(${lerp(28, 0, pop1)}px) scale(${lerp(0.92, 1.0, pop1)})`;
+
+  const b2Vis = smoothstep(CUES.b2Start - 0.25, CUES.b2Start + 0.15, t) * (1 - smoothstep(CUES.b3Start - 0.35, CUES.b3Start + 0.05, t));
+  elB2.style.opacity = String(b2Vis);
+  const pop2 = springPop(t - CUES.b2Start, 14, 6.8);
+  elB2Top.style.transform = `translateY(${lerp(24, 0, pop2)}px)`;
+  const pop2b = springPop(t - CUES.ventidueWord, 15, 6.5);
+  elB2Bot.style.opacity = String(clamp01((t - CUES.ventidueWord + 0.2) / 0.25));
+  elB2Bot.style.transform = `scale(${lerp(0.90, 1.0, clamp01(pop2b))})`;
+
+  const b3Vis = smoothstep(CUES.b3Start - 0.25, CUES.b3Start + 0.15, t) * (1 - smoothstep(CUES.b4Start - 0.35, CUES.b4Start + 0.05, t));
+  elB3.style.opacity = String(b3Vis);
+  const styleCard = (el, pop, borderCol) => {
+    const active = pop > 0.05;
+    el.style.opacity = String(active ? 1 : 0.32);
+    el.style.borderColor = active ? borderCol : 'rgba(251,191,36,0.18)';
+    el.style.transform = `scale(${active ? lerp(0.96, 1.015, clamp01(pop)) : 0.96})`;
+  };
+  styleCard(elCardR, pR, '#fbbf24');
+  styleCard(elCardO, pO, '#38bdf8');
+  styleCard(elCardF, pF, '#4ade80');
+
+  const b4Vis = smoothstep(CUES.b4Start - 0.25, CUES.b4Start + 0.15, t) * (1 - smoothstep(CUES.b5Start - 0.35, CUES.b5Start + 0.05, t));
+  elB4.style.opacity = String(b4Vis);
+  const pop4 = springPop(t - CUES.b4Start, 13, 7.0);
+  elB4Card.style.transform = `translateY(${lerp(32, 0, pop4)}px) scale(${lerp(0.94, 1.0, pop4)})`;
+
+  const b5Vis = smoothstep(CUES.b5Start - 0.25, CUES.b5Start + 0.15, t);
+  elB5.style.opacity = String(b5Vis);
+  const pop5 = springPop(t - CUES.b5Start, 13, 6.8);
+  elB5Card.style.transform = `translateY(${lerp(36, 0, pop5)}px) scale(${lerp(0.92, 1.0, pop5)})`;
+
+  // Clean clause-synced subtitles
+  let activePhrase = null;
+  for (const ph of PHRASES) {
+    if (t >= ph.start && t <= ph.end + 0.18) { activePhrase = ph; break; }
+  }
+  if (activePhrase) {
+    elSubWrap.style.opacity = '1';
+    elSubPill.innerHTML = activePhrase.words
+      .map((w) => {
+        const isOn = t >= w.s && t <= w.e + 0.12;
+        return `<span class="sub-word ${isOn ? activePhrase.cls : ''}">${w.t}</span>`;
+      })
+      .join('');
+  } else {
+    elSubWrap.style.opacity = '0';
+  }
+
+  renderer.render(scene, camera);
+};
+
+window.__REEL_READY__ = true;
+</script>
+</body>
+</html>

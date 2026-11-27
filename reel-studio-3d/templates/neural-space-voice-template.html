@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "/three/build/three.module.js",
+    "three/addons/": "/three/examples/jsm/"
+  }
+}
+</script>
+<style>
+  @font-face { font-family: 'JBMono'; src: url('/fonts/JetBrainsMono-Bold.ttf') format('truetype'); font-weight: 700; }
+  @font-face { font-family: 'JBMonoReg'; src: url('/fonts/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'DisplaySans'; src: url('/fonts/LiberationSans-Bold.ttf') format('truetype'); font-weight: 800; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: #02040a;
+    color: #f8fafc;
+    font-family: 'DisplaySans', 'DejaVu Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #webgl-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    display: block;
+    z-index: 1;
+  }
+
+  #vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 52%, rgba(2,4,10,0) 40%, rgba(2,4,12,0.56) 84%, rgba(1,2,6,0.92) 100%),
+      linear-gradient(180deg, rgba(2,4,10,0.72) 0%, rgba(2,4,10,0) 24%, rgba(2,4,10,0) 72%, rgba(2,4,10,0.82) 100%);
+  }
+
+  #scan-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image:
+      linear-gradient(rgba(56,189,248,0.45) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.45) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  #stage {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    pointer-events: none;
+  }
+
+  .scene-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  /* IG & TikTok Safe Top Brand (y >= 215px, right clear >= 136px) */
+  #top-brand {
+    position: absolute;
+    top: 215px;
+    left: 64px;
+    right: 64px;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.22em;
+    color: rgba(56, 189, 248, 0.94);
+    text-transform: uppercase;
+  }
+  #top-brand .bar {
+    width: 28px;
+    height: 2px;
+    background: #38bdf8;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.85);
+  }
+
+  /* BEAT 1: Meta Hook — strictly above central 3D Mic + Axon Ring (y: 258..595) */
+  #b1-badge {
+    margin-top: 260px;
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.14em;
+    color: #bae6fd;
+    background: rgba(4, 10, 24, 0.90);
+    border: 1.5px solid rgba(56, 189, 248, 0.58);
+    padding: 8px 22px;
+    border-radius: 10px;
+    box-shadow: 0 0 28px rgba(56, 189, 248, 0.18);
+  }
+  #b1-title {
+    margin-top: 14px;
+    width: 860px;
+    text-align: center;
+    font-size: 74px;
+    line-height: 0.98;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-shadow: 0 10px 42px rgba(0, 0, 0, 0.95);
+  }
+  #b1-title .cyan {
+    color: #38bdf8;
+    text-shadow: 0 0 36px rgba(56, 189, 248, 0.55), 0 10px 30px rgba(0,0,0,0.9);
+  }
+  #b1-title .red {
+    color: #fb7185;
+    text-shadow: 0 0 32px rgba(251, 113, 133, 0.52), 0 10px 30px rgba(0,0,0,0.9);
+  }
+  #b1-sub {
+    margin-top: 14px;
+    font-family: 'JBMono', monospace;
+    font-size: 22px;
+    color: #fde68a;
+    background: rgba(8, 13, 28, 0.90);
+    border: 1.5px solid rgba(251, 191, 36, 0.48);
+    padding: 8px 22px;
+    border-radius: 10px;
+  }
+
+  /* BEAT 2: Step 1 Clean Audio vs Room Echo (card strictly above, warning strictly below 3D scope) */
+  #b2-card {
+    margin-top: 262px;
+    width: 840px;
+    background: rgba(4, 9, 22, 0.92);
+    border: 2px solid rgba(56, 189, 248, 0.58);
+    border-radius: 20px;
+    padding: 18px 28px;
+    box-shadow: 0 22px 68px rgba(0, 0, 0, 0.88), 0 0 34px rgba(56, 189, 248, 0.14);
+  }
+  .step-eye {
+    font-family: 'JBMono', monospace;
+    font-size: 19px;
+    letter-spacing: 0.16em;
+    color: #38bdf8;
+    margin-bottom: 6px;
+  }
+  .step-h {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.04;
+    color: #ffffff;
+  }
+  .step-h .cyan { color: #38bdf8; }
+  .step-h .red { color: #fb7185; }
+  .step-h .green { color: #4ade80; }
+  .step-sub {
+    margin-top: 8px;
+    font-family: 'JBMono', monospace;
+    font-size: 21px;
+    color: #cbd5e1;
+  }
+
+  #b2-warn {
+    position: absolute;
+    top: 1295px;
+    left: 110px;
+    width: 800px;
+    text-align: center;
+    font-family: 'JBMono', monospace;
+    font-size: 23px;
+    font-weight: 700;
+    color: #fecdd3;
+    background: rgba(30, 8, 18, 0.94);
+    border: 2px solid rgba(251, 113, 133, 0.72);
+    border-radius: 14px;
+    padding: 11px 22px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.88);
+  }
+
+  /* BEAT 3: Step 2 ElevenLabs + Step 3 Pause & Punctuation (y: 262..555, dual nodes below) */
+  #b3-stack {
+    margin-top: 262px;
+    width: 845px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .b3-item {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: rgba(4, 10, 24, 0.92);
+    border: 2px solid rgba(56, 189, 248, 0.25);
+    border-radius: 18px;
+    padding: 14px 22px;
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.82);
+  }
+  .b3-num {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JBMono', monospace;
+    font-size: 26px;
+    font-weight: 800;
+    background: rgba(56, 189, 248, 0.16);
+    color: #38bdf8;
+    border: 1.5px solid rgba(56, 189, 248, 0.55);
+  }
+  .b3-num.violet {
+    background: rgba(129, 140, 248, 0.18);
+    color: #a5b4fc;
+    border-color: rgba(129, 140, 248, 0.65);
+  }
+  .b3-label {
+    font-size: 31px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+  }
+  .b3-desc {
+    margin-top: 4px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 19px;
+    color: #cbd5e1;
+  }
+
+  /* BEAT 4: 5x Speedup vs 20 Takes (y: 262..515, 3D 5x emblem strictly below) */
+  #b4-card {
+    margin-top: 262px;
+    width: 840px;
+    background: rgba(4, 10, 24, 0.92);
+    border: 2px solid rgba(74, 222, 128, 0.62);
+    border-radius: 20px;
+    padding: 18px 28px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.88), 0 0 36px rgba(74, 222, 128, 0.14);
+  }
+
+  /* BEAT 5: Cosmic Outro CTA strictly above Axon Neural Ring */
+  #b5-card {
+    margin-top: 264px;
+    width: 840px;
+    text-align: center;
+    background: rgba(3, 8, 20, 0.93);
+    border: 2px solid rgba(56, 189, 248, 0.68);
+    border-radius: 24px;
+    padding: 24px 30px;
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.92), 0 0 55px rgba(56, 189, 248, 0.22);
+  }
+  #b5-pill {
+    display: inline-block;
+    font-family: 'JBMono', monospace;
+    font-size: 20px;
+    color: #020617;
+    background: #38bdf8;
+    padding: 7px 18px;
+    border-radius: 8px;
+    letter-spacing: 0.10em;
+  }
+  #b5-url {
+    margin-top: 12px;
+    font-size: 70px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 34px rgba(56, 189, 248, 0.45);
+  }
+  #b5-desc {
+    margin-top: 8px;
+    font-family: 'JBMonoReg', monospace;
+    font-size: 22px;
+    color: #e2e8f0;
+    line-height: 1.32;
+  }
+  #b5-cta {
+    margin-top: 12px;
+    font-family: 'JBMono', monospace;
+    font-size: 23px;
+    color: #4ade80;
+    letter-spacing: 0.08em;
+  }
+
+  /* Kinetic Subtitles — strictly inside IG & TikTok safe zone (bottom >= 395px, right >= 136px) */
+  #sub-wrap {
+    position: absolute;
+    bottom: 395px;
+    left: 64px;
+    right: 136px;
+    z-index: 25;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+  #sub-pill {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px 11px;
+    max-width: 820px;
+    background: rgba(2, 6, 18, 0.92);
+    border: 2px solid rgba(56, 189, 248, 0.42);
+    border-radius: 16px;
+    padding: 13px 24px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.92);
+  }
+  .sub-word {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: #94a3b8;
+    text-transform: uppercase;
+    transition: none;
+  }
+  .sub-word.active {
+    color: #38bdf8;
+    text-shadow: 0 0 22px rgba(56, 189, 248, 0.65);
+  }
+  .sub-word.active-amber {
+    color: #fbbf24;
+    text-shadow: 0 0 22px rgba(251, 191, 36, 0.62);
+  }
+  .sub-word.active-red {
+    color: #fb7185;
+    text-shadow: 0 0 22px rgba(251, 113, 133, 0.62);
+  }
+  .sub-word.active-green {
+    color: #4ade80;
+    text-shadow: 0 0 22px rgba(74, 222, 128, 0.62);
+  }
+
+  #progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    z-index: 30;
+  }
+  #progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #818cf8, #4ade80);
+  }
+</style>
+</head>
+<body>
+  <canvas id="webgl-canvas"></canvas>
+  <div id="vignette"></div>
+  <div id="scan-grid"></div>
+
+  <div id="top-brand">
+    <span class="bar"></span>
+    <span>@CAPIRELAI • NEURAL STUDIO</span>
+    <span class="bar"></span>
+  </div>
+
+  <div id="stage">
+    <!-- BEAT 1: Hook Meta -->
+    <div class="scene-layer" id="beat1">
+      <div id="b1-badge">VOICE CLONING • TEST REALE</div>
+      <div id="b1-title">
+        NON L&apos;HO <span class="red">REGISTRATA</span><br/>
+        <span class="cyan">CLONATA IN 60s</span>
+      </div>
+      <div id="b1-sub">3 PASSAGGI • ZERO MICROFONO</div>
+    </div>
+
+    <!-- BEAT 2: Step 1 Audio Pulito -->
+    <div class="scene-layer" id="beat2">
+      <div id="b2-card">
+        <div class="step-eye">PASSAGGIO 01 / 03 • INPUT PULITO</div>
+        <div class="step-h">30 SECONDI <span class="cyan">SENZA ECO</span></div>
+        <div class="step-sub">Niente riverbero della stanza, niente musica sotto</div>
+      </div>
+      <div id="b2-warn">ECO O MUSICA = CLONE METALLICO</div>
+    </div>
+
+    <!-- BEAT 3: Step 2 & 3 ElevenLabs + Pause -->
+    <div class="scene-layer" id="beat3">
+      <div id="b3-stack">
+        <div class="b3-item" id="b3-step2">
+          <div class="b3-num">02</div>
+          <div>
+            <div class="b3-label">PROFILO SU ELEVENLABS</div>
+            <div class="b3-desc">Carichi la traccia e crei la tua impronta vocale</div>
+          </div>
+        </div>
+        <div class="b3-item" id="b3-step3">
+          <div class="b3-num violet">03</div>
+          <div>
+            <div class="b3-label">TESTO + PAUSE E PUNTEGGIATURA</div>
+            <div class="b3-desc">Legge col tuo timbro e le tue inflessioni naturali</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEAT 4: Risultato Empirico 5x -->
+    <div class="scene-layer" id="beat4">
+      <div id="b4-card">
+        <div class="step-eye" style="color:#4ade80;">NEI MIEI TEST • OUTPUT REALE</div>
+        <div class="step-h"><span class="green">5× PIÙ VELOCE</span> A PRODURLI</div>
+        <div class="step-sub">Zero 20 registrazioni rifatte per una parola sbagliata</div>
+      </div>
+    </div>
+
+    <!-- BEAT 5: Outro Cosmico -->
+    <div class="scene-layer" id="beat5">
+      <div id="b5-card">
+        <div id="b5-pill">SETTAGGI &amp; PROMPT ESPRESSIVI</div>
+        <div id="b5-url">capirelai.com</div>
+        <div id="b5-desc">
+          Guida pratica gratuita sul voice cloning<br/>
+          con i parametri reali dei miei test
+        </div>
+        <div id="b5-cta">COMMENTA &quot;VOCE&quot; O LINK IN BIO</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sub-wrap">
+    <div id="sub-pill"></div>
+  </div>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const CUES = await (await fetch('/cues.json')).json();
+const DURATION = CUES.duration;
+const PHRASES = CUES.phrases;
+
+function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smoothstep(e0, e1, x) {
+  const t = clamp01((x - e0) / (e1 - e0));
+  return t * t * (3 - 2 * t);
+}
+function springPop(tLocal, freq = 14, damp = 6.5) {
+  if (tLocal <= 0) return 0;
+  if (tLocal > 1.2) return 1;
+  return 1 - Math.exp(-damp * tLocal) * Math.cos(freq * tLocal);
+}
+function hash01(seed) {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453123;
+  return x - Math.floor(x);
+}
+
+await document.fonts.ready;
+
+const canvas = document.getElementById('webgl-canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: true,
+});
+renderer.setSize(540, 960, false);
+renderer.setPixelRatio(1);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.24;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x02040a);
+scene.fog = new THREE.FogExp2(0x02040c, 0.042);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+pmrem.dispose();
+
+// Deep Space Studio Lighting
+const hemi = new THREE.HemisphereLight(0x93c5fd, 0x040816, 0.9);
+scene.add(hemi);
+
+const cyanKey = new THREE.PointLight(0x38bdf8, 38, 34, 1.35);
+cyanKey.position.set(-2.5, 3.2, 4.5);
+scene.add(cyanKey);
+
+const violetRim = new THREE.PointLight(0x818cf8, 30, 34, 1.4);
+violetRim.position.set(3.5, 2.5, -4.0);
+scene.add(violetRim);
+
+const dirLight = new THREE.DirectionalLight(0xe0f2fe, 2.1);
+dirLight.position.set(-4, 6, 5);
+scene.add(dirLight);
+
+const camera = new THREE.PerspectiveCamera(38, 1080 / 1920, 0.1, 140);
+
+// Soft Radial Particle Sprite Texture (for crisp glowing cosmic & neural points)
+function createGlowParticleTex() {
+  const c = document.createElement('canvas');
+  c.width = 64;
+  c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.28, 'rgba(186,230,253,0.92)');
+  g.addColorStop(0.65, 'rgba(56,189,248,0.32)');
+  g.addColorStop(1, 'rgba(2,4,10,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const particleTex = createGlowParticleTex();
+
+// 1. DEEP SPACE STARFIELD + COSMIC NEBULA
+const starCount = 1600;
+const starPos = new Float32Array(starCount * 3);
+const starCol = new Float32Array(starCount * 3);
+for (let i = 0; i < starCount; i++) {
+  const s1 = hash01(i * 3 + 1);
+  const s2 = hash01(i * 3 + 2);
+  const s3 = hash01(i * 3 + 3);
+  starPos[i * 3] = (s1 - 0.5) * 48;
+  starPos[i * 3 + 1] = (s2 - 0.5) * 36;
+  starPos[i * 3 + 2] = 6 - s3 * 64;
+  const tint = s3 > 0.72 ? [0.22, 0.78, 1.0] : s3 > 0.45 ? [0.58, 0.65, 1.0] : [0.90, 0.95, 1.0];
+  starCol[i * 3] = tint[0];
+  starCol[i * 3 + 1] = tint[1];
+  starCol[i * 3 + 2] = tint[2];
+}
+const starGeo = new THREE.BufferGeometry();
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+starGeo.setAttribute('color', new THREE.BufferAttribute(starCol, 3));
+const starPoints = new THREE.Points(
+  starGeo,
+  new THREE.PointsMaterial({
+    size: 0.13,
+    map: particleTex,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.9,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+);
+scene.add(starPoints);
+
+function createNebulaTex(innerHex, outerHex) {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 512;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(256, 256, 12, 256, 256, 256);
+  g.addColorStop(0, innerHex);
+  g.addColorStop(0.48, outerHex);
+  g.addColorStop(1, 'rgba(2,4,10,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 512, 512);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const neb1 = new THREE.Mesh(
+  new THREE.PlaneGeometry(38, 38),
+  new THREE.MeshBasicMaterial({
+    map: createNebulaTex('rgba(56,189,248,0.26)', 'rgba(30,58,138,0.10)'),
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+);
+neb1.position.set(-2, 1.5, -42);
+scene.add(neb1);
+
+const neb2 = new THREE.Mesh(
+  new THREE.PlaneGeometry(34, 34),
+  new THREE.MeshBasicMaterial({
+    map: createNebulaTex('rgba(129,140,248,0.22)', 'rgba(49,46,129,0.09)'),
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  })
+);
+neb2.position.set(4, -2.5, -39);
+scene.add(neb2);
+
+// 2. CAPIRELAI SIGNATURE "AXON" TOROIDAL NEURAL RING (True Full-Circle Particle Cloud + Neural Filaments)
+function buildAxonRing(particleCount = 9500) {
+  const g = new THREE.Group();
+  const pos = new Float32Array(particleCount * 3);
+  const col = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+    const u = hash01(i * 5 + 11);
+    const v = hash01(i * 5 + 23);
+    const w = hash01(i * 5 + 37);
+    const k = hash01(i * 5 + 53);
+
+    const angle = u * Math.PI * 2;
+    const tubeA = v * Math.PI * 2;
+    const rMajor = 1.45 + 0.24 * Math.sin(angle * 2.0 + 0.6) + 0.12 * Math.cos(angle * 3.0);
+    const rTube = (0.38 + 0.11 * Math.sin(angle * 3.0 + 1.2)) * Math.pow(w, 0.35);
+
+    const cx = (rMajor + rTube * Math.cos(tubeA)) * Math.cos(angle);
+    const cy = (rMajor + rTube * Math.cos(tubeA)) * Math.sin(angle);
+    const cz = rTube * Math.sin(tubeA) * 1.15;
+
+    pos[i * 3] = cx;
+    pos[i * 3 + 1] = cy;
+    pos[i * 3 + 2] = cz;
+
+    // Color blend matching capirelai.com Axon shader (deep steel -> cyanBlue #33bfff -> electric violet)
+    const bright = Math.pow(w, 1.35);
+    const r = lerp(0.10, k > 0.72 ? 0.54 : 0.22, bright);
+    const gr = lerp(0.16, k > 0.72 ? 0.58 : 0.78, bright);
+    const b = lerp(0.28, 1.0, bright);
+    col[i * 3] = r;
+    col[i * 3 + 1] = gr;
+    col[i * 3 + 2] = b;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+  const ptsMat = new THREE.PointsMaterial({
+    size: 0.088,
+    map: particleTex,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.94,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const pts = new THREE.Points(geo, ptsMat);
+
+  // Inner dark metallic sculpted core + cyan glowing filament rings for tactile depth
+  const innerTorus = new THREE.Mesh(
+    new THREE.TorusGeometry(1.46, 0.16, 20, 96),
+    new THREE.MeshStandardMaterial({
+      color: 0x091122,
+      metalness: 0.88,
+      roughness: 0.22,
+      emissive: 0x0284c7,
+      emissiveIntensity: 0.28,
+      transparent: true,
+      opacity: 0.75,
+    })
+  );
+  const filament1 = new THREE.Mesh(
+    new THREE.TorusGeometry(1.68, 0.016, 10, 96),
+    new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.65 })
+  );
+  filament1.rotation.x = 0.22;
+  const filament2 = new THREE.Mesh(
+    new THREE.TorusGeometry(1.24, 0.014, 10, 96),
+    new THREE.MeshBasicMaterial({ color: 0x818cf8, transparent: true, opacity: 0.55 })
+  );
+  filament2.rotation.y = 0.26;
+
+  g.add(innerTorus, filament1, filament2, pts);
+  g.rotation.set(-0.46, 0.34, 0.12);
+  return { group: g, ptsMat, filament1, filament2 };
+}
+
+const axonHero = buildAxonRing(9000);
+axonHero.group.position.set(0.0, -0.35, -4.4);
+axonHero.group.scale.setScalar(1.18);
+scene.add(axonHero.group);
+
+const axonOutro = buildAxonRing(11500);
+axonOutro.group.position.set(0.0, -1.25, -31.5);
+axonOutro.group.scale.setScalar(1.05);
+scene.add(axonOutro.group);
+
+// 3. INTERCONNECTED 3D NEURAL NETWORK WEB (5 Spaced Cosmic Stations + Electric Synapses)
+const stationPositions = [
+  new THREE.Vector3(0.0, -0.35, 0.0),      // Station 1: Mic Hook
+  new THREE.Vector3(7.2, 0.55, -8.5),      // Station 2: Oscilloscope 30s Clean
+  new THREE.Vector3(14.8, -0.55, -16.2),   // Station 3: ElevenLabs + Script Nodes
+  new THREE.Vector3(6.8, -1.55, -24.0),    // Station 4: 5x Speedup
+  new THREE.Vector3(0.0, -1.25, -31.5),    // Station 5: Cosmic Axon Outro
+];
+
+const neuralNodes = [];
+const nodeMat = new THREE.MeshStandardMaterial({
+  color: 0x0f172a,
+  metalness: 0.72,
+  roughness: 0.24,
+  emissive: 0x0284c7,
+  emissiveIntensity: 0.85,
+});
+const nodeCoreMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc });
+const nodeGeo = new THREE.IcosahedronGeometry(0.15, 2);
+const ringGeo = new THREE.TorusGeometry(0.26, 0.016, 10, 32);
+
+for (let i = 0; i < 28; i++) {
+  const s1 = hash01(i * 7 + 101);
+  const s2 = hash01(i * 7 + 102);
+  const s3 = hash01(i * 7 + 103);
+  const p = new THREE.Vector3(-6 + s1 * 26, -5 + s2 * 10, 1.0 - s3 * 36);
+  if (stationPositions.some((st) => st.distanceTo(p) < 3.0)) continue;
+
+  const g = new THREE.Group();
+  g.position.copy(p);
+  const core = new THREE.Mesh(nodeGeo, nodeMat);
+  const halo = new THREE.Mesh(ringGeo, nodeCoreMat);
+  halo.rotation.set(s1 * Math.PI, s2 * Math.PI, 0);
+  g.add(core, halo);
+  scene.add(g);
+  neuralNodes.push({ group: g, pos: p, phase: i * 0.7 });
+}
+
+// Travelling Electric Pulse Shader along Curved Neural Synapses
+const synapseMat = new THREE.ShaderMaterial({
+  uniforms: { uTime: { value: 0 } },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    varying vec2 vUv;
+    void main() {
+      float pulse1 = exp(-pow(fract(vUv.x - uTime * 0.42) - 0.5, 2.0) * 90.0);
+      float pulse2 = exp(-pow(fract(vUv.x - uTime * 0.42 + 0.5) - 0.5, 2.0) * 110.0);
+      float intensity = 0.16 + 0.95 * (pulse1 + pulse2 * 0.65);
+      vec3 base = vec3(0.08, 0.25, 0.52);
+      vec3 glow = vec3(0.28, 0.85, 1.0);
+      vec3 col = mix(base, glow, clamp(pulse1 + pulse2, 0.0, 1.0));
+      gl_FragColor = vec4(col * intensity, clamp(0.25 + pulse1 * 0.70, 0.0, 0.92));
+    }
+  `,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+
+function addSynapse(a, b, arch = 1.6) {
+  const mid = a.clone().add(b).multiplyScalar(0.5);
+  mid.y += arch;
+  const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+  const tube = new THREE.TubeGeometry(curve, 36, 0.022, 6, false);
+  scene.add(new THREE.Mesh(tube, synapseMat));
+}
+
+addSynapse(
+  stationPositions[0].clone().add(new THREE.Vector3(0, -1.1, -0.8)),
+  stationPositions[1].clone().add(new THREE.Vector3(0, -1.45, -1.2)),
+  -1.2
+);
+addSynapse(
+  stationPositions[1].clone().add(new THREE.Vector3(0, -1.45, -1.2)),
+  stationPositions[2].clone().add(new THREE.Vector3(0, -1.2, -1.0)),
+  -1.3
+);
+addSynapse(
+  stationPositions[2].clone().add(new THREE.Vector3(0, -1.2, -1.0)),
+  stationPositions[3].clone().add(new THREE.Vector3(0, -1.35, -1.0)),
+  1.1
+);
+addSynapse(
+  stationPositions[3].clone().add(new THREE.Vector3(0, -1.35, -1.0)),
+  stationPositions[4].clone().add(new THREE.Vector3(0, -0.4, -1.2)),
+  -1.1
+);
+for (let i = 0; i < neuralNodes.length - 1; i++) {
+  if (neuralNodes[i].pos.distanceTo(neuralNodes[i + 1].pos) < 12) {
+    addSynapse(neuralNodes[i].pos, neuralNodes[i + 1].pos, (i % 2 === 0 ? 1 : -1) * 0.9);
+  }
+}
+for (let i = 0; i < neuralNodes.length; i += 2) {
+  const st = stationPositions[i % stationPositions.length].clone().add(new THREE.Vector3(0, -0.8, -1.2));
+  if (neuralNodes[i].pos.distanceTo(st) < 13) addSynapse(neuralNodes[i].pos, st, -0.95);
+}
+
+// 4. STATION 1 HERO: COMPOSITE PBR STUDIO MICROPHONE + SLEEK ORBITAL EQ + LASER SCANNER
+const micStage = new THREE.Group();
+micStage.position.copy(stationPositions[0]);
+scene.add(micStage);
+
+const micGroup = new THREE.Group();
+micGroup.position.set(0, -0.42, 0);
+micGroup.scale.setScalar(0.86);
+micStage.add(micGroup);
+
+const gunmetalMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.88, roughness: 0.24 });
+const brushedMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.78, roughness: 0.36 });
+const meshGrillMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.6, roughness: 0.5, wireframe: true });
+const micRingMat = new THREE.MeshStandardMaterial({
+  color: 0x38bdf8,
+  emissive: 0x38bdf8,
+  emissiveIntensity: 1.6,
+  roughness: 0.2,
+});
+
+const micBody = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.28, 0.92, 32), gunmetalMat);
+micBody.position.y = 0.32;
+const micCollar = new THREE.Mesh(new THREE.TorusGeometry(0.325, 0.032, 16, 40), micRingMat);
+micCollar.rotation.x = Math.PI / 2;
+micCollar.position.y = 0.78;
+const micHead = new THREE.Mesh(new THREE.SphereGeometry(0.33, 24, 18, 0, Math.PI * 2, 0, Math.PI * 0.62), brushedMat);
+micHead.position.y = 0.80;
+const micGrill = new THREE.Mesh(new THREE.SphereGeometry(0.345, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), meshGrillMat);
+micGrill.position.y = 0.80;
+const micYokeCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-0.42, 0.38, 0),
+  new THREE.Vector3(-0.42, -0.36, 0),
+  new THREE.Vector3(0, -0.44, 0),
+  new THREE.Vector3(0.42, -0.36, 0),
+  new THREE.Vector3(0.42, 0.38, 0),
+]);
+const micYoke = new THREE.Mesh(new THREE.TubeGeometry(micYokeCurve, 28, 0.038, 12, false), brushedMat);
+const micStem = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.07, 0.38, 18), gunmetalMat);
+micStem.position.y = -0.62;
+const micBase = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.11, 32), gunmetalMat);
+micBase.position.y = -0.82;
+micGroup.add(micBody, micCollar, micHead, micGrill, micYoke, micStem, micBase);
+
+// Sleek thin orbital voice equalizer ticks around the lower mic waist (never obscuring the mic grill!)
+const micWaveBars = [];
+const barGeo = new THREE.BoxGeometry(0.028, 0.46, 0.028);
+for (let i = 0; i < 32; i++) {
+  const ang = (i / 32) * Math.PI * 2;
+  const m = new THREE.Mesh(
+    barGeo,
+    new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0x38bdf8 : 0x818cf8, transparent: true, opacity: 0.85 })
+  );
+  m.position.set(Math.cos(ang) * 0.82, -0.18, Math.sin(ang) * 0.82);
+  m.lookAt(0, -0.18, 0);
+  micStage.add(m);
+  micWaveBars.push({ mesh: m, ang, idx: i });
+}
+
+const laserRingMat = new THREE.MeshBasicMaterial({
+  color: 0x38bdf8,
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+});
+const laserRing = new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.026, 12, 64), laserRingMat);
+laserRing.rotation.x = Math.PI / 2;
+micStage.add(laserRing);
+
+// 5. STATION 2: 3D HOLOGRAPHIC OSCILLOSCOPE CONSOLE (Framed cleanly within 9:16 margins!)
+const scopeGroup = new THREE.Group();
+scopeGroup.position.copy(stationPositions[1]);
+scopeGroup.position.y -= 0.02;
+scopeGroup.scale.setScalar(0.70);
+scene.add(scopeGroup);
+
+function buildOscilloscopeTexture() {
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 720;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#030816';
+  ctx.fillRect(0, 0, 1024, 720);
+  ctx.strokeStyle = 'rgba(56,189,248,0.16)';
+  ctx.lineWidth = 2;
+  for (let x = 40; x < 1000; x += 64) {
+    ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, 680); ctx.stroke();
+  }
+  for (let y = 40; y < 700; y += 64) {
+    ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(984, y); ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.14)';
+  ctx.fillRect(48, 56, 928, 260);
+  ctx.strokeStyle = '#34d399';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(48, 56, 928, 260);
+  ctx.fillStyle = '#4ade80';
+  ctx.font = 'bold 34px monospace';
+  ctx.fillText('OK • AUDIO PULITO 30s (ZERO ECO)', 78, 114);
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  for (let x = 80; x <= 940; x += 6) {
+    const t = (x - 80) / 860;
+    const env = Math.sin(t * Math.PI);
+    const y = 215 + Math.sin(t * 28) * 58 * env * Math.cos(t * 7);
+    if (x === 80) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(244, 63, 94, 0.14)';
+  ctx.fillRect(48, 372, 928, 285);
+  ctx.strokeStyle = '#fb7185';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(48, 372, 928, 285);
+  ctx.fillStyle = '#fda4af';
+  ctx.font = 'bold 34px monospace';
+  ctx.fillText('ERRORE • ECO + MUSICA = METALLICO', 78, 430);
+  ctx.strokeStyle = '#fb7185';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  for (let x = 80; x <= 940; x += 4) {
+    const t = (x - 80) / 860;
+    const jitter = Math.sin(t * 140) * 44 + Math.cos(t * 230) * 32;
+    const y = 545 + jitter;
+    if (x === 80) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+const scopeFrame = new THREE.Mesh(
+  new THREE.BoxGeometry(3.18, 2.28, 0.16),
+  new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.25 })
+);
+const scopeScreen = new THREE.Mesh(
+  new THREE.PlaneGeometry(2.96, 2.08),
+  new THREE.MeshBasicMaterial({ map: buildOscilloscopeTexture() })
+);
+scopeScreen.position.z = 0.09;
+const scopeTrim = new THREE.Mesh(
+  new THREE.BoxGeometry(3.24, 2.34, 0.08),
+  new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.35 })
+);
+scopeGroup.add(scopeFrame, scopeScreen, scopeTrim);
+scopeGroup.rotation.y = -0.10;
+
+// 6. STATION 3: DUAL CRYSTALLINE HOLOGRAPHIC NODES (100% unclipped inside 9:16 margins!)
+const matrixGroup = new THREE.Group();
+matrixGroup.position.copy(stationPositions[2]);
+matrixGroup.position.y -= 0.35;
+matrixGroup.scale.setScalar(0.75);
+scene.add(matrixGroup);
+
+function buildHoloCapsule(title, sub, accentHex, xOffset) {
+  const g = new THREE.Group();
+  g.position.set(xOffset, 0, 0);
+
+  const shell = new THREE.Mesh(
+    new THREE.BoxGeometry(1.42, 1.92, 0.22),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x09152b,
+      metalness: 0.35,
+      roughness: 0.12,
+      clearcoat: 1.0,
+      transparent: true,
+      opacity: 0.90,
+    })
+  );
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 680;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#040a18';
+  ctx.fillRect(0, 0, 512, 680);
+  ctx.strokeStyle = accentHex;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(18, 18, 476, 644);
+  ctx.fillStyle = accentHex;
+  ctx.font = 'bold 44px monospace';
+  ctx.fillText(title, 48, 118);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = 'bold 30px sans-serif';
+  ctx.fillText(sub, 48, 182);
+
+  for (let i = 0; i < 18; i++) {
+    const h = 36 + Math.abs(Math.sin(i * 0.85)) * 150;
+    ctx.fillStyle = accentHex;
+    ctx.fillRect(48 + i * 23, 390 - h / 2, 14, h);
+  }
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 26px monospace';
+  ctx.fillText('[ TIMBRO + PAUSE ]', 48, 580);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const face = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.30, 1.78),
+    new THREE.MeshBasicMaterial({ map: tex })
+  );
+  face.position.z = 0.12;
+
+  const orbitRing = new THREE.Mesh(
+    new THREE.TorusGeometry(1.06, 0.022, 12, 48),
+    new THREE.MeshBasicMaterial({ color: accentHex, transparent: true, opacity: 0.72 })
+  );
+  orbitRing.rotation.x = Math.PI * 0.38;
+
+  g.add(shell, face, orbitRing);
+  return { group: g, orbitRing };
+}
+
+const capEleven = buildHoloCapsule('02 ELEVEN', 'VOICE PROFILE', '#38bdf8', -0.92);
+const capScript = buildHoloCapsule('03 SCRIPT', 'PAUSE & RITMO', '#a5b4fc', 0.92);
+matrixGroup.add(capEleven.group, capScript.group);
+addSynapse(
+  stationPositions[2].clone().add(new THREE.Vector3(-0.70, -0.35, 0)),
+  stationPositions[2].clone().add(new THREE.Vector3(0.70, -0.35, 0)),
+  0.55
+);
+
+// 7. STATION 4: MONUMENTAL "5x" EMBLEM + 20 COLLAPSING TAKE ORBS
+const speedGroup = new THREE.Group();
+speedGroup.position.copy(stationPositions[3]);
+speedGroup.position.y -= 0.42;
+speedGroup.scale.setScalar(0.78);
+scene.add(speedGroup);
+
+function build5xPlaque() {
+  const c = document.createElement('canvas');
+  c.width = 640;
+  c.height = 640;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#030816';
+  ctx.fillRect(0, 0, 640, 640);
+  ctx.strokeStyle = '#4ade80';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(24, 24, 592, 592);
+  ctx.fillStyle = '#4ade80';
+  ctx.font = 'bold 270px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('5×', 320, 290);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = 'bold 42px monospace';
+  ctx.fillText('PIÙ VELOCE', 320, 495);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const g = new THREE.Group();
+  const core = new THREE.Mesh(
+    new THREE.BoxGeometry(2.05, 2.05, 0.34),
+    new THREE.MeshPhysicalMaterial({ color: 0x0b172e, metalness: 0.72, roughness: 0.18, clearcoat: 1.0 })
+  );
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(1.92, 1.92), new THREE.MeshBasicMaterial({ map: tex }));
+  face.position.z = 0.18;
+  const turboRing1 = new THREE.Mesh(
+    new THREE.TorusGeometry(1.48, 0.036, 16, 64),
+    new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+  );
+  const turboRing2 = new THREE.Mesh(
+    new THREE.TorusGeometry(1.72, 0.024, 16, 64),
+    new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+  );
+  g.add(core, face, turboRing1, turboRing2);
+  return { group: g, turboRing1, turboRing2 };
+}
+
+const emblem5x = build5xPlaque();
+speedGroup.add(emblem5x.group);
+
+const takeOrbs = [];
+const orbGeo = new THREE.SphereGeometry(0.11, 14, 14);
+for (let i = 0; i < 20; i++) {
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xfb7185,
+    emissive: 0xe11d48,
+    emissiveIntensity: 0.9,
+    transparent: true,
+    opacity: 0.95,
+  });
+  const m = new THREE.Mesh(orbGeo, mat);
+  const ang = (i / 20) * Math.PI * 2;
+  const rad = 2.0 + (i % 3) * 0.24;
+  m.position.set(Math.cos(ang) * rad, Math.sin(ang * 2) * 0.5, Math.sin(ang) * rad * 0.6);
+  speedGroup.add(m);
+  takeOrbs.push({ mesh: m, mat, ang, rad, idx: i });
+}
+
+// DOM handles
+const elB1 = document.getElementById('beat1');
+const elB1Title = document.getElementById('b1-title');
+const elB2 = document.getElementById('beat2');
+const elB2Card = document.getElementById('b2-card');
+const elB2Warn = document.getElementById('b2-warn');
+const elB3 = document.getElementById('beat3');
+const elB3S2 = document.getElementById('b3-step2');
+const elB3S3 = document.getElementById('b3-step3');
+const elB4 = document.getElementById('beat4');
+const elB4Card = document.getElementById('b4-card');
+const elB5 = document.getElementById('beat5');
+const elB5Card = document.getElementById('b5-card');
+const elSubWrap = document.getElementById('sub-wrap');
+const elSubPill = document.getElementById('sub-pill');
+const elProgress = document.getElementById('progress-fill');
+
+window.setReelTime = function (t) {
+  elProgress.style.width = `${clamp01(t / DURATION) * 100}%`;
+
+  // Animate Axon Neural Rings & Synapses
+  synapseMat.uniforms.uTime.value = t;
+  axonHero.group.rotation.y = 0.34 + t * 0.14;
+  axonHero.filament1.rotation.z = t * 0.35;
+  axonHero.filament2.rotation.z = -t * 0.28;
+
+  axonOutro.group.rotation.y = 0.34 + t * 0.18;
+  axonOutro.group.rotation.x = -0.46 + Math.sin(t * 0.55) * 0.14;
+  axonOutro.filament1.rotation.z = t * 0.42;
+  axonOutro.filament2.rotation.z = -t * 0.32;
+
+  const clonePulse = Math.exp(-Math.pow(t - CUES.clonataWord, 2) * 18.0);
+  axonHero.ptsMat.size = 0.088 + clonePulse * 0.035;
+  axonOutro.ptsMat.size = 0.095 + Math.exp(-Math.pow(t - CUES.urlWord, 2) * 10.0) * 0.04;
+  starPoints.rotation.y = t * 0.008;
+
+  for (const n of neuralNodes) {
+    n.group.rotation.y = t * 0.4 + n.phase;
+    n.group.position.y = n.pos.y + Math.sin(t * 1.4 + n.phase) * 0.09;
+  }
+
+  // Station 1 Mic + Equalizer + Laser Reveal
+  const micReveal = smoothstep(CUES.nonRegWord - 0.12, CUES.nonRegWord + 0.55, t);
+  micGroup.rotation.y = Math.sin(t * 0.9) * 0.24 + micReveal * 0.42;
+  micGroup.rotation.z = micReveal * 0.12;
+  micRingMat.color.setHex(micReveal > 0.35 ? 0xfb7185 : 0x38bdf8);
+  micRingMat.emissive.setHex(micReveal > 0.35 ? 0xfb7185 : 0x38bdf8);
+
+  const laserProg = clamp01((t - CUES.nonRegWord) / 0.85);
+  laserRing.scale.setScalar(0.75 + laserProg * 2.1);
+  laserRing.position.y = -0.35 + Math.sin(laserProg * Math.PI) * 1.05;
+  laserRingMat.opacity = laserProg > 0 && laserProg < 1 ? Math.sin(laserProg * Math.PI) * 0.95 : 0;
+
+  for (const b of micWaveBars) {
+    const h = 0.22 + Math.abs(Math.sin(t * 9.5 + b.idx * 0.55) * Math.cos(t * 3.1 + b.idx)) * 0.78;
+    b.mesh.scale.y = h;
+  }
+
+  // Station 2 Oscilloscope
+  scopeGroup.position.y = stationPositions[1].y - 0.02 + Math.sin(t * 1.5) * 0.05;
+  scopeGroup.rotation.y = -0.10 + Math.sin(t * 0.8) * 0.06;
+
+  // Station 3 Capsules
+  capEleven.group.position.y = Math.sin(t * 1.8) * 0.07;
+  capEleven.orbitRing.rotation.z = t * 0.9;
+  capScript.group.position.y = Math.sin(t * 1.8 + 1.4) * 0.07;
+  capScript.orbitRing.rotation.z = -t * 0.9;
+
+  // Station 4 5x Emblem + 20 Collapsing Takes
+  const collapse = smoothstep(CUES.ventiWord - 0.1, CUES.ventiWord + 1.2, t);
+  emblem5x.group.rotation.y = Math.sin(t * 1.1) * 0.18;
+  emblem5x.turboRing1.rotation.x = t * 1.6;
+  emblem5x.turboRing1.rotation.y = t * 1.1;
+  emblem5x.turboRing2.rotation.x = -t * 1.3;
+  emblem5x.turboRing2.rotation.z = t * 1.5;
+  for (const o of takeOrbs) {
+    const a = o.ang + t * 0.75;
+    const r = lerp(o.rad, 0.2, collapse);
+    o.mesh.position.set(Math.cos(a) * r, Math.sin(a * 2) * 0.42 * (1 - collapse), Math.sin(a) * r * 0.6);
+    o.mesh.scale.setScalar(1 - collapse * 0.92);
+    o.mat.opacity = 1 - collapse;
+  }
+
+  // Continuous Cosmic Flight Camera Path (ZERO CUTS, wide enough so 3D props NEVER clip left/right!)
+  const p12 = smoothstep(CUES.b2Start - 0.55, CUES.b2Start + 0.55, t);
+  const p23 = smoothstep(CUES.b3Start - 0.55, CUES.b3Start + 0.55, t);
+  const p34 = smoothstep(CUES.b4Start - 0.55, CUES.b4Start + 0.55, t);
+  const p45 = smoothstep(CUES.b5Start - 0.55, CUES.b5Start + 0.55, t);
+
+  // Beat 1: Mic framed below #b1-sub, Axon Neural Ring glowing behind
+  let camX = lerp(-0.30, 0.22, smoothstep(0, CUES.b2Start, t));
+  let camY = lerp(0.18, 0.35, smoothstep(0, CUES.b2Start, t));
+  let camZ = lerp(5.15, 4.45, smoothstep(0, CUES.b2Start, t));
+  let lookX = 0.0;
+  let lookY = -0.18;
+  let lookZ = -0.4;
+
+  // Beat 2: Full Oscilloscope centered strictly between #b2-card and #b2-warn
+  camX = lerp(camX, stationPositions[1].x, p12);
+  camY = lerp(camY, stationPositions[1].y + 0.25, p12);
+  camZ = lerp(camZ, stationPositions[1].z + 7.45, p12);
+  lookX = lerp(lookX, stationPositions[1].x, p12);
+  lookY = lerp(lookY, stationPositions[1].y - 0.12, p12);
+  lookZ = lerp(lookZ, stationPositions[1].z, p12);
+
+  // Beat 3: Dual ElevenLabs + Script Capsules completely unclipped below #b3-stack
+  camX = lerp(camX, stationPositions[2].x, p23);
+  camY = lerp(camY, stationPositions[2].y + 0.35, p23);
+  camZ = lerp(camZ, stationPositions[2].z + 7.85, p23);
+  lookX = lerp(lookX, stationPositions[2].x, p23);
+  lookY = lerp(lookY, stationPositions[2].y - 0.12, p23);
+  lookZ = lerp(lookZ, stationPositions[2].z, p23);
+
+  // Beat 4: 5x Speedup Neural Station cleanly framed
+  camX = lerp(camX, stationPositions[3].x, p34);
+  camY = lerp(camY, stationPositions[3].y + 0.30, p34);
+  camZ = lerp(camZ, stationPositions[3].z + 7.45, p34);
+  lookX = lerp(lookX, stationPositions[3].x, p34);
+  lookY = lerp(lookY, stationPositions[3].y - 0.22, p34);
+  lookZ = lerp(lookZ, stationPositions[3].z, p34);
+
+  // Beat 5: Majestic Axon Cosmic Neural Ring centered right below #b5-card and above subtitle!
+  camX = lerp(camX, stationPositions[4].x, p45);
+  camY = lerp(camY, stationPositions[4].y + 0.85, p45);
+  camZ = lerp(camZ, stationPositions[4].z + 9.2, p45);
+  lookX = lerp(lookX, stationPositions[4].x, p45);
+  lookY = lerp(lookY, stationPositions[4].y + 0.45, p45);
+  lookZ = lerp(lookZ, stationPositions[4].z, p45);
+
+  camera.position.set(
+    camX + Math.sin(t * 0.9) * 0.03,
+    camY + Math.cos(t * 0.75) * 0.025,
+    camZ
+  );
+  camera.lookAt(lookX, lookY, lookZ);
+
+  cyanKey.position.set(camX - 2.2, camY + 2.5, camZ - 1.5);
+  violetRim.position.set(camX + 2.8, camY + 1.5, camZ - 4.5);
+
+  // DOM HUD Transitions
+  elB1.style.opacity = String(1 - smoothstep(CUES.b2Start - 0.35, CUES.b2Start + 0.05, t));
+  const pop1 = springPop(t - 0.06, 13, 6.8);
+  elB1Title.style.transform = `translateY(${lerp(30, 0, pop1)}px) scale(${lerp(0.92, 1.0, pop1)})`;
+
+  const b2Vis = smoothstep(CUES.b2Start - 0.25, CUES.b2Start + 0.15, t) * (1 - smoothstep(CUES.b3Start - 0.35, CUES.b3Start + 0.05, t));
+  elB2.style.opacity = String(b2Vis);
+  const pop2 = springPop(t - CUES.b2Start, 14, 6.8);
+  elB2Card.style.transform = `translateY(${lerp(24, 0, pop2)}px)`;
+  const warnVis = smoothstep(CUES.metallicoWord - 0.85, CUES.metallicoWord - 0.45, t);
+  elB2Warn.style.opacity = String(warnVis);
+  elB2Warn.style.transform = `scale(${lerp(0.90, 1.0, clamp01(springPop(t - (CUES.metallicoWord - 0.85), 14, 6.5)))})`;
+
+  const b3Vis = smoothstep(CUES.b3Start - 0.25, CUES.b3Start + 0.15, t) * (1 - smoothstep(CUES.b4Start - 0.35, CUES.b4Start + 0.05, t));
+  elB3.style.opacity = String(b3Vis);
+  const pS2 = springPop(t - CUES.dueWord, 14, 6.8);
+  const pS3 = springPop(t - CUES.treWord, 14, 6.8);
+  elB3S2.style.opacity = String(pS2 > 0.05 ? 1 : 0.35);
+  elB3S2.style.borderColor = pS2 > 0.05 ? '#38bdf8' : 'rgba(56,189,248,0.2)';
+  elB3S2.style.transform = `scale(${pS2 > 0.05 ? lerp(0.96, 1.01, clamp01(pS2)) : 0.96})`;
+  elB3S3.style.opacity = String(pS3 > 0.05 ? 1 : 0.35);
+  elB3S3.style.borderColor = pS3 > 0.05 ? '#a5b4fc' : 'rgba(129,140,248,0.2)';
+  elB3S3.style.transform = `scale(${pS3 > 0.05 ? lerp(0.96, 1.01, clamp01(pS3)) : 0.96})`;
+
+  const b4Vis = smoothstep(CUES.b4Start - 0.25, CUES.b4Start + 0.15, t) * (1 - smoothstep(CUES.b5Start - 0.35, CUES.b5Start + 0.05, t));
+  elB4.style.opacity = String(b4Vis);
+  const pop4 = springPop(t - CUES.b4Start, 14, 6.8);
+  elB4Card.style.transform = `translateY(${lerp(26, 0, pop4)}px) scale(${lerp(0.94, 1.0, pop4)})`;
+
+  const b5Vis = smoothstep(CUES.b5Start - 0.25, CUES.b5Start + 0.15, t);
+  elB5.style.opacity = String(b5Vis);
+  const pop5 = springPop(t - CUES.b5Start, 13, 6.8);
+  elB5Card.style.transform = `translateY(${lerp(32, 0, pop5)}px) scale(${lerp(0.93, 1.0, pop5)})`;
+
+  // Clause-synced kinetic subtitles
+  let activePhrase = null;
+  for (const ph of PHRASES) {
+    if (t >= ph.start && t <= ph.end + 0.16) { activePhrase = ph; break; }
+  }
+  if (activePhrase) {
+    elSubWrap.style.opacity = '1';
+    elSubPill.innerHTML = activePhrase.words
+      .map((w) => {
+        const isOn = t >= w.s && t <= w.e + 0.12;
+        return `<span class="sub-word ${isOn ? activePhrase.cls : ''}">${w.t}</span>`;
+      })
+      .join('');
+  } else {
+    elSubWrap.style.opacity = '0';
+  }
+
+  // Beat-based frustum/stage culling for fast SwiftShader rendering (zero visual difference)
+  axonHero.group.visible = t < CUES.b2Start + 0.75;
+  micStage.visible = t < CUES.b2Start + 0.75;
+  scopeGroup.visible = t > CUES.b2Start - 0.75 && t < CUES.b3Start + 0.75;
+  matrixGroup.visible = t > CUES.b3Start - 0.75 && t < CUES.b4Start + 0.75;
+  speedGroup.visible = t > CUES.b4Start - 0.75 && t < CUES.b5Start + 0.75;
+  axonOutro.group.visible = t > CUES.b4Start + 0.35;
+
+  renderer.render(scene, camera);
+};
+
+window.__REEL_READY__ = true;
+</script>
+</body>
+</html>

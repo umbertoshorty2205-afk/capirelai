@@ -73,6 +73,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   const resendKey = (process.env.RESEND_API_KEY || '').trim();
   const fromEmail = (process.env.NEWSLETTER_FROM_EMAIL || 'newsletter@capirelai.com').trim();
   const fromName = (process.env.NEWSLETTER_FROM_NAME || "Capire l'AI — Radar Pratica").trim();
+  const replyToEmail = (process.env.NEWSLETTER_REPLY_TO || 'umbertoshorty2205@gmail.com').trim();
 
   if (!brevoKey && !resendKey) {
     return res.status(400).json({
@@ -115,6 +116,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         },
         body: JSON.stringify({
           sender: { name: fromName, email: fromEmail },
+          replyTo: { email: replyToEmail, name: fromName },
           to: [{ email: toEmail, name: toName }],
           subject,
           htmlContent,

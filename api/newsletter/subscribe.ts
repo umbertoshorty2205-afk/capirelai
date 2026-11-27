@@ -79,6 +79,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   const brevoListId = Number(process.env.BREVO_LIST_ID || 0) || undefined;
   const fromEmail = (process.env.NEWSLETTER_FROM_EMAIL || 'newsletter@capirelai.com').trim();
   const fromName = (process.env.NEWSLETTER_FROM_NAME || "Capire l'AI — Radar Pratica").trim();
+  const replyToEmail = (process.env.NEWSLETTER_REPLY_TO || 'umbertoshorty2205@gmail.com').trim();
 
   if (!brevoKey && !resendKey) {
     return res.status(200).json({
@@ -118,7 +119,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         headers: { 'api-key': brevoKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          attributes: { NOME: name, SEGMENTO: segment, SOURCE: source },
+          attributes: { FIRSTNAME: name, NOME: name, SEGMENTO: segment, SOURCE: source },
           ...(brevoListId ? { listIds: [brevoListId] } : {}),
           updateEnabled: true,
         }),
@@ -137,6 +138,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         },
         body: JSON.stringify({
           sender: { name: fromName, email: fromEmail },
+          replyTo: { email: replyToEmail, name: fromName },
           to: [{ email, name }],
           subject,
           htmlContent,

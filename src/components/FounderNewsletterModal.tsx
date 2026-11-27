@@ -42,7 +42,36 @@ export const FounderNewsletterModal: React.FC<FounderNewsletterModalProps> = ({ 
     configured: boolean;
     provider: string;
     fromEmail: string;
-  }>({ configured: false, provider: 'none', fromEmail: 'newsletter@capirelai.com' });
+    replyToEmail: string;
+    brevoListId: number | null;
+  }>({
+    configured: false,
+    provider: 'none',
+    fromEmail: 'newsletter@capirelai.com',
+    replyToEmail: 'umbertoshorty2205@gmail.com',
+    brevoListId: null,
+  });
+
+  const [brevoLoadingAction, setBrevoLoadingAction] = useState<string | null>(null);
+  const [brevoDiag, setBrevoDiag] = useState<{
+    ok?: boolean;
+    error?: string;
+    account?: { email: string; companyName: string };
+    senders?: Array<{ email: string; name: string; active: boolean }>;
+    senderMatchesConfigured?: boolean;
+    configuredFromEmail?: string;
+    configuredListId?: number | null;
+    lists?: Array<{ id: number; name: string; totalSubscribers: number }>;
+    attributesReady?: boolean;
+    missingAttributes?: string[];
+    createdAttributes?: string[];
+    createdListId?: number | null;
+    listId?: number | null;
+    listName?: string | null;
+    to?: string;
+    messageId?: string;
+    action?: string;
+  } | null>(null);
 
   // Campaign Composer
   const [campSubject, setCampSubject] = useState('Radar AI Pratica: il test della settimana + flusso pronto');
@@ -76,6 +105,8 @@ export const FounderNewsletterModal: React.FC<FounderNewsletterModalProps> = ({ 
             configured: Boolean(d.configured),
             provider: String(d.provider || 'none'),
             fromEmail: String(d.fromEmail || 'newsletter@capirelai.com'),
+            replyToEmail: String(d.replyToEmail || 'umbertoshorty2205@gmail.com'),
+            brevoListId: typeof d.brevoListId === 'number' ? d.brevoListId : null,
           });
         }
       })
@@ -234,6 +265,29 @@ export const FounderNewsletterModal: React.FC<FounderNewsletterModalProps> = ({ 
     });
     setCatSaved(true);
     setTimeout(() => setCatSaved(false), 2200);
+  };
+
+  const handleBrevoAction = async (action: 'verify' | 'bootstrap' | 'test-email') => {
+    if (!user || !isAdmin) return;
+    setBrevoLoadingAction(action);
+    setBrevoDiag(null);
+    try {
+      const idToken = await user.getIdToken();
+      const resp = await fetch('/api/newsletter/brevo-setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ action }),
+      });
+      const data = await resp.json().catch(() => ({ ok: false, error: 'Risposta non valida dal server.' }));
+      setBrevoDiag(data);
+    } catch (err) {
+      setBrevoDiag({ ok: false, error: err instanceof Error ? err.message : 'Errore di rete.' });
+    } finally {
+      setBrevoLoadingAction(null);
+    }
   };
 
   return (
@@ -439,16 +493,100 @@ export const FounderNewsletterModal: React.FC<FounderNewsletterModalProps> = ({ 
             {/* TAB 2: EMAIL AUTOMATION & CAMPAIGN COMPOSER */}
             {tab === 'automation' && (
               <div className="space-y-6">
-                <div className="p-4 bg-white/[0.03] border border-white/10 rounded-lg text-xs text-slate-300 leading-relaxed">
-                  <strong className="text-white">Stato Automazione Server:</strong>{' '}
-                  {espStatus.configured ? (
-                    <span className="text-emerald-300">
-                      Collegato a {espStatus.provider.toUpperCase()} ({espStatus.fromEmail}). Ogni nuova iscrizione invia automaticamente Email #1 di benvenuto.
-                    </span>
-                  ) : (
-                    <span>
-                      Per far partire le email vere in automatico: imposta <code className="font-mono text-sky-400">BREVO_API_KEY</code> (consigliato: piano gratuito 300 email/giorno + automazione sequenza) oppure <code className="font-mono text-sky-400">RESEND_API_KEY</code> nei Secrets di ambiente.
-                    </span>
+                <div className="p-4 bg-white/[0.03] border border-white/10 rounded-xl space-y-3 text-xs text-slate-300 leading-relaxed">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <strong className="text-white">Stato Automazione Brevo:</strong>{' '}
+                      {espStatus.configured ? (
+                        <span className="text-emerald-300">
+                          ATTIVO ({espStatus.provider.toUpperCase()} · {espStatus.fromEmail}
+                          {espStatus.brevoListId ? ` · Lista #${espStatus.brevoListId}` : ' · BREVO_LIST_ID mancante'})
+                        </span>
+                      ) : (
+                        <span className="text-amber-300">
+                          Da collegare — imposta <code className="font-mono text-sky-400">BREVO_API_KEY</code> e <code className="font-mono text-sky-400">BREVO_LIST_ID</code> nei Secrets.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <button
+                      type="button"
+                      disabled={!espStatus.configured || Boolean(brevoLoadingAction)}
+                      onClick={() => handleBrevoAction('verify')}
+                      className="px-3.5 h-8 bg-white/10 hover:bg-white/15 disabled:opacity-40 text-xs font-semibold text-white rounded-md cursor-pointer border border-white/15"
+                    >
+                      {brevoLoadingAction === 'verify' ? 'Verifico...' : '1. Verifica Account & Liste Brevo'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!espStatus.configured || Boolean(brevoLoadingAction)}
+                      onClick={() => handleBrevoAction('bootstrap')}
+                      className="px-3.5 h-8 bg-sky-400/20 hover:bg-sky-400/30 disabled:opacity-40 text-xs font-semibold text-sky-300 rounded-md cursor-pointer border border-sky-400/40"
+                    >
+                      {brevoLoadingAction === 'bootstrap' ? 'Creo...' : '2. Crea Attributi & Lista su Brevo'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!espStatus.configured || Boolean(brevoLoadingAction)}
+                      onClick={() => handleBrevoAction('test-email')}
+                      className="px-3.5 h-8 bg-emerald-400/20 hover:bg-emerald-400/30 disabled:opacity-40 text-xs font-semibold text-emerald-300 rounded-md cursor-pointer border border-emerald-400/40"
+                    >
+                      {brevoLoadingAction === 'test-email' ? 'Invio test...' : '3. Invia Email #1 di Test'}
+                    </button>
+                  </div>
+
+                  {brevoDiag && (
+                    <div
+                      className={`p-3 rounded-lg border text-xs space-y-1 ${
+                        brevoDiag.ok
+                          ? 'bg-emerald-500/10 border-emerald-500/35 text-emerald-200'
+                          : 'bg-rose-500/10 border-rose-500/35 text-rose-200'
+                      }`}
+                    >
+                      {!brevoDiag.ok ? (
+                        <div>{brevoDiag.error || 'Errore nella verifica Brevo.'}</div>
+                      ) : brevoDiag.action === 'verify' ? (
+                        <>
+                          <div>
+                            Account Brevo connesso: <strong>{brevoDiag.account?.email}</strong> ({brevoDiag.account?.companyName || 'Capire l’AI'})
+                          </div>
+                          <div>
+                            Mittente configurato (<code>{brevoDiag.configuredFromEmail}</code>):{' '}
+                            {brevoDiag.senderMatchesConfigured ? (
+                              <span className="text-emerald-300 font-semibold">✓ Verificato su Brevo</span>
+                            ) : (
+                              <span className="text-amber-300 font-semibold">
+                                ⚠ Non ancora attivo tra i Senders Brevo ({brevoDiag.senders?.filter((s) => s.active).map((s) => s.email).join(', ') || 'nessuno attivo'})
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            Liste disponibili su Brevo:{' '}
+                            {brevoDiag.lists && brevoDiag.lists.length > 0
+                              ? brevoDiag.lists.map((l) => `#${l.id} "${l.name}" (${l.totalSubscribers})`).join(' · ')
+                              : 'nessuna lista trovata — clicca "2. Crea Attributi & Lista su Brevo"'}
+                          </div>
+                          <div>
+                            Attributi (NOME, SEGMENTO, SOURCE):{' '}
+                            {brevoDiag.attributesReady ? '✓ Pronti' : `Mancanti: ${brevoDiag.missingAttributes?.join(', ')}`}
+                          </div>
+                        </>
+                      ) : brevoDiag.action === 'bootstrap' ? (
+                        <div>
+                          ✓ Setup Brevo pronto! Lista <strong>&quot;{brevoDiag.listName || 'Radar Pratica'}&quot;</strong> ha ID{' '}
+                          <code className="font-mono text-white bg-black/40 px-1.5 py-0.5 rounded">BREVO_LIST_ID={brevoDiag.listId ?? '—'}</code>
+                          {brevoDiag.createdAttributes && brevoDiag.createdAttributes.length > 0
+                            ? ` · Attributi creati: ${brevoDiag.createdAttributes.join(', ')}`
+                            : ' · Tutti gli attributi erano già presenti.'}
+                        </div>
+                      ) : (
+                        <div>
+                          ✓ Email #1 di test inviata a <strong>{brevoDiag.to}</strong> (ID: {brevoDiag.messageId || 'ok'}). Controlla anche in Promozioni/Spam se il dominio mittente è nuovo.
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
 

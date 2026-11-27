@@ -184,6 +184,34 @@ interface InstagramReelItem {
 
 const INSTAGRAM_REELS: InstagramReelItem[] = [
   {
+    id: 'reel-14-voice-cloning-neural-space',
+    badge: 'NEURAL SPACE AXON • VOCE ELEVENLABS ALESSANDRO + IG/TIKTOK SAFE',
+    title: "Reel 14 // Come Clonare la Tua Voce con l'AI in 60s (Neural Space 3D)",
+    subtitle: "Dal brief Jarvis (27 Nov): ambientazione spazio profondo e rete neurale identica all'hero Axon di capirelai.com, piano sequenza continuo tra microfono 3D olografico, oscilloscopio pulito/eco, nodi ElevenLabs + acceleratore 5×, doppiato con la tua voce ElevenLabs Alessandro (-14 LUFS)",
+    video: "/instagram/reels/reel-14-voice-cloning-neural-space.mp4",
+    poster: "/instagram/reels/reel-14-poster.jpg",
+    filename: "reel-14-voice-cloning-neural-space.mp4",
+    duration: "40.4 sec",
+    specs: "1080×1920 24fps • Neural Space One-Take • IG & TikTok Safe • ElevenLabs Alessandro",
+    caption: `Questa voce che stai sentendo non l'ho registrata oggi al microfono: l'ho clonata con l'AI in meno di 60 secondi. 🎙️🧠
+
+Come replicare un clone vocale pulito (senza effetto robot) in 3 passaggi:
+1️⃣ Registra 30 secondi puliti: zero eco della stanza, zero musica sotto (altrimenti esce metallico).
+2️⃣ Caricali su ElevenLabs per creare il tuo profilo vocale.
+3️⃣ Incolla il testo aggiungendo pause e punteggiatura: legge col tuo timbro e le tue inflessioni.
+
+Nei miei test produco i video 5× più velocemente, senza rifare 20 registrazioni per una parola sbagliata.
+
+🎁 Ho raccolto i settaggi esatti e i prompt per l'espressività nella guida gratis su capirelai.com (link in bio).
+💬 Commenta "VOCE" qui sotto per riceverla subito!
+
+#CapirelAI #ElevenLabs #VoiceCloning #AIItalia #ContentCreation #IntelligenzaArtificiale`,
+    pinnedComment: `📌 VUOI I SETTAGGI ESATTI E I PROMPT PER L'ESPRESSIVITÀ VOCALE?
+
+Li trovi gratis nella guida di questa settimana su https://www.capirelai.com/#hub-prompt (link in bio @capirelai)!
+💬 Scrivi "VOCE" se la provi oggi.`,
+  },
+  {
     id: 'reel-13-ferrari-chatgpt-rof-jarvis',
     badge: 'WARM MACRO STUDIO • VOCE ELEVENLABS ALESSANDRO + IG SAFE',
     title: "Reel 13 // Smetti di Usare ChatGPT Come Google (Ferrari & Metodo R.O.F.)",
@@ -710,7 +738,7 @@ function InstagramKitModal({
   initialReelId?: string;
 }) {
   const [section, setSection] = useState<'reels' | 'highlights' | 'posts'>('reels');
-  const [selectedReelId, setSelectedReelId] = useState<string>(initialReelId || 'reel-13-ferrari-chatgpt-rof-jarvis');
+  const [selectedReelId, setSelectedReelId] = useState<string>(initialReelId || 'reel-14-voice-cloning-neural-space');
   const [selectedHighlightId, setSelectedHighlightId] = useState<string>('chi-sono');
   const [selectedPostId, setSelectedPostId] = useState<string>('agents');
   const [copied, setCopied] = useState(false);
@@ -884,8 +912,10 @@ function InstagramKitModal({
                     color: selectedReelId === reel.id ? '#ffffff' : '#999999',
                   }}
                 >
-                  {reel.id === 'reel-13-ferrari-chatgpt-rof-jarvis'
-                    ? '🏎️ Reel 13: Ferrari & R.O.F. (NEW)'
+                  {reel.id === 'reel-14-voice-cloning-neural-space'
+                    ? '🧠 Reel 14: Neural Voice 60s (NEW)'
+                    : reel.id === 'reel-13-ferrari-chatgpt-rof-jarvis'
+                      ? '🏎️ Reel 13: Ferrari & R.O.F.'
                     : reel.id === 'reel-12-fregato-desk-3d'
                       ? '🖥️ Reel 12: Fregato Desk 3D'
                       : reel.id === 'reel-onetake-3d-spot-chatgpt'
@@ -1912,7 +1942,7 @@ function InteractiveForum() {
 export default function CapirelAiHero() {
   const [isChiSonoOpen, setIsChiSonoOpen] = useState(false);
   const [isInstagramOpen, setIsInstagramOpen] = useState(false);
-  const [initialInstagramReelId, setInitialInstagramReelId] = useState<string>('reel-13-ferrari-chatgpt-rof-jarvis');
+  const [initialInstagramReelId, setInitialInstagramReelId] = useState<string>('reel-14-voice-cloning-neural-space');
   const [isFounderOpen, setIsFounderOpen] = useState(false);
   const [isForumModalOpen, setIsForumModalOpen] = useState(false);
   const [activeArticle, setActiveArticle] = useState<FullArticleData | null>(null);
@@ -1961,7 +1991,12 @@ export default function CapirelAiHero() {
 
     const syncFromUrl = () => {
       const rawHash = window.location.hash.replace(/^#/, '').toLowerCase();
-      if (rawHash === 'reel-13' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+      if (rawHash === 'reel-14' || rawHash === 'instagram-studio' || rawHash === 'studio') {
+        setInitialInstagramReelId('reel-14-voice-cloning-neural-space');
+        setIsInstagramOpen(true);
+        return;
+      }
+      if (rawHash === 'reel-13') {
         setInitialInstagramReelId('reel-13-ferrari-chatgpt-rof-jarvis');
         setIsInstagramOpen(true);
         return;
